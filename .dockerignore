@@ -1,0 +1,13 @@
+.git
+.vscode
+node_modules
+client/node_modules
+server/node_modules
+client/.next
+server/dist
+**/.env
+**/.env.*
+**/*.log
+.DS_Store
+README.md
+DOCKER.md
