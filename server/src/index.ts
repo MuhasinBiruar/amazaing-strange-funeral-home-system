@@ -1,17 +1,48 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import { Pool } from "pg";
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
+const connectionString = process.env.DATABASE_URL ?? process.env.DB_URL;
+
+//placeholder connecton: should be separated into a different file and imported here. This is just for testing purposes.
+if (!connectionString) {
+  throw new Error("Missing DATABASE_URL or DB_URL environment variable");
+}
+
+const pool = new Pool({
+  connectionString,
+  ssl: process.env.PGSSL === "true" ? { rejectUnauthorized: false } : false,
+});
 
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (_req, res) => {
-  res.json({ message: "YOOOOOOOOO I AM HERE." });
+//placeholder data
+app.get("/", async (_req, res) => {
+  try {
+    // 2. Run the query when someone visits this route
+    const result = await pool.query("SELECT * from DeceasedRecord");
+
+    // 3. Send the database rows back as JSON
+    res.json({
+      message: "YOOOOOOOOO I AM HERE.",
+      data: result.rows
+    });
+  } catch (error) {
+    console.error("Error fetching records:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
+app.listen(PORT, async () => {
+  try {
+    await pool.query("SELECT * from DeceasedRecord");
+    console.log(`Server listening on http://localhost:${PORT}`);
+    console.log("Database connected");
+  } catch (error) {
+    console.error("Database connection failed", error);
+  }
 });
