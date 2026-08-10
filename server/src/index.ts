@@ -28,7 +28,7 @@ app.get("/", async (_req, res) => {
 
 app.listen(PORT, async () => {
   try {
-    await pool.query("SELECT * from DeceasedRecord");
+    await pool.query("SELECT 1 from DeceasedRecord");
     console.log(`Server listening on http://localhost:${PORT}`);
     console.log("Database connected");
   } catch (error) {
