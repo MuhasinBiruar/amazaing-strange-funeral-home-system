@@ -1,21 +1,10 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import { Pool } from "pg";
+import pool from "./db";
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
-const connectionString = process.env.DATABASE_URL ?? process.env.DB_URL;
-
-//placeholder connecton: should be separated into a different file and imported here. This is just for testing purposes.
-if (!connectionString) {
-  throw new Error("Missing DATABASE_URL or DB_URL environment variable");
-}
-
-const pool = new Pool({
-  connectionString,
-  ssl: process.env.PGSSL === "true" ? { rejectUnauthorized: false } : false,
-});
 
 app.use(cors());
 app.use(express.json());
