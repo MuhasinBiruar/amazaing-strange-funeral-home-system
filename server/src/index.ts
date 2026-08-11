@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import pool from "./db";
+import pool from "./db.ts";
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
