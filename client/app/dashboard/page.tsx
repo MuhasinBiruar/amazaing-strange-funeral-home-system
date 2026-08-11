@@ -29,7 +29,7 @@
 
     export default function DashboardPage() {
       return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white flex flex-col">
 
             {/* Header */}
             <Header />
@@ -59,7 +59,7 @@
                     {name}
                   </span>
                 </button>
-              ))}s
+              ))}
             </div>
           </main>
 
