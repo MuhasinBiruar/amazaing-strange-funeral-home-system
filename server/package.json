@@ -16,6 +16,7 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@types/pg": "^8.21.0",
     "better-auth": "^1.6.26",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
