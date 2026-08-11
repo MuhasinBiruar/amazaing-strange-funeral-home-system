@@ -17,6 +17,8 @@
 
     "resolveJsonModule": true,
 
+    "rewriteRelativeImportExtensions": true,
+
     "sourceMap": true,
 
     "types": ["node"]
