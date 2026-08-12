@@ -2,11 +2,17 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import pool from "./db.ts";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./lib/auth.ts";
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
 
 app.use(cors());
+
+// Better Auth's own routes — must come BEFORE express.json()
+app.all("/api/auth/*splat", toNodeHandler(auth));
+
 app.use(express.json());
 
 //placeholder data
