@@ -3,15 +3,22 @@ import express from "express";
 import cors from "cors";
 import pool from "./db.ts";
 import { toNodeHandler } from "better-auth/node";
+import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "./lib/auth.ts";
 
 const app = express();
-const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
+const PORT = process.env.APP_PORT ? Number(process.env.APP_PORT) : 4000;
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:3000",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"], // Specify allowed HTTP methods
+  allowedHeaders: ["Content-Type", "Authorization"], //added Authorization header to allow token-based auth
+  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+}));
 
 // Better Auth's own routes — must come BEFORE express.json()
 app.all("/api/auth/*splat", toNodeHandler(auth));
+//app.all("/api/auth/:path(.*)", toNodeHandler(auth));
 
 app.use(express.json());
 
@@ -30,6 +37,14 @@ app.get("/", async (_req, res) => {
     console.error("Error fetching records:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
+});
+
+//get session data of logged in user
+app.get("/api/me", async (req, res) => {
+  const session = await auth.api.getSession({
+    headers: fromNodeHeaders(req.headers),
+  });
+  return res.json(session);
 });
 
 app.listen(PORT, async () => {
