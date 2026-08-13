@@ -46,7 +46,8 @@ export const auth = betterAuth({
         admin({
             adminUserIds: ["<staffId-of-your-first-admin>"],
         }),
-    ]
+    ],
+    trustedOrigins: [process.env.CLIENT_URL || "http://localhost:3000"],
 })
 
 // for account creation, i only want the admin to create accounts, no sign ups and emails will not be used
