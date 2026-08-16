@@ -8,16 +8,11 @@ import { authClient } from "../../lib/auth-client";
      * Client-side route guard that verifies the current user has an active
     * session before rendering its children.
     *
-    * On mount, checks the session via `authClient.getSession()`. While the
-    * check is in flight, renders a loading state. If no valid session is
-    * found (or the check errors), redirects to `/` (login page). Only once a session is
-    * confirmed does it render `children` (the current protected page).
+    * On mount, checks the session via `authClient.getSession()`. While the check is in flight, renders a loading state. If no valid session is
+    * found (or the check errors), redirects to `/` (login page). Only once a session is confirmed does it render `children` (the current protected page).
     *
-    * This is a UX convenience, not a security boundary — it runs entirely
-    * in the browser after the page has already loaded. Every protected
-    * server endpoint must independently verify the session; this guard
-    * only prevents the UI from flashing protected content to signed-out
-    * users and nudges them back to login.
+    * This is a UX convenience, not a security boundary — it runs entirely in the browser after the page has already loaded. Every protected
+    * server endpoint must independently verify the session; this guard only prevents the UI from flashing protected content to signed-out users and nudges them back to login.
     *
     * @remarks
     * Wrap any page that should require authentication:
