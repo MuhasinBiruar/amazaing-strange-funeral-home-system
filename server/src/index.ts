@@ -23,7 +23,7 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(express.json());
 
 //deceased record
-app.get("/deceasedrecord", async (_req, res) => {
+app.get("/deceasedrecords", async (_req, res) => {
   try {
     // 2. Run the query when someone visits this route
     const result = await pool.query("SELECT * from DeceasedRecord");
@@ -38,7 +38,7 @@ app.get("/deceasedrecord", async (_req, res) => {
   }
 });
 
-app.get("/deceasedrecord/:id", async (req, res) => {
+app.get("/deceasedrecords/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query("SELECT * FROM DeceasedRecord WHERE caseid = $1", [id]);
@@ -69,10 +69,10 @@ app.get("/staff", async (_req, res) => {
   }
 });
 
-app.get("/staff/:id", async (req, res) => {
+app.get("/staff/:username", async (req, res) => {
   try {
-    const { id } = req.params;
-    const result = await pool.query("SELECT * FROM Staff WHERE staffid = $1", [id]);
+    const { username } = req.params;
+    const result = await pool.query("SELECT * FROM Staff WHERE username = $1", [username]);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Staff member not found" });
     }
@@ -85,7 +85,7 @@ app.get("/staff/:id", async (req, res) => {
 
 //------------------------------------------------------------------------------------------------
 
-app.get("/document", async (_req, res) => {
+app.get("/documents", async (_req, res) => {
   try {
     // 2. Run the query when someone visits this route
     const result = await pool.query("SELECT * from Document");
@@ -100,7 +100,7 @@ app.get("/document", async (_req, res) => {
   }
 });
 
-app.get("/document/:id", async (req, res) => {
+app.get("/documents/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query("SELECT * FROM Document WHERE documentid = $1", [id]);
