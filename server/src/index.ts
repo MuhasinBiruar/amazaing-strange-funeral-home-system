@@ -24,7 +24,7 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 
 app.use(express.json());
 
-//#region deceased record 
+//#region /deceasedrecords
 app.get("/deceasedrecords", async (_req, res) => {
   try {
     // 2. Run the query when someone visits this route
@@ -101,7 +101,7 @@ app.post("/deceasedrecords", validate(deceasedrecordsSchema), async (req, res) =
 });
 //#endregion
 
-//#region staff
+//#region /staff
 app.get("/staff", async (_req, res) => {
   try {
     // 2. Run the query when someone visits this route
@@ -132,7 +132,7 @@ app.get("/staff/:username", async (req, res) => {
 });
 //#endregion
 
-//#region documents
+//#region /documents
 app.get("/documents", async (_req, res) => {
   try {
     // 2. Run the query when someone visits this route
