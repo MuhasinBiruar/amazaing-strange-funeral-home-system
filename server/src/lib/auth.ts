@@ -1,7 +1,7 @@
-import { betterAuth } from "better-auth";
-import { Pool } from "pg";
-import { username } from "better-auth/plugins";
-import { admin } from "better-auth/plugins";
+import { betterAuth } from 'better-auth';
+import { Pool } from 'pg';
+import { username } from 'better-auth/plugins';
+import { admin } from 'better-auth/plugins';
 
 /**
  * Better Auth server configuration for the funeral home system.
@@ -19,37 +19,42 @@ import { admin } from "better-auth/plugins";
  */
 
 export const auth = betterAuth({
-    database: new Pool({
-        host: process.env.HOST,
-        port: parseInt(process.env.PORT || "5432"),
-        database: process.env.DATABASE,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-    }),
-    user: {
-        modelName: "staff",
-        fields: {
-            createdAt: "dateCreated",
-        },
-        additionalFields: {
-            firstName: { type: "string", required: true },
-            middleName: { type: "string", required: false },
-            lastName: { type: "string", required: true },
-            isActive: { type: "boolean", required: false, defaultValue: true },
-            jobRole: { type: "string", required: false, defaultValue: "staff", input: false },
-            contactNumber: { type: "string", required: false },
-        },
+  database: new Pool({
+    host: process.env.HOST,
+    port: parseInt(process.env.PORT || '5432'),
+    database: process.env.DATABASE,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+  }),
+  user: {
+    modelName: 'staff',
+    fields: {
+      createdAt: 'dateCreated',
     },
+    additionalFields: {
+      firstName: { type: 'string', required: true },
+      middleName: { type: 'string', required: false },
+      lastName: { type: 'string', required: true },
+      isActive: { type: 'boolean', required: false, defaultValue: true },
+      jobRole: {
+        type: 'string',
+        required: false,
+        defaultValue: 'staff',
+        input: false,
+      },
+      contactNumber: { type: 'string', required: false },
+    },
+  },
 
-    emailAndPassword: {
-        enabled: true,
-        disableSignUp: true
-    },
-    plugins: [
-        username({ minUsernameLength: 3, maxUsernameLength: 50 }),
-        admin({
-            adminUserIds: ["<staffId-of-your-first-admin>"],
-        }),
-    ],
-    trustedOrigins: [process.env.CLIENT_URL || "http://localhost:3000"],
-})
+  emailAndPassword: {
+    enabled: true,
+    disableSignUp: true,
+  },
+  plugins: [
+    username({ minUsernameLength: 3, maxUsernameLength: 50 }),
+    admin({
+      adminUserIds: ['<staffId-of-your-first-admin>'],
+    }),
+  ],
+  trustedOrigins: [process.env.CLIENT_URL || 'http://localhost:3000'],
+});
