@@ -5,6 +5,8 @@ import pool from "./db.ts";
 import { toNodeHandler } from "better-auth/node";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "./lib/auth.ts";
+import deceasedrecordsSchema from "./schemas/deceasedrecords.ts";
+import validate from "./middleware/validate.ts";
 
 const app = express();
 const PORT = process.env.APP_PORT ? Number(process.env.APP_PORT) : 4000;
@@ -22,7 +24,7 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 
 app.use(express.json());
 
-//deceased record
+//#region deceased record 
 app.get("/deceasedrecords", async (_req, res) => {
   try {
     // 2. Run the query when someone visits this route
@@ -41,7 +43,9 @@ app.get("/deceasedrecords", async (_req, res) => {
 app.get("/deceasedrecords/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query("SELECT * FROM DeceasedRecord WHERE caseid = $1", [id]);
+    const result = await pool.query(
+      "SELECT * FROM DeceasedRecord WHERE caseid = $1", [id]
+    );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Record not found" });
     }
@@ -52,8 +56,52 @@ app.get("/deceasedrecords/:id", async (req, res) => {
   }
 });
 
-//------------------------------------------------------------------------------------------------
+app.post("/deceasedrecords", validate(deceasedrecordsSchema), async (req, res) => {
+  try {
+    const parsed = deceasedrecordsSchema.parse(req.body);
 
+    const result = await pool.query(`
+      INSERT INTO deceasedrecord (
+        firstname,
+        middlename,
+        lastname,
+        causeofdeath,
+        typeofdeath,
+        physicaldescription,
+        servicestatus,
+        hasmaturedlifeplan,
+        plantype,
+        datecreated,
+        managedby
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING caseid;`,
+      [
+        parsed.firstname,
+        parsed.middlename,
+        parsed.lastname,
+        parsed.causeofdeath,
+        parsed.typeofdeath,
+        parsed.physicaldescription,
+        parsed.servicestatus,
+        parsed.hasmaturedlifeplan,
+        parsed.plantype,
+        parsed.datecreated,
+        parsed.managedby
+      ]);
+
+    return res.status(201).json({
+      message: "Record created successfully",
+      data: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error("Error creating record:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+//#endregion
+
+//#region staff
 app.get("/staff", async (_req, res) => {
   try {
     // 2. Run the query when someone visits this route
@@ -82,9 +130,9 @@ app.get("/staff/:username", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+//#endregion
 
-//------------------------------------------------------------------------------------------------
-
+//#region documents
 app.get("/documents", async (_req, res) => {
   try {
     // 2. Run the query when someone visits this route
@@ -113,8 +161,7 @@ app.get("/documents/:id", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-//------------------------------------------------------------------------------------------------
+//#endregion
 
 //get session data of logged in user
 app.get("/api/me", async (req, res) => {
