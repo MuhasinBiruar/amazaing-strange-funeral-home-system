@@ -4,7 +4,7 @@ function nullableStringField() {
   return z.string().nullable().optional().transform((val) => val ?? null);
 }
 
-const deceasedrecordsSchema = z.object({
+export const deceasedrecordsSchema = z.object({
   firstname: z.string().min(1),
   middlename: nullableStringField(),
   lastname: z.string().min(1),
@@ -18,4 +18,4 @@ const deceasedrecordsSchema = z.object({
   managedby: nullableStringField(),
 });
 
-export default deceasedrecordsSchema;
+export type DeceasedRecord = z.infer<typeof deceasedrecordsSchema>;
