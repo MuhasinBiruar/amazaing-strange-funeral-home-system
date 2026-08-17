@@ -1,7 +1,11 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 function nullableStringField() {
-  return z.string().nullable().optional().transform((val) => val ?? null);
+  return z
+    .string()
+    .nullable()
+    .optional()
+    .transform((val) => val ?? null);
 }
 
 export const deceasedrecordsSchema = z.object({

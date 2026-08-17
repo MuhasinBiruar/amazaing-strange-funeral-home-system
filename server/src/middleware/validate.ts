@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { Request, Response, NextFunction } from "express";
+import { z } from 'zod';
+import { Request, Response, NextFunction } from 'express';
 
 /**
  * Validate middleware using Zod.
@@ -13,7 +13,7 @@ export default function validate<T extends z.ZodType>(schema: T) {
 
     if (!result.success) {
       return res.status(400).json({
-        message: "Invalid request body",
+        message: 'Invalid request body',
         errors: z.treeifyError(result.error),
       });
     }
