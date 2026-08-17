@@ -1,11 +1,11 @@
 import "dotenv/config";
-import express from "express";
+import express, { type Request, type Response } from "express";
 import cors from "cors";
 import pool from "./db.ts";
 import { toNodeHandler } from "better-auth/node";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "./lib/auth.ts";
-import deceasedrecordsSchema from "./schemas/deceasedrecords.ts";
+import { deceasedrecordsSchema, type DeceasedRecord } from "./schemas/deceasedrecords.ts";
 import validate from "./middleware/validate.ts";
 
 const app = express();
@@ -56,10 +56,9 @@ app.get("/deceasedrecords/:id", async (req, res) => {
   }
 });
 
-app.post("/deceasedrecords", validate(deceasedrecordsSchema), async (req, res) => {
+app.post("/deceasedrecords", validate(deceasedrecordsSchema), async (req: Request<{}, {}, DeceasedRecord>, res: Response) => {
   try {
-    const parsed = deceasedrecordsSchema.parse(req.body);
-
+    const parsed = req.body;
     const result = await pool.query(`
       INSERT INTO deceasedrecord (
         firstname,
@@ -93,7 +92,6 @@ app.post("/deceasedrecords", validate(deceasedrecordsSchema), async (req, res) =
       message: "Record created successfully",
       data: result.rows[0]
     });
-
   } catch (error) {
     console.error("Error creating record:", error);
     res.status(500).json({ error: "Internal Server Error" });
