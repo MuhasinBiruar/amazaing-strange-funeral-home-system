@@ -22,15 +22,14 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 
 app.use(express.json());
 
-//placeholder data
-app.get("/", async (_req, res) => {
+//deceased record
+app.get("/deceasedrecords", async (_req, res) => {
   try {
     // 2. Run the query when someone visits this route
     const result = await pool.query("SELECT * from DeceasedRecord");
 
     // 3. Send the database rows back as JSON
     res.json({
-      message: "YOOOOOOOOO I AM HERE.",
       data: result.rows
     });
   } catch (error) {
@@ -38,6 +37,84 @@ app.get("/", async (_req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+app.get("/deceasedrecords/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query("SELECT * FROM DeceasedRecord WHERE caseid = $1", [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+    res.json({ data: result.rows[0] });
+  } catch (error) {
+    console.error("Error fetching record:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+//------------------------------------------------------------------------------------------------
+
+app.get("/staff", async (_req, res) => {
+  try {
+    // 2. Run the query when someone visits this route
+    const result = await pool.query("SELECT * from Staff");
+
+    // 3. Send the database rows back as JSON
+    res.json({
+      data: result.rows
+    });
+  } catch (error) {
+    console.error("Error fetching staff members:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/staff/:username", async (req, res) => {
+  try {
+    const { username } = req.params;
+    const result = await pool.query("SELECT * FROM Staff WHERE username = $1", [username]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Staff member not found" });
+    }
+    res.json({ data: result.rows[0] });
+  } catch (error) {
+    console.error("Error fetching staff member:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+//------------------------------------------------------------------------------------------------
+
+app.get("/documents", async (_req, res) => {
+  try {
+    // 2. Run the query when someone visits this route
+    const result = await pool.query("SELECT * from Document");
+
+    // 3. Send the database rows back as JSON
+    res.json({
+      data: result.rows
+    });
+  } catch (error) {
+    console.error("Error fetching documents:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/documents/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query("SELECT * FROM Document WHERE documentid = $1", [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+    res.json({ data: result.rows[0] });
+  } catch (error) {
+    console.error("Error fetching document:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+//------------------------------------------------------------------------------------------------
 
 //get session data of logged in user
 app.get("/api/me", async (req, res) => {
