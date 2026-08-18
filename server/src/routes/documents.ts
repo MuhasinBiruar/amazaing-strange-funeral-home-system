@@ -1,5 +1,15 @@
-import { Router } from 'express';
+import {
+  Router,
+  type NextFunction,
+  type Request,
+  type Response,
+} from 'express';
 import pool from '../db.ts';
+import validate from '../middleware/validate.ts';
+import {
+  documentsSchema,
+  type DocumentsSchemaType,
+} from '../schemas/documents.ts';
 
 const router = Router();
 
@@ -32,5 +42,45 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+router.post(
+  '/',
+  validate(documentsSchema),
+  async (
+    req: Request<{}, {}, DocumentsSchemaType>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const parsed = req.body;
+      const result = await pool.query(
+        `
+      INSERT INTO document (
+        documenttype,
+        verificationstatus,
+        uploaddate,
+        verifiedby,
+        caseid
+      ) VALUES ($1, $2, $3, $4, $5)
+      RETURNING documentid;`,
+        [
+          parsed.documenttype,
+          parsed.verificationstatus,
+          parsed.uploaddate,
+          parsed.verifiedby,
+          parsed.caseid,
+        ],
+      );
+
+      res.status(201).json({
+        message: 'Document created successfully',
+        data: result.rows[0],
+      });
+    } catch (error: any) {
+      console.error('Error creating document:', error);
+      next(error);
+    }
+  },
+);
 
 export default router;
