@@ -22,4 +22,4 @@ export const deceasedrecordsSchema = z.object({
   managedby: nullableStringField(),
 });
 
-export type DeceasedRecord = z.infer<typeof deceasedrecordsSchema>;
+export type DeceasedRecordsSchema = z.infer<typeof deceasedrecordsSchema>;

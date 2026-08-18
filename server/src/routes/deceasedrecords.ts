@@ -1,8 +1,13 @@
-import { Router, type Request, type Response } from 'express';
+import {
+  Router,
+  type NextFunction,
+  type Request,
+  type Response,
+} from 'express';
 import pool from '../db.ts';
 import {
   deceasedrecordsSchema,
-  type DeceasedRecord,
+  type DeceasedRecordsSchema,
 } from '../schemas/deceasedrecords.ts';
 import validate from '../middleware/validate.ts';
 
@@ -41,7 +46,11 @@ router.get('/:id', async (req, res) => {
 router.post(
   '/',
   validate(deceasedrecordsSchema),
-  async (req: Request<{}, {}, DeceasedRecord>, res: Response) => {
+  async (
+    req: Request<{}, {}, DeceasedRecordsSchema>,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const parsed = req.body;
       const result = await pool.query(
@@ -79,9 +88,9 @@ router.post(
         message: 'Record created successfully',
         data: result.rows[0],
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating record:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      next(error);
     }
   },
 );
