@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import pool from '../db.ts';
+import requireAuth from '../middleware/require-auth.ts';
 
 const router = Router();
 
-router.get('/', async (_req, res) => {
+router.get('/', requireAuth, async (_req, res) => {
   try {
     const result = await pool.query('SELECT * from Staff');
 
@@ -16,7 +17,7 @@ router.get('/', async (_req, res) => {
   }
 });
 
-router.get('/:username', async (req, res) => {
+router.get('/:username', requireAuth, async (req, res) => {
   try {
     const { username } = req.params;
     const result = await pool.query('SELECT * FROM Staff WHERE username = $1', [

@@ -10,10 +10,11 @@ import {
   type DeceasedRecordsSchema,
 } from '../schemas/deceasedrecords.ts';
 import validate from '../middleware/validate.ts';
+import requireAuth from '../middleware/require-auth.ts';
 
 const router = Router();
 
-router.get('/', async (_req, res) => {
+router.get('/', requireAuth, async (_req, res) => {
   try {
     const result = await pool.query('SELECT * from DeceasedRecord');
 
@@ -26,7 +27,7 @@ router.get('/', async (_req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
@@ -45,6 +46,7 @@ router.get('/:id', async (req, res) => {
 
 router.post(
   '/',
+  requireAuth,
   validate(deceasedrecordsSchema),
   async (
     req: Request<{}, {}, DeceasedRecordsSchema>,

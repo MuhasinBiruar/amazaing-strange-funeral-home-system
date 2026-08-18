@@ -10,10 +10,11 @@ import {
   documentsSchema,
   type DocumentsSchemaType,
 } from '../schemas/documents.ts';
+import requireAuth from '../middleware/require-auth.ts';
 
 const router = Router();
 
-router.get('/', async (_req, res) => {
+router.get('/', requireAuth, async (_req, res) => {
   try {
     const result = await pool.query('SELECT * from Document');
 
@@ -26,7 +27,7 @@ router.get('/', async (_req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
@@ -45,6 +46,7 @@ router.get('/:id', async (req, res) => {
 
 router.post(
   '/',
+  requireAuth,
   validate(documentsSchema),
   async (
     req: Request<{}, {}, DocumentsSchemaType>,
