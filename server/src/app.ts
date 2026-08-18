@@ -26,9 +26,8 @@ app.use(express.json());
 app.use('/deceasedrecords', deceasedRecordsRouter);
 app.use('/staff', staffRouter);
 app.use('/documents', documentsRouter);
+app.use('/api/me', meRouter);
 
 app.use(errorHandler);
-
-app.use('/api/me', meRouter);
 
 export default app;
