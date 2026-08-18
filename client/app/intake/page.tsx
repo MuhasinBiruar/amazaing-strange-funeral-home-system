@@ -17,30 +17,27 @@ import {
 } from "lucide-react";
 
 /**
- * Login page for staff/admin sign-in via username and password.
+ * Intake page for creating a new deceased profile and managing associated documents.
  *
- * Renders a login form, then on successful authentication shows a
- * welcome modal (name + job role) before the user proceeds to the
- * dashboard. Canceling the modal signs the user back out rather than
- * just dismissing it.
- *
+ * @todo Implement form submission logic, validation, and backend integration for saving the deceased profile and documents.
+ * 
  * @remarks
- * the login form itself performs no client-side redirect until 
- * the user clicks "Proceed" on the welcome modal.
+ * The page includes sections for vital statistics, physical description, service arrangement, and a document checklist. It also features a sticky action bar for saving 
+ * or discarding the record, and a modal for confirming file deletions.
  */
 export default function IntakePage() {
   const [planType, setPlanType] = useState("");
   const [locationOfDeath, setLocationOfDeath] = useState("Hospital");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [filesToDelete, setFilesToDelete] = useState(["Release Paper.pdf"]);
-  
+
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   // Mock progress for the progress bar
   const documentProgress = 25;
 
   return (
-    // <PageGuard>
+    <PageGuard>
       <div className="min-h-screen bg-gray-50 flex flex-col pb-24 relative">
         <Header />
 
@@ -102,13 +99,13 @@ export default function IntakePage() {
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   DATE OF DEATH
                 </label>
-                <div 
+                <div
                   className="relative cursor-pointer"
                   onClick={() => dateInputRef.current?.showPicker()}
                 >
-                  <Calendar 
-                    size={18} 
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" 
+                  <Calendar
+                    size={18}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
                   />
                   <input
                     ref={dateInputRef}
@@ -129,11 +126,10 @@ export default function IntakePage() {
                     <button
                       key={loc}
                       onClick={() => setLocationOfDeath(loc)}
-                      className={`py-2 px-1 text-xs sm:text-sm font-medium rounded-lg border transition ${
-                        locationOfDeath === loc
-                          ? "bg-indigo-900 text-white border-indigo-900"
-                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                      }`}
+                      className={`py-2 px-1 text-xs sm:text-sm font-medium rounded-lg border transition ${locationOfDeath === loc
+                        ? "bg-indigo-900 text-white border-indigo-900"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
                     >
                       {loc}
                     </button>
@@ -252,7 +248,7 @@ export default function IntakePage() {
                   UPLOAD
                 </button>
               </div>
-              
+
               <p className="text-[10px] text-gray-400 text-right">Max file size: 2MB per document</p>
             </div>
 
@@ -339,14 +335,14 @@ export default function IntakePage() {
                   <AlertCircle size={24} />
                   <h3 className="text-lg font-bold text-gray-900">Are you sure?</h3>
                 </div>
-                <button 
+                <button
                   onClick={() => setIsDeleteModalOpen(false)}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <X size={20} />
                 </button>
               </div>
-              
+
               <p className="text-sm text-gray-600">
                 The following files will be moved to the trash. They will be permanently deleted after 30 days.
               </p>
@@ -360,13 +356,13 @@ export default function IntakePage() {
               </ul>
 
               <div className="flex gap-3 mt-6">
-                <button 
+                <button
                   onClick={() => setIsDeleteModalOpen(false)}
                   className="flex-1 py-2 text-sm font-bold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   className="flex-1 py-2 text-sm font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 transition"
                 >
                   Delete File
@@ -378,6 +374,6 @@ export default function IntakePage() {
 
         <Footer />
       </div>
-    // </PageGuard>
+    </PageGuard>
   );
 }
