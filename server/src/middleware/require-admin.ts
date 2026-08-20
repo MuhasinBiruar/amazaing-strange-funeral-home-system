@@ -5,7 +5,11 @@ export default function requireAdmin(
   res: Response,
   next: NextFunction,
 ) {
-  if (res.locals.session.user.role !== 'admin')
+  const user = res.locals.session?.user;
+
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+
+  if (user.role !== 'admin')
     return res.status(403).json({ error: 'Forbidden' });
 
   next();
