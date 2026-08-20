@@ -36,12 +36,7 @@ export const auth = betterAuth({
       middleName: { type: 'string', required: false },
       lastName: { type: 'string', required: true },
       isActive: { type: 'boolean', required: false, defaultValue: true },
-      jobRole: {
-        type: 'string',
-        required: false,
-        defaultValue: 'staff',
-        input: false,
-      },
+      jobRole: { type: 'string', required: false, defaultValue: 'staff' },
       contactNumber: { type: 'string', required: false },
     },
   },

@@ -57,11 +57,12 @@ router.post(
           email: parsed.email,
           password: parsed.password,
           name: `${parsed.firstName} ${parsed.lastName}`,
-          role: 'user',
+          role: parsed.role,
           data: {
             firstName: parsed.firstName,
             middleName: parsed.middleName,
             lastName: parsed.lastName,
+            jobRole: parsed.jobRole,
             contactNumber: parsed.contactNumber,
             username: `${parsed.firstName.toLowerCase()[0]}${parsed.middleName?.toLowerCase()[0] || ''}${parsed.lastName.toLowerCase()}`,
           },
