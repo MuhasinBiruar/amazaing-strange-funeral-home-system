@@ -30,9 +30,15 @@ export const staffSchema = z.object({
     .email('Invalid email address')
     .max(255, 'Email must be at most 255 characters'),
   password: passwordSchema,
+  role: z.enum(['admin', 'user']).default('user'),
   firstName: nameSchema('First name'),
   middleName: withNullDefault(nameSchema('Middle name')),
   lastName: nameSchema('Last name'),
+  jobRole: z
+    .string()
+    .min(1)
+    .max(255, 'Job role must be at most 255 characters')
+    .default('staff'),
   contactNumber: withNullDefault(
     z
       .string()
