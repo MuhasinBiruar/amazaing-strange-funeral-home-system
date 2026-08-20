@@ -21,7 +21,7 @@ export default function CreateAccountPage() {
 	const dateInputRef = useRef<HTMLInputElement>(null);
 	return (
 		<PageGuard>
-			<div className="min-h-screen bg-gray-50 flex flex-col pb-24 relative">
+			<div className="min-h-screen bg-white flex flex-col">
 				<Header />
 				<main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 space-y-6">
 					<form className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
