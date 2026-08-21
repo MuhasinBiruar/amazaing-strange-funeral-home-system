@@ -4,13 +4,13 @@ import {
   type Request,
   type Response,
 } from 'express';
-import pool from '../db.ts';
-import validate from '../middleware/validate.ts';
+import pool from '@/db.ts';
+import validate from '@/middleware/validate.ts';
 import {
   documentsSchema,
   type DocumentsSchemaType,
-} from '../schemas/documents.ts';
-import requireAuth from '../middleware/require-auth.ts';
+} from '@/schemas/documents.ts';
+import requireAuth from '@/middleware/require-auth.ts';
 
 const router = Router();
 
