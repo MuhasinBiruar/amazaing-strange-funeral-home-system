@@ -5,29 +5,44 @@ const POSTGRES_ERROR_CODES = {
   UNIQUE_VIOLATION: '23505',
 } as const;
 
-const BETTER_AUTH_ERROR_CODES = {
-  USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL:
-    'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL',
-} as const;
+const CONSTRAINT_MESSAGES: Record<string, string> = {
+  deceasedrecord_managedby_fkey: 'The specified staff member does not exist.',
+  document_verifiedby_fkey: 'The specified staff member does not exist.',
+};
 
 export default function errorHandler(
   error: any,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction,
+  _next: NextFunction,
 ) {
   console.error(error);
 
+  if (error.name === 'APIError' || error.statusCode) {
+    const statusCode = error.statusCode || error.status || 400;
+    const message = error.body?.message || error.message || 'Bad Request';
+
+    return res.status(statusCode).json({
+      error: message,
+    });
+  }
+
   switch (error.code) {
-    case POSTGRES_ERROR_CODES.FOREIGN_KEY_VIOLATION:
-    case POSTGRES_ERROR_CODES.UNIQUE_VIOLATION:
-      return res.status(409).json({
-        error: error.detail,
-      });
-    case BETTER_AUTH_ERROR_CODES.USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL:
-      return res.status(409).json({
-        error: 'User already exists. Please use another email address.',
-      });
+    case POSTGRES_ERROR_CODES.FOREIGN_KEY_VIOLATION: {
+      const message =
+        CONSTRAINT_MESSAGES[error.constraint] ||
+        'A related resource referenced in this request does not exist.';
+
+      return res.status(409).json({ error: message });
+    }
+
+    case POSTGRES_ERROR_CODES.UNIQUE_VIOLATION: {
+      const message =
+        CONSTRAINT_MESSAGES[error.constraint] ||
+        'A record with this value already exists.';
+
+      return res.status(409).json({ error: message });
+    }
     default:
       return res.status(500).json({
         error: 'Internal server error.',
