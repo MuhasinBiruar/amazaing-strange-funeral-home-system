@@ -13,7 +13,7 @@
 
 import 'dotenv/config';
 import { Pool } from 'pg';
-import { auth } from 'server/src/lib/auth.js';
+import { auth } from '@/lib/auth.ts';
 
 // Reuse the same connection config your auth.ts uses, for the raw inserts below.
 const pool = new Pool({

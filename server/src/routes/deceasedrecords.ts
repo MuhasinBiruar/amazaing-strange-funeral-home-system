@@ -4,13 +4,13 @@ import {
   type Request,
   type Response,
 } from 'express';
-import pool from '../db.ts';
+import pool from '@/db.ts';
 import {
   deceasedrecordsSchema,
   type DeceasedRecordsSchema,
-} from '../schemas/deceasedrecords.ts';
-import validate from '../middleware/validate.ts';
-import requireAuth from '../middleware/require-auth.ts';
+} from '@/schemas/deceasedrecords.ts';
+import validate from '@/middleware/validate.ts';
+import requireAuth from '@/middleware/require-auth.ts';
 
 const router = Router();
 
