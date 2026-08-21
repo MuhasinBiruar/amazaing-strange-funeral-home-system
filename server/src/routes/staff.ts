@@ -4,12 +4,12 @@ import {
   type Request,
   type Response,
 } from 'express';
-import pool from '../db.ts';
-import requireAuth from '../middleware/require-auth.ts';
-import { auth } from '../lib/auth.ts';
-import validate from '../middleware/validate.ts';
-import { staffSchema, type StaffSchemaType } from '../schemas/staff.ts';
-import requireAdmin from '../middleware/require-admin.ts';
+import pool from '@/db.ts';
+import requireAuth from '@/middleware/require-auth.ts';
+import { auth } from '@/lib/auth.ts';
+import validate from '@/middleware/validate.ts';
+import { staffSchema, type StaffSchemaType } from '@/schemas/staff.ts';
+import requireAdmin from '@/middleware/require-admin.ts';
 
 const router = Router();
 
