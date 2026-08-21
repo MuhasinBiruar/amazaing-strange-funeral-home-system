@@ -18,9 +18,16 @@ export default function errorHandler(
 ) {
   console.error(error);
 
-  if (error.name === 'APIError' || error.statusCode) {
-    const statusCode = error.statusCode || error.status || 400;
-    const message = error.body?.message || error.message || 'Bad Request';
+  if (error.name === 'APIError' || error.statusCode || error.status) {
+    let statusCode = Number(error.statusCode ?? error.status);
+
+    if (!Number.isInteger(statusCode) || statusCode < 400 || statusCode > 599)
+      statusCode = 500;
+
+    const message =
+      error.body?.message ??
+      error.message ??
+      'An error occurred while processing your request.';
 
     return res.status(statusCode).json({
       error: message,
@@ -35,7 +42,6 @@ export default function errorHandler(
 
       return res.status(409).json({ error: message });
     }
-
     case POSTGRES_ERROR_CODES.UNIQUE_VIOLATION: {
       const message =
         CONSTRAINT_MESSAGES[error.constraint] ||
