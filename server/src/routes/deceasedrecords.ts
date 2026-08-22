@@ -6,9 +6,9 @@ import {
 } from 'express';
 import pool from '@/db.ts';
 import {
-  deceasedrecordsSchema,
-  type DeceasedRecordsSchema,
-} from '@/schemas/deceasedrecords.ts';
+  deceasedrecordSchema,
+  type DeceasedRecordSchema,
+} from '@/schemas/deceasedrecord';
 import validate from '@/middleware/validate.ts';
 import requireAuth from '@/middleware/require-auth.ts';
 
@@ -47,9 +47,9 @@ router.get('/:id', requireAuth, async (req, res) => {
 router.post(
   '/',
   requireAuth,
-  validate(deceasedrecordsSchema),
+  validate(deceasedrecordSchema),
   async (
-    req: Request<{}, {}, DeceasedRecordsSchema>,
+    req: Request<{}, {}, DeceasedRecordSchema>,
     res: Response,
     next: NextFunction,
   ) => {
