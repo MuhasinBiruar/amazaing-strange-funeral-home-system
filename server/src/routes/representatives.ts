@@ -14,7 +14,7 @@ import {
 
 const router = Router();
 
-router.get('/', async (_req, res, next) => {
+router.get('/', requireAuth, async (_req, res, next) => {
   try {
     const result = await pool.query('SELECT * from representative');
 
@@ -27,7 +27,7 @@ router.get('/', async (_req, res, next) => {
   }
 });
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', requireAuth, async (req, res, next) => {
   const { id } = req.params;
 
   try {
@@ -50,6 +50,7 @@ router.get('/:id', async (req, res, next) => {
 
 router.post(
   '/',
+  requireAuth,
   validate(representativeSchema),
   async (
     req: Request<{}, {}, RepresentativeSchema>,

@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { auth } from '@/lib/auth.ts';
 import { fromNodeHeaders } from 'better-auth/node';
+import requireAuth from '@/middleware/require-auth.ts';
 
 const router = Router();
 
 // For getting session data of logged in user
-router.get('/', async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   const session = await auth.api.getSession({
     headers: fromNodeHeaders(req.headers),
   });
