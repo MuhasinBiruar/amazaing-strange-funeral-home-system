@@ -8,9 +8,9 @@ export const representativeSchema = z.object({
   middlename: nameSchema('Middle name'),
   lastname: nameSchema('Last name'),
   relationship: withNullDefault(z.string().min(1)),
-  contactNumber: contactNumberSchema,
+  contactnumber: contactNumberSchema,
   address: withNullDefault(z.string().min(1)),
-  dateCreated: z.coerce.date(),
+  datecreated: z.coerce.date(),
 });
 
 export type RepresentativeSchema = z.infer<typeof representativeSchema>;
