@@ -7,6 +7,7 @@ import deceasedRecordsRouter from './routes/deceasedrecords.ts';
 import staffRouter from './routes/staff.ts';
 import documentsRouter from './routes/documents.ts';
 import meRouter from './routes/me.ts';
+import representativeRouter from './routes/representatives.ts';
 import errorHandler from './middleware/error-handler.ts';
 
 const app = express();
@@ -26,6 +27,7 @@ app.use(express.json());
 app.use('/deceasedrecords', deceasedRecordsRouter);
 app.use('/staff', staffRouter);
 app.use('/documents', documentsRouter);
+app.use('/representatives', representativeRouter);
 app.use('/api/me', meRouter);
 
 app.use(errorHandler);
