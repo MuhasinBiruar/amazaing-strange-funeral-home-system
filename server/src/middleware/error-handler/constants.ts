@@ -3,7 +3,10 @@ export const POSTGRES_ERROR_CODES = {
   UNIQUE_VIOLATION: '23505',
 } as const;
 
-export const FK_CONSTRAINTS: Record<string, { field: string; message: string }> = {
+export const FK_CONSTRAINTS: Record<
+  string,
+  { field: string; message: string }
+> = {
   deceasedrecord_managedby_fkey: {
     field: 'managedby',
     message: 'Please select a valid staff member to manage this record.',
@@ -22,6 +25,7 @@ export const FK_CONSTRAINTS: Record<string, { field: string; message: string }> 
   },
 };
 
-export const UNIQUE_CONSTRAINTS: Record<string, { field: string; message: string }> =
-  {};
-
+export const UNIQUE_CONSTRAINTS: Record<
+  string,
+  { field: string; message: string }
+> = {};

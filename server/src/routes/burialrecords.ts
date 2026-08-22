@@ -3,9 +3,9 @@ import { NotFoundError } from '@/errors';
 import requireAuth from '@/middleware/require-auth.ts';
 import validate from '@/middleware/validate.ts';
 import {
-  representativeSchema,
-  type RepresentativeSchema,
-} from '@/schemas/representative.ts';
+  burialrecordSchema,
+  type BurialRecordSchema,
+} from '@/schemas/burialrecord.ts';
 import {
   Router,
   type NextFunction,
@@ -17,7 +17,7 @@ const router = Router();
 
 router.get('/', requireAuth, async (_req, res, next) => {
   try {
-    const result = await pool.query('SELECT * from representative');
+    const result = await pool.query('SELECT * from burialrecord');
 
     res.json({
       data: result.rows,
@@ -32,7 +32,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 
   try {
     const result = await pool.query(
-      'SELECT * FROM representative WHERE representativeid = $1',
+      'SELECT * FROM burialrecord WHERE burialid = $1',
       [id],
     );
 
@@ -49,9 +49,9 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 router.post(
   '/',
   requireAuth,
-  validate(representativeSchema),
+  validate(burialrecordSchema),
   async (
-    req: Request<{}, {}, RepresentativeSchema>,
+    req: Request<{}, {}, BurialRecordSchema>,
     res: Response,
     next: NextFunction,
   ) => {
@@ -59,24 +59,12 @@ router.post(
       const parsed = req.body;
       const result = await pool.query(
         `
-        INSERT INTO representative (
-          firstname,
-          middlename,
-          lastname,
-          relationship,
-          contactnumber,
-          address,
-          datecreated
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING representativeid;`,
-        [
-          parsed.firstname,
-          parsed.middlename,
-          parsed.lastname,
-          parsed.relationship,
-          parsed.contactnumber,
-          parsed.address,
-          parsed.datecreated,
-        ],
+        INSERT INTO burialrecord (
+          burialdate,
+          burialsite,
+          caseid
+        ) VALUES ($1, $2, $3) RETURNING burialid;`,
+        [parsed.burialdate, parsed.burialsite, parsed.caseid],
       );
 
       res.status(201).json({

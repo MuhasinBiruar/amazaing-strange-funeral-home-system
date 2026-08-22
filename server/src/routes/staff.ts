@@ -10,6 +10,7 @@ import { auth } from '@/lib/auth.ts';
 import validate from '@/middleware/validate.ts';
 import { staffSchema, type StaffSchemaType } from '@/schemas/staff.ts';
 import requireAdmin from '@/middleware/require-admin.ts';
+import { NotFoundError } from '@/errors';
 
 const router = Router();
 
@@ -31,8 +32,7 @@ router.get('/:username', requireAuth, async (req, res, next) => {
     const result = await pool.query('SELECT * FROM Staff WHERE username = $1', [
       username,
     ]);
-    if (result.rows.length === 0)
-      return res.status(404).json({ error: 'Staff member not found' });
+    if (result.rows.length === 0) throw new NotFoundError();
 
     res.json({ data: result.rows[0] });
   } catch (error) {
