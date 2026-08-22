@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import withNullDefault from './util/with-null-default.ts';
 
-export const documentsSchema = z.object({
+export const documentSchema = z.object({
   documenttype: z.string().min(1),
   verificationstatus: z.enum(['pending', 'verified', 'rejected']),
   uploaddate: z.coerce.date(),
@@ -9,4 +9,4 @@ export const documentsSchema = z.object({
   caseid: z.int(),
 });
 
-export type DocumentsSchemaType = z.infer<typeof documentsSchema>;
+export type DocumentSchemaType = z.infer<typeof documentSchema>;

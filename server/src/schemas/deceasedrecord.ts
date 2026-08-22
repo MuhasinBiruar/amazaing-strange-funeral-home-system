@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import withNullDefault from './util/with-null-default.ts';
 
-export const deceasedrecordsSchema = z.object({
+export const deceasedrecordSchema = z.object({
   firstname: z.string().min(1),
   middlename: withNullDefault(z.string().min(1)),
   lastname: z.string().min(1),
@@ -16,4 +16,4 @@ export const deceasedrecordsSchema = z.object({
   representedby: z.int32(),
 });
 
-export type DeceasedRecordsSchema = z.infer<typeof deceasedrecordsSchema>;
+export type DeceasedRecordSchema = z.infer<typeof deceasedrecordSchema>;
