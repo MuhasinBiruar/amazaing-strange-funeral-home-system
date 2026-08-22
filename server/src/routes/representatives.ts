@@ -1,5 +1,16 @@
 import pool from '@/db.ts';
-import { Router } from 'express';
+import requireAuth from '@/middleware/require-auth.ts';
+import validate from '@/middleware/validate.ts';
+import {
+  representativeSchema,
+  type RepresentativeSchema,
+} from '@/schemas/representative.ts';
+import {
+  Router,
+  type NextFunction,
+  type Request,
+  type Response,
+} from 'express';
 
 const router = Router();
 
@@ -36,5 +47,48 @@ router.get('/:id', async (req, res, next) => {
     next(error);
   }
 });
+
+router.post(
+  '/',
+  validate(representativeSchema),
+  async (
+    req: Request<{}, {}, RepresentativeSchema>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const parsed = req.body;
+      const result = await pool.query(
+        `
+      INSERT INTO representative (
+        firstname,
+        middlename,
+        lastname,
+        relationship,
+        contactnumber,
+        address,
+        datecreated
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
+    `,
+        [
+          parsed.firstname,
+          parsed.middlename,
+          parsed.lastname,
+          parsed.relationship,
+          parsed.contactnumber,
+          parsed.address,
+          parsed.datecreated,
+        ],
+      );
+
+      res.status(201).json({
+        data: result.rows[0],
+      });
+    } catch (error) {
+      console.error('Error creating representative:');
+      next(error);
+    }
+  },
+);
 
 export default router;
