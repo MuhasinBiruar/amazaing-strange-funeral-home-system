@@ -27,7 +27,12 @@ export default function errorHandler(
         code: 'VALIDATION_ERROR',
         message: 'One or more fields are invalid.',
         details: error.issues.map((issue) => ({
-          field: issue.path.join('.') || '_form',
+          field:
+            issue.path.reduce<string>((prev, cur) => {
+              if (typeof cur === 'number') return `${prev}[${cur}]`;
+              const curStr = String(cur);
+              return prev ? `${prev}.${curStr}` : `${curStr}`;
+            }, '') || '_form',
           message: issue.message,
         })),
       },
@@ -46,6 +51,20 @@ export default function errorHandler(
   if (error instanceof DatabaseError) {
     const json = handleDatabaseError(error, res);
     if (json !== null) return json;
+  }
+
+  if (
+    error instanceof SyntaxError &&
+    (error as any).status === 400 &&
+    'body' in error
+  ) {
+    return res.status(400).json({
+      error: {
+        code: 'MALFORMED_JSON',
+        message:
+          'Invalid JSON payload. Please check for syntax errors, trailing commas, or unquoted keys.',
+      },
+    });
   }
 
   console.error('Unhandled Error:', error);
