@@ -11,7 +11,7 @@ import requireAuth from '@/middleware/require-auth.ts';
 
 const router = Router();
 
-router.get('/', requireAuth, async (_req, res) => {
+router.get('/', requireAuth, async (_req, res, next) => {
   try {
     const result = await pool.query('SELECT * from Document');
 
@@ -19,12 +19,12 @@ router.get('/', requireAuth, async (_req, res) => {
       data: result.rows,
     });
   } catch (error) {
-    console.error('Error fetching documents:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error fetching documents:');
+    next(error);
   }
 });
 
-router.get('/:id', requireAuth, async (req, res) => {
+router.get('/:id', requireAuth, async (req, res, next) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
@@ -36,8 +36,8 @@ router.get('/:id', requireAuth, async (req, res) => {
 
     res.json({ data: result.rows[0] });
   } catch (error) {
-    console.error('Error fetching document:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error fetching document:');
+    next(error);
   }
 });
 
@@ -76,7 +76,7 @@ router.post(
         data: result.rows[0],
       });
     } catch (error: any) {
-      console.error('Error creating document:', error);
+      console.error('Error creating document:');
       next(error);
     }
   },
