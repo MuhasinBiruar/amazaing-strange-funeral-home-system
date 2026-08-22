@@ -2,11 +2,8 @@ import { APIError } from 'better-auth';
 import { Request, Response, NextFunction } from 'express';
 import { DatabaseError } from 'pg';
 import { ZodError } from 'zod';
-import {
-  handleAPIError,
-  handleDatabaseError,
-  handleZodError,
-} from './handlers.ts';
+import { handleDatabaseError } from './handlers.ts';
+import { AppError } from '@/errors';
 
 export default function errorHandler(
   error: unknown,
@@ -14,16 +11,48 @@ export default function errorHandler(
   res: Response,
   _next: NextFunction,
 ) {
-  console.error(error);
+  if (error instanceof AppError) {
+    return res.status(error.statusCode).json({
+      error: {
+        code: error.code,
+        message: error.message,
+        ...(error.details && { details: error.details }),
+      },
+    });
+  }
 
-  if (error instanceof ZodError) return handleZodError(error, res);
+  if (error instanceof ZodError) {
+    return res.status(400).json({
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'One or more fields are invalid.',
+        details: error.issues.map((issue) => ({
+          field: issue.path.join('.') || '_form',
+          message: issue.message,
+        })),
+      },
+    });
+  }
 
-  if (error instanceof APIError) return handleAPIError(error, res);
+  if (error instanceof APIError) {
+    return res.status(error.statusCode).json({
+      error: {
+        code: error.status,
+        message: error.message,
+      },
+    });
+  }
 
-  if (error instanceof DatabaseError) return handleDatabaseError(error, res);
+  if (error instanceof DatabaseError) {
+    const json = handleDatabaseError(error, res);
+    if (json !== null) return json;
+  }
 
+  console.error('Unhandled Error:', error);
   return res.status(500).json({
-    formErrors: ['Internal server error.'],
-    fieldErrors: {},
+    error: {
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'An unexpected error occurred.',
+    },
   });
 }

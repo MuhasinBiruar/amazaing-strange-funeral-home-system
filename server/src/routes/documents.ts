@@ -8,6 +8,7 @@ import pool from '@/db.ts';
 import validate from '@/middleware/validate.ts';
 import { documentSchema, type DocumentSchemaType } from '@/schemas/document';
 import requireAuth from '@/middleware/require-auth.ts';
+import { NotFoundError } from '@/errors';
 
 const router = Router();
 
@@ -30,8 +31,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
       'SELECT * FROM Document WHERE documentid = $1',
       [id],
     );
-    if (result.rows.length === 0)
-      return res.status(404).json({ error: 'Document not found' });
+    if (result.rows.length === 0) throw new NotFoundError();
 
     res.json({ data: result.rows[0] });
   } catch (error) {

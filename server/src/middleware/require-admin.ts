@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import { UnauthorizedError, ForbiddenError } from '@/errors';
 
 export default function requireAdmin(
   req: Request,
@@ -7,10 +8,9 @@ export default function requireAdmin(
 ) {
   const user = res.locals.session?.user;
 
-  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  if (!user) return next(new UnauthorizedError());
 
-  if (user.role !== 'admin')
-    return res.status(403).json({ error: 'Forbidden' });
+  if (user.role !== 'admin') return next(new ForbiddenError());
 
   next();
 }
