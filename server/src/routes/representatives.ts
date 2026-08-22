@@ -59,16 +59,15 @@ router.post(
       const parsed = req.body;
       const result = await pool.query(
         `
-      INSERT INTO representative (
-        firstname,
-        middlename,
-        lastname,
-        relationship,
-        contactnumber,
-        address,
-        datecreated
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
-    `,
+        INSERT INTO representative (
+          firstname,
+          middlename,
+          lastname,
+          relationship,
+          contactnumber,
+          address,
+          datecreated
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING representativeid;`,
         [
           parsed.firstname,
           parsed.middlename,
