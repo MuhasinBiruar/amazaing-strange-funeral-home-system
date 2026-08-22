@@ -19,7 +19,6 @@ router.get('/', requireAuth, async (_req, res, next) => {
       data: result.rows,
     });
   } catch (error) {
-    console.error('Error fetching documents:');
     next(error);
   }
 });
@@ -36,7 +35,6 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 
     res.json({ data: result.rows[0] });
   } catch (error) {
-    console.error('Error fetching document:');
     next(error);
   }
 });
@@ -76,7 +74,6 @@ router.post(
         data: result.rows[0],
       });
     } catch (error: any) {
-      console.error('Error creating document:');
       next(error);
     }
   },

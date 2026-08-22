@@ -21,7 +21,6 @@ router.get('/', requireAuth, async (_req, res, next) => {
       data: result.rows,
     });
   } catch (error) {
-    console.error('Error fetching staff members:');
     next(error);
   }
 });
@@ -37,7 +36,6 @@ router.get('/:username', requireAuth, async (req, res, next) => {
 
     res.json({ data: result.rows[0] });
   } catch (error) {
-    console.error('Error fetching staff member:');
     next(error);
   }
 });
@@ -72,7 +70,6 @@ router.post(
       });
       res.status(201).json({ data: staff });
     } catch (error) {
-      console.error('Error creating staff member:');
       next(error);
     }
   },

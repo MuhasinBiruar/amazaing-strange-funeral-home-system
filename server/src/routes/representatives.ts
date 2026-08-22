@@ -22,7 +22,6 @@ router.get('/', requireAuth, async (_req, res, next) => {
       data: result.rows,
     });
   } catch (error) {
-    console.error('Error fetching representatives:');
     next(error);
   }
 });
@@ -43,7 +42,6 @@ router.get('/:id', requireAuth, async (req, res, next) => {
       data: result.rows[0],
     });
   } catch (error) {
-    console.error(`Error fetching representative with id = ${id}`);
     next(error);
   }
 });
@@ -86,7 +84,6 @@ router.post(
         data: result.rows[0],
       });
     } catch (error) {
-      console.error('Error creating representative:');
       next(error);
     }
   },
