@@ -7,6 +7,8 @@ const POSTGRES_ERROR_CODES = {
 
 const CONSTRAINT_MESSAGES: Record<string, string> = {
   deceasedrecord_managedby_fkey: 'The specified staff member does not exist.',
+  deceasedrecord_representedby_fkey:
+    'The specified representative does not exist.',
   document_verifiedby_fkey: 'The specified staff member does not exist.',
 };
 
