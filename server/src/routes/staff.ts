@@ -4,11 +4,12 @@ import {
   type Request,
   type Response,
 } from 'express';
-import pool from '../db.ts';
-import requireAuth from '../middleware/require-auth.ts';
-import { auth } from '../lib/auth.ts';
-import validate from '../middleware/validate.ts';
-import { staffSchema, type StaffSchemaType } from '../schemas/staff.ts';
+import pool from '@/db.ts';
+import requireAuth from '@/middleware/require-auth.ts';
+import { auth } from '@/lib/auth.ts';
+import validate from '@/middleware/validate.ts';
+import { staffSchema, type StaffSchemaType } from '@/schemas/staff.ts';
+import requireAdmin from '@/middleware/require-admin.ts';
 
 const router = Router();
 
@@ -44,6 +45,7 @@ router.get('/:username', requireAuth, async (req, res) => {
 router.post(
   '/',
   requireAuth,
+  requireAdmin,
   validate(staffSchema),
   async (
     req: Request<{}, {}, StaffSchemaType>,
@@ -57,11 +59,12 @@ router.post(
           email: parsed.email,
           password: parsed.password,
           name: `${parsed.firstName} ${parsed.lastName}`,
-          role: 'user',
+          role: parsed.role,
           data: {
             firstName: parsed.firstName,
             middleName: parsed.middleName,
             lastName: parsed.lastName,
+            jobRole: parsed.jobRole,
             contactNumber: parsed.contactNumber,
             username: `${parsed.firstName.toLowerCase()[0]}${parsed.middleName?.toLowerCase()[0] || ''}${parsed.lastName.toLowerCase()}`,
           },
