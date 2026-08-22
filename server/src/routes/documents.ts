@@ -52,14 +52,14 @@ router.post(
       const parsed = req.body;
       const result = await pool.query(
         `
-      INSERT INTO document (
-        documenttype,
-        verificationstatus,
-        uploaddate,
-        verifiedby,
-        caseid
-      ) VALUES ($1, $2, $3, $4, $5)
-      RETURNING documentid;`,
+        INSERT INTO document (
+          documenttype,
+          verificationstatus,
+          uploaddate,
+          verifiedby,
+          caseid
+        ) VALUES ($1, $2, $3, $4, $5)
+        RETURNING documentid;`,
         [
           parsed.documenttype,
           parsed.verificationstatus,
@@ -70,7 +70,6 @@ router.post(
       );
 
       res.status(201).json({
-        message: 'Document created successfully',
         data: result.rows[0],
       });
     } catch (error: any) {

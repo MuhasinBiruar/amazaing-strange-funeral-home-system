@@ -55,21 +55,21 @@ router.post(
       const parsed = req.body;
       const result = await pool.query(
         `
-      INSERT INTO deceasedrecord (
-        firstname,
-        middlename,
-        lastname,
-        causeofdeath,
-        typeofdeath,
-        physicaldescription,
-        servicestatus,
-        hasmaturedlifeplan,
-        plantype,
-        datecreated,
-        managedby,
-        representedby
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-      RETURNING caseid;`,
+        INSERT INTO deceasedrecord (
+          firstname,
+          middlename,
+          lastname,
+          causeofdeath,
+          typeofdeath,
+          physicaldescription,
+          servicestatus,
+          hasmaturedlifeplan,
+          plantype,
+          datecreated,
+          managedby,
+          representedby
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        RETURNING caseid;`,
         [
           parsed.firstname,
           parsed.middlename,
@@ -87,7 +87,6 @@ router.post(
       );
 
       res.status(201).json({
-        message: 'Record created successfully',
         data: result.rows[0],
       });
     } catch (error: any) {
