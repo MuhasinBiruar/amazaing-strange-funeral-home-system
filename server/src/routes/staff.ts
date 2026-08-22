@@ -13,7 +13,7 @@ import requireAdmin from '@/middleware/require-admin.ts';
 
 const router = Router();
 
-router.get('/', requireAuth, async (_req, res) => {
+router.get('/', requireAuth, async (_req, res, next) => {
   try {
     const result = await pool.query('SELECT * from Staff');
 
@@ -21,12 +21,12 @@ router.get('/', requireAuth, async (_req, res) => {
       data: result.rows,
     });
   } catch (error) {
-    console.error('Error fetching staff members:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error fetching staff members:');
+    next(error);
   }
 });
 
-router.get('/:username', requireAuth, async (req, res) => {
+router.get('/:username', requireAuth, async (req, res, next) => {
   try {
     const { username } = req.params;
     const result = await pool.query('SELECT * FROM Staff WHERE username = $1', [
@@ -37,8 +37,8 @@ router.get('/:username', requireAuth, async (req, res) => {
 
     res.json({ data: result.rows[0] });
   } catch (error) {
-    console.error('Error fetching staff member:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error fetching staff member:');
+    next(error);
   }
 });
 
