@@ -10,13 +10,7 @@ import { Request, Response, NextFunction } from 'express';
 export default function validate<T extends z.ZodType>(schema: T) {
   return (req: Request, res: Response, next: NextFunction) => {
     const result = schema.safeParse(req.body);
-
-    if (!result.success) {
-      return res.status(400).json({
-        message: 'Invalid request body',
-        errors: z.treeifyError(result.error),
-      });
-    }
+    if (!result.success) return next(result.error);
 
     req.body = result.data;
     next();
