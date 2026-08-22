@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import { auth } from '@/lib/auth.ts';
 import { fromNodeHeaders } from 'better-auth/node';
+import { UnauthorizedError } from '@/errors';
 
 export default async function requireAuth(
   req: Request,
@@ -12,7 +13,7 @@ export default async function requireAuth(
       headers: fromNodeHeaders(req.headers),
     });
 
-    if (!session) return res.status(401).json({ error: 'Unauthorized' });
+    if (!session) throw new UnauthorizedError();
 
     res.locals.session = session;
     next();

@@ -11,6 +11,7 @@ import {
 } from '@/schemas/deceasedrecord';
 import validate from '@/middleware/validate.ts';
 import requireAuth from '@/middleware/require-auth.ts';
+import { NotFoundError } from '@/errors';
 
 const router = Router();
 
@@ -33,8 +34,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
       'SELECT * FROM DeceasedRecord WHERE caseid = $1',
       [id],
     );
-    if (result.rows.length === 0)
-      return res.status(404).json({ error: 'Record not found' });
+    if (result.rows.length === 0) throw new NotFoundError();
 
     res.json({ data: result.rows[0] });
   } catch (error) {
@@ -55,21 +55,21 @@ router.post(
       const parsed = req.body;
       const result = await pool.query(
         `
-      INSERT INTO deceasedrecord (
-        firstname,
-        middlename,
-        lastname,
-        causeofdeath,
-        typeofdeath,
-        physicaldescription,
-        servicestatus,
-        hasmaturedlifeplan,
-        plantype,
-        datecreated,
-        managedby,
-        representedby
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-      RETURNING caseid;`,
+        INSERT INTO deceasedrecord (
+          firstname,
+          middlename,
+          lastname,
+          causeofdeath,
+          typeofdeath,
+          physicaldescription,
+          servicestatus,
+          hasmaturedlifeplan,
+          plantype,
+          datecreated,
+          managedby,
+          representedby
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        RETURNING caseid;`,
         [
           parsed.firstname,
           parsed.middlename,
@@ -87,7 +87,6 @@ router.post(
       );
 
       res.status(201).json({
-        message: 'Record created successfully',
         data: result.rows[0],
       });
     } catch (error: any) {

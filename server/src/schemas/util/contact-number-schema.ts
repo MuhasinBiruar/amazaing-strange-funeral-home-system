@@ -11,10 +11,8 @@ const contactNumberSchema = z
         'Must be a valid local number (e.g., 09123456789) or international format (e.g., +14155552671)',
       )
       .transform((val) => {
-        // 3. Convert clean local PH numbers to +63 format, leave others alone
-        if (val.startsWith('09')) {
-          return '+63' + val.substring(1);
-        }
+        if (val.startsWith('09')) return '+63' + val.substring(1);
+
         return val;
       }),
   );
