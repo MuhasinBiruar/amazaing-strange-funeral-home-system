@@ -6,10 +6,7 @@ import {
 } from 'express';
 import pool from '@/db.ts';
 import validate from '@/middleware/validate.ts';
-import {
-  documentsSchema,
-  type DocumentsSchemaType,
-} from '@/schemas/documents.ts';
+import { documentSchema, type DocumentSchemaType } from '@/schemas/document';
 import requireAuth from '@/middleware/require-auth.ts';
 
 const router = Router();
@@ -47,9 +44,9 @@ router.get('/:id', requireAuth, async (req, res) => {
 router.post(
   '/',
   requireAuth,
-  validate(documentsSchema),
+  validate(documentSchema),
   async (
-    req: Request<{}, {}, DocumentsSchemaType>,
+    req: Request<{}, {}, DocumentSchemaType>,
     res: Response,
     next: NextFunction,
   ) => {
