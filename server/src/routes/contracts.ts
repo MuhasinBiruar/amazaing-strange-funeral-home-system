@@ -40,7 +40,7 @@ router.get(
         `
         SELECT * FROM contract
         ${whereClause}
-        ORDER BY ${parsed.sortBy} ${parsed.sortDir}
+        ORDER BY ${parsed.sortBy} ${parsed.sortDir}, contractid ASC
         LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`,
         [...queryParams, parsed.limit, (parsed.page - 1) * parsed.limit],
       );
