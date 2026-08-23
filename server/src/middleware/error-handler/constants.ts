@@ -9,19 +9,19 @@ export const FK_CONSTRAINTS: Record<
 > = {
   deceasedrecord_managedby_fkey: {
     field: 'managedby',
-    message: 'Please select a valid staff member to manage this record.',
+    message: 'Staff member assigned to manage the record does not exist.',
   },
   deceasedrecord_representedby_fkey: {
     field: 'representedby',
-    message: 'The selected representative could not be found.',
+    message: 'Representative does not exist.',
   },
   document_verifiedby_fkey: {
     field: 'verifiedby',
-    message: 'Please choose a valid staff member to verify this document.',
+    message: 'Document verifier does not exist.',
   },
   burialrecord_caseid_fkey: {
     field: 'caseid',
-    message: 'The linked deceased record could not be found.',
+    message: 'Referenced deceased record does not exist.',
   },
 };
 
