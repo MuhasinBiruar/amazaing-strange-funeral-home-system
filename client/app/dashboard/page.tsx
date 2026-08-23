@@ -22,7 +22,7 @@ import {
 
 const modules = [
   { name: "Intake & Profiling", icon: UserPlus, routeTo: "/intake" },
-  { name: "Contracting", icon: FileSignature, routeTo: "/dashboard" },
+  { name: "Contracting", icon: FileSignature, routeTo: "/contracts" },
   { name: "Financial Dashboard", icon: Wallet, routeTo: "/dashboard" },
   { name: "Special Cases", icon: AlertTriangle, routeTo: "/dashboard" },
   { name: "Inventory Audits", icon: ClipboardCheck, routeTo: "/dashboard" },
