@@ -13,13 +13,10 @@ import Actionbar from './_components/actionbar';
 import DeleteModal from './_components/deletemodal';
 
 /**
- * Login page for staff/admin sign-in via username and password.
+ * Intake page for creating a new deceased profile and managing associated documents.
  *
- * Renders a login form, then on successful authentication shows a
- * welcome modal (name + job role) before the user proceeds to the
- * dashboard. Canceling the modal signs the user back out rather than
- * just dismissing it.
- *
+ * @todo Implement form submission logic, validation, and backend integration for saving the deceased profile and documents.
+ * 
  * @remarks
  * the login form itself performs no client-side redirect until
  * the user clicks "Proceed" on the welcome modal.
