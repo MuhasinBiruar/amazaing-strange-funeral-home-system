@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Building2, ChevronDown } from "lucide-react";
+import { useState } from 'react';
+import { Building2, ChevronDown } from 'lucide-react';
 
-const roles = ["Role A", "Role B", "Role C", "Role D"];
+const roles = ['Role A', 'Role B', 'Role C', 'Role D'];
 
 export default function Header() {
   const [role, setRole] = useState(roles[0]);
@@ -25,7 +25,7 @@ export default function Header() {
           Role: {role}
           <ChevronDown
             size={14}
-            className={`transition-transform ${open ? "rotate-180" : ""}`}
+            className={`transition-transform ${open ? 'rotate-180' : ''}`}
           />
         </button>
 

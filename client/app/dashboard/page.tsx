@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import Header from "../components/header/header";
-import Footer from "../components/footer/footer";
+import Header from '../components/header/header';
+import Footer from '../components/footer/footer';
 // import { useEffect, useState } from "react";
 // import { useRouter } from "next/navigation";
 // import { authClient } from "../lib/auth-client";
-import PageGuard from "../components/pageguard/page";
-import { useRouter } from "next/navigation";
+import PageGuard from '../components/pageguard/page';
+import { useRouter } from 'next/navigation';
 import {
   Wallet,
   AlertTriangle,
@@ -16,16 +16,14 @@ import {
   RefreshCcw,
   FolderOpen,
   Package,
-} from "lucide-react";
-
-
+} from 'lucide-react';
 
 const modules = [
-  { name: "Intake & Profiling", icon: UserPlus, routeTo: "/intake" },
-  { name: "Contracting", icon: FileSignature, routeTo: "/contracts" },
-  { name: "Financial Dashboard", icon: Wallet, routeTo: "/dashboard" },
-  { name: "Special Cases", icon: AlertTriangle, routeTo: "/dashboard" },
-  { name: "Inventory Audits", icon: ClipboardCheck, routeTo: "/dashboard" },
+  { name: 'Intake & Profiling', icon: UserPlus, routeTo: '/intake' },
+  { name: 'Contracting', icon: FileSignature, routeTo: '/contracts' },
+  { name: 'Financial Dashboard', icon: Wallet, routeTo: '/dashboard' },
+  { name: 'Special Cases', icon: AlertTriangle, routeTo: '/dashboard' },
+  { name: 'Inventory Audits', icon: ClipboardCheck, routeTo: '/dashboard' },
   // { name: "Daily Payments", icon: RefreshCcw },
   // { name: "Document Hub", icon: FolderOpen },
   // { name: "Basic Inventory", icon: Package },
@@ -40,7 +38,7 @@ const modules = [
  * just dismissing it.
  *
  * @remarks
- * the login form itself performs no client-side redirect until 
+ * the login form itself performs no client-side redirect until
  * the user clicks "Proceed" on the welcome modal.
  */
 export default function DashboardPage() {
@@ -51,8 +49,12 @@ export default function DashboardPage() {
       <Header />
       <main className="flex-1 w-full max-w-5xl mx-auto overflow-hidden">
         <div className="text-left sm:text-center pt-5 sm:pt-8 pb-4 px-4 sm:px-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-indigo-900">Dashboard</h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">Choose a service to get started.</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-indigo-900">
+            Dashboard
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            Choose a service to get started.
+          </p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 px-4 sm:px-6 pb-6 sm:pb-8">
           {modules.map(({ name, icon: Icon, routeTo }) => (
