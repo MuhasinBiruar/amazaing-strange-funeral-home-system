@@ -10,7 +10,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-  const [welcomeUser, setWelcomeUser] = useState<{ firstName: string; lastName: string, jobRole: string } | null>(null);
+  const [welcomeUser, setWelcomeUser] = useState<{
+    firstName: string;
+    lastName: string;
+    jobRole: string;
+  } | null>(null);
 
   /**
    * Handles the login form submission. Signs in via username/password,
@@ -22,14 +26,14 @@ export default function LoginPage() {
    */
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    await authClient.signIn.username({ username, password })
+    await authClient.signIn
+      .username({ username, password })
       .then((response) => {
         console.log('Login Info:', response);
         if (response.error) {
-          setError(response.error.message ?? "log in failed, please try again");
+          setError(response.error.message ?? 'log in failed, please try again');
           return;
-        }
-        else {
+        } else {
           //show welcome message to user and redirect to dashboard after clicking ok button
           const user = response.data.user as typeof response.data.user & {
             firstName?: string;
@@ -43,8 +47,8 @@ export default function LoginPage() {
             jobRole: user.jobRole?.toUpperCase() ?? '',
           });
         }
-      })
-  };
+      });
+  }
 
   /**
    * Dismisses the welcome modal and signs the user back out, reverting
@@ -56,7 +60,7 @@ export default function LoginPage() {
   async function handleCancel(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     setWelcomeUser(null);
-    await authClient.signOut().then(response => {
+    await authClient.signOut().then((response) => {
       console.log('Sign out Info:', response);
     });
   }
@@ -68,7 +72,10 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-gray-700"
+            >
               Username
             </label>
             <p id="username-help" className="mt-1 text-sm text-gray-500">
@@ -88,7 +95,10 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
               Password
             </label>
             <p id="password-help" className="mt-1 text-sm text-gray-500">
@@ -128,13 +138,27 @@ export default function LoginPage() {
       {welcomeUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/60 bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-md text-center">
-            <h2 className="text-xl text-[#00236F] font-bold mb-4">Welcome, {welcomeUser.firstName} {welcomeUser.lastName}</h2>
-            <h3 className="text-sm text-[#3a67c8] font-semibold mb-2">{welcomeUser.jobRole}</h3>
-            <p className="mb-4 text-gray-600 text-sm">You have successfully logged in.</p>
-            <button onClick={handleCancel} className="bg-gray-300 text-gray-800 py-2 px-4 rounded-md font-medium hover:bg-gray-400 transition hover:cursor-pointer mr-2">Cancel</button>
+            <h2 className="text-xl text-[#00236F] font-bold mb-4">
+              Welcome, {welcomeUser.firstName} {welcomeUser.lastName}
+            </h2>
+            <h3 className="text-sm text-[#3a67c8] font-semibold mb-2">
+              {welcomeUser.jobRole}
+            </h3>
+            <p className="mb-4 text-gray-600 text-sm">
+              You have successfully logged in.
+            </p>
+            <button
+              onClick={handleCancel}
+              className="bg-gray-300 text-gray-800 py-2 px-4 rounded-md font-medium hover:bg-gray-400 transition hover:cursor-pointer mr-2"
+            >
+              Cancel
+            </button>
             <button
               onClick={() => router.push('/dashboard')}
-              className="bg-[#00236F] text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 transition hover:cursor-pointer">Proceed</button>
+              className="bg-[#00236F] text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 transition hover:cursor-pointer"
+            >
+              Proceed
+            </button>
           </div>
         </div>
       )}

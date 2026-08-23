@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import Header from "../components/header/header";
 import Footer from "../components/footer/footer";
@@ -13,16 +13,14 @@ import {
   RefreshCcw,
   FolderOpen,
   Package,
-} from "lucide-react";
-
-
+} from 'lucide-react';
 
 const modules = [
-  { name: "Intake & Profiling", icon: UserPlus, routeTo: "/intake" },
-  { name: "Contracting", icon: FileSignature, routeTo: "/dashboard" },
-  { name: "Financial Dashboard", icon: Wallet, routeTo: "/dashboard" },
-  { name: "Special Cases", icon: AlertTriangle, routeTo: "/dashboard" },
-  { name: "Inventory Audits", icon: ClipboardCheck, routeTo: "/dashboard" },
+  { name: 'Intake & Profiling', icon: UserPlus, routeTo: '/intake' },
+  { name: 'Contracting', icon: FileSignature, routeTo: '/contracts' },
+  { name: 'Financial Dashboard', icon: Wallet, routeTo: '/dashboard' },
+  { name: 'Special Cases', icon: AlertTriangle, routeTo: '/dashboard' },
+  { name: 'Inventory Audits', icon: ClipboardCheck, routeTo: '/dashboard' },
   // { name: "Daily Payments", icon: RefreshCcw },
   // { name: "Document Hub", icon: FolderOpen },
   // { name: "Basic Inventory", icon: Package },
@@ -37,7 +35,7 @@ const modules = [
  * just dismissing it.
  *
  * @remarks
- * the login form itself performs no client-side redirect until 
+ * the login form itself performs no client-side redirect until
  * the user clicks "Proceed" on the welcome modal.
  */
 export default function DashboardPage() {

@@ -6,15 +6,15 @@ import {
 } from 'express';
 import pool from '@/db.ts';
 import validate from '@/middleware/validate.ts';
-import { documentSchema, type DocumentSchema } from '@/schemas/document';
 import requireAuth from '@/middleware/require-auth.ts';
 import { NotFoundError } from '@/errors';
+import { packageSchema, type PackageSchema } from '@/schemas/package.ts';
 
 const router = Router();
 
 router.get('/', requireAuth, async (_req, res, next) => {
   try {
-    const result = await pool.query('SELECT * from Document');
+    const result = await pool.query('SELECT * from package');
 
     res.json({
       data: result.rows,
@@ -28,7 +28,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
-      'SELECT * FROM Document WHERE documentid = $1',
+      'SELECT * FROM package WHERE packageid = $1',
       [id],
     );
     if (result.rows.length === 0) throw new NotFoundError();
@@ -42,9 +42,9 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 router.post(
   '/',
   requireAuth,
-  validate(documentSchema),
+  validate(packageSchema),
   async (
-    req: Request<{}, {}, DocumentSchema>,
+    req: Request<{}, {}, PackageSchema>,
     res: Response,
     next: NextFunction,
   ) => {
@@ -52,20 +52,20 @@ router.post(
       const parsed = req.body;
       const result = await pool.query(
         `
-        INSERT INTO document (
-          documenttype,
-          verificationstatus,
-          uploaddate,
-          verifiedby,
-          caseid
+        INSERT INTO package (
+          packagename,
+          packagetype,
+          price,
+          embalmingperiod,
+          inclusions
         ) VALUES ($1, $2, $3, $4, $5)
-        RETURNING documentid;`,
+        RETURNING packageid;`,
         [
-          parsed.documenttype,
-          parsed.verificationstatus,
-          parsed.uploaddate,
-          parsed.verifiedby,
-          parsed.caseid,
+          parsed.packagename,
+          parsed.packagetype,
+          parsed.price,
+          parsed.embalmingperiod,
+          parsed.inclusions,
         ],
       );
 

@@ -6,15 +6,16 @@ import {
 } from 'express';
 import pool from '@/db.ts';
 import {
-  deceasedrecordsSchema,
-  type DeceasedRecordsSchema,
-} from '@/schemas/deceasedrecords.ts';
+  deceasedrecordSchema,
+  type DeceasedRecordSchema,
+} from '@/schemas/deceasedrecord';
 import validate from '@/middleware/validate.ts';
 import requireAuth from '@/middleware/require-auth.ts';
+import { NotFoundError } from '@/errors';
 
 const router = Router();
 
-router.get('/', requireAuth, async (_req, res) => {
+router.get('/', requireAuth, async (_req, res, next) => {
   try {
     const result = await pool.query('SELECT * from DeceasedRecord');
 
@@ -22,34 +23,31 @@ router.get('/', requireAuth, async (_req, res) => {
       data: result.rows,
     });
   } catch (error) {
-    console.error('Error fetching records:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    next(error);
   }
 });
 
-router.get('/:id', requireAuth, async (req, res) => {
+router.get('/:id', requireAuth, async (req, res, next) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
       'SELECT * FROM DeceasedRecord WHERE caseid = $1',
       [id],
     );
-    if (result.rows.length === 0)
-      return res.status(404).json({ error: 'Record not found' });
+    if (result.rows.length === 0) throw new NotFoundError();
 
     res.json({ data: result.rows[0] });
   } catch (error) {
-    console.error('Error fetching record:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    next(error);
   }
 });
 
 router.post(
   '/',
   requireAuth,
-  validate(deceasedrecordsSchema),
+  validate(deceasedrecordSchema),
   async (
-    req: Request<{}, {}, DeceasedRecordsSchema>,
+    req: Request<{}, {}, DeceasedRecordSchema>,
     res: Response,
     next: NextFunction,
   ) => {
@@ -57,20 +55,21 @@ router.post(
       const parsed = req.body;
       const result = await pool.query(
         `
-      INSERT INTO deceasedrecord (
-        firstname,
-        middlename,
-        lastname,
-        causeofdeath,
-        typeofdeath,
-        physicaldescription,
-        servicestatus,
-        hasmaturedlifeplan,
-        plantype,
-        datecreated,
-        managedby
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-      RETURNING caseid;`,
+        INSERT INTO deceasedrecord (
+          firstname,
+          middlename,
+          lastname,
+          causeofdeath,
+          typeofdeath,
+          physicaldescription,
+          servicestatus,
+          hasmaturedlifeplan,
+          plantype,
+          datecreated,
+          managedby,
+          representedby
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        RETURNING caseid;`,
         [
           parsed.firstname,
           parsed.middlename,
@@ -83,15 +82,14 @@ router.post(
           parsed.plantype,
           parsed.datecreated,
           parsed.managedby,
+          parsed.representedby,
         ],
       );
 
       res.status(201).json({
-        message: 'Record created successfully',
         data: result.rows[0],
       });
     } catch (error: any) {
-      console.error('Error creating record:', error);
       next(error);
     }
   },
