@@ -24,6 +24,7 @@ export const staffSchema = z.object({
   firstName: nameSchema('First name'),
   middleName: withNullDefault(nameSchema('Middle name')),
   lastName: nameSchema('Last name'),
+  isActive: z.boolean().default(true),
   jobRole: z
     .string()
     .min(1)

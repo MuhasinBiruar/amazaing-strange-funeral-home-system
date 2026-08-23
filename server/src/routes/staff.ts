@@ -62,6 +62,7 @@ router.post(
             firstName: parsed.firstName,
             middleName: parsed.middleName,
             lastName: parsed.lastName,
+            isActive: parsed.isActive,
             jobRole: parsed.jobRole,
             contactNumber: parsed.contactNumber,
             username: `${parsed.firstName.toLowerCase()[0]}${parsed.middleName?.toLowerCase()[0] || ''}${parsed.lastName.toLowerCase()}`,
