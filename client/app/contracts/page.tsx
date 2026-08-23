@@ -292,7 +292,7 @@ export default function ContractsPage() {
                   <button
                     key={item.id}
                     onClick={() => setSelectedPackage(item.id)}
-                    className={`relative flex min-h-[300px] flex-col rounded-lg border bg-white p-6 text-left transition hover:-translate-y-0.5 hover:shadow-lg ${selected ? 'border-[#122039] shadow-md ring-2 ring-[#122039] ring-offset-2' : 'border-[#e1e4e9]'}`}
+                    className={`relative flex min-h-75 flex-col rounded-lg border bg-white p-6 text-left transition hover:-translate-y-0.5 hover:shadow-lg ${selected ? 'border-[#122039] shadow-md ring-2 ring-[#122039] ring-offset-2' : 'border-[#e1e4e9]'}`}
                   >
                     <div className="flex items-center justify-between">
                       <span
@@ -336,7 +336,7 @@ export default function ContractsPage() {
                       ))}
                     </ul>
                     <span
-                      className={`mt-auto block rounded-md border py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.1em] ${selected ? 'border-[#122039] bg-[#122039] text-white' : 'border-[#aeb6c2] text-[#122039]'}`}
+                      className={`mt-auto block rounded-md border py-2.5 text-center text-[10px] font-bold uppercase tracking-widest ${selected ? 'border-[#122039] bg-[#122039] text-white' : 'border-[#aeb6c2] text-[#122039]'}`}
                     >
                       {selected
                         ? 'Selected'

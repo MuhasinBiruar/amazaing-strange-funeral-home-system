@@ -40,7 +40,7 @@ export default function ServiceArrangement({
             placeholder="e.g., St. Peter Life Plan"
           />
           <div className="flex items-start gap-2 mt-2 p-3 bg-orange-50 border border-orange-100 rounded-lg text-orange-800 text-xs">
-            <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+            <AlertCircle size={14} className="mt-0.5 shrink-0" />
             <p>
               Life Plan detected. Verification with the provider will be
               required after submission.
