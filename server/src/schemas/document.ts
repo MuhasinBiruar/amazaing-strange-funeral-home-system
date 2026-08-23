@@ -9,4 +9,4 @@ export const documentSchema = z.object({
   caseid: z.int(),
 });
 
-export type DocumentSchemaType = z.infer<typeof documentSchema>;
+export type DocumentSchema = z.infer<typeof documentSchema>;
