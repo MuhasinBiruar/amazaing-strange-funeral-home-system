@@ -20,6 +20,8 @@ router.get(
   '/',
   requireAuth,
   async (req: Request, res: Response, next: NextFunction) => {
+    const client = await pool.connect();
+
     try {
       const parsed = contractQuerySchema.parse(req.query);
 
@@ -36,21 +38,31 @@ router.get(
       const whereClause =
         conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-      const result = await pool.query(
-        `
+      // Both queries read from the exact same point in time
+      await client.query('BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ');
+
+      const dataQuery = `
         SELECT * FROM contract
         ${whereClause}
         ORDER BY ${parsed.sortBy} ${parsed.sortDir}, contractid ASC
-        LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`,
-        [...queryParams, parsed.limit, (parsed.page - 1) * parsed.limit],
-      );
+        LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
+      `;
+      const dataResult = await client.query(dataQuery, [
+        ...queryParams,
+        parsed.limit,
+        (parsed.page - 1) * parsed.limit,
+      ]);
 
       const countQuery = `SELECT COUNT(*) FROM contract ${whereClause}`;
-      const countResult = await pool.query(countQuery, queryParams);
+      const countResult = await client.query(countQuery, queryParams);
+
+      await client.query('COMMIT');
+
       const totalItems = parseInt(countResult.rows[0].count, 10);
       const totalPages = Math.ceil(totalItems / parsed.limit);
+
       res.json({
-        data: result.rows,
+        data: dataResult.rows,
         meta: {
           page: parsed.page,
           limit: parsed.limit,
@@ -61,7 +73,10 @@ router.get(
         },
       });
     } catch (error) {
+      await client.query('ROLLBACK');
       next(error);
+    } finally {
+      client.release();
     }
   },
 );
