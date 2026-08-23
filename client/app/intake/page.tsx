@@ -38,7 +38,7 @@ export default function IntakePage() {
 
   return (
     <PageGuard>
-      <div className="min-h-screen bg-gray-50 flex flex-col pb-24 relative">
+      <div className="min-h-screen bg-gray-50 flex lg:flex-col flex-wrap pb-24 relative">
         <Header />
 
         <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 space-y-6">
