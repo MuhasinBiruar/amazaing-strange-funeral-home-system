@@ -7,6 +7,7 @@ import {
 import pool from '@/db.ts';
 import requireAuth from '@/middleware/require-auth.ts';
 import { contractQuerySchema } from '@/schemas/contract.ts';
+import type { PostgresValue } from '@/types/db.ts';
 
 const router = Router();
 
@@ -23,7 +24,7 @@ router.get(
       const parsed = contractQuerySchema.parse(req.query);
 
       const conditions: string[] = [];
-      const queryParams: string[] = [];
+      const queryParams: PostgresValue[] = [];
 
       if (parsed.search) {
         conditions.push(
