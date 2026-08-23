@@ -99,7 +99,7 @@ export default function VitalStatistics({
             IMMEDIATE CAUSE OF DEATH
           </label>
           <textarea
-            className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm min-h-[80px]"
+            className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm min-h-20"
             placeholder="As stated in the medical certificate or preliminary report..."
           />
         </div>

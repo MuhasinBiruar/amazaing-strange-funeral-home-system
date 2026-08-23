@@ -12,7 +12,7 @@ export default function PhysicalDescription() {
           DETAILED DESCRIPTION
         </label>
         <textarea
-          className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm min-h-[120px]"
+          className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm min-h-30"
           placeholder="Include estimated height/weight, identifying marks (tattoos, scars), and clothing worn at intake..."
         />
       </div>
