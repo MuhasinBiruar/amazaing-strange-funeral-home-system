@@ -1,5 +1,5 @@
-import { User, Calendar } from 'lucide-react';
-import { useRef } from 'react';
+import { User, Calendar } from "lucide-react";
+import { useRef } from "react";
 
 interface VitalStatisticsProps {
   locationOfDeath: string;
@@ -78,14 +78,14 @@ export default function VitalStatistics({
             LOCATION OF DEATH
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {['House', 'Hospital', 'Police Case'].map((loc) => (
+            {["House", "Hospital", "Police Case"].map((loc) => (
               <button
                 key={loc}
                 onClick={() => setLocationOfDeath(loc)}
                 className={`py-2 px-1 text-xs sm:text-sm font-medium rounded-lg border transition ${
                   locationOfDeath === loc
-                    ? 'bg-indigo-900 text-white border-indigo-900'
-                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    ? "bg-indigo-900 text-white border-indigo-900"
+                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
                 }`}
               >
                 {loc}
