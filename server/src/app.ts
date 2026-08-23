@@ -7,9 +7,10 @@ import deceasedRecordsRouter from './routes/deceasedrecords.ts';
 import staffRouter from './routes/staff.ts';
 import documentsRouter from './routes/documents.ts';
 import meRouter from './routes/me.ts';
-import representativeRouter from './routes/representatives.ts';
+import representativesRouter from './routes/representatives.ts';
 import errorHandler from './middleware/error-handler';
 import burialrecordsRouter from './routes/burialrecords.ts';
+import contractsRouter from './routes/contracts.ts';
 
 const app = express();
 
@@ -29,7 +30,9 @@ app.use('/burialrecords', burialrecordsRouter);
 app.use('/deceasedrecords', deceasedRecordsRouter);
 app.use('/staff', staffRouter);
 app.use('/documents', documentsRouter);
-app.use('/representatives', representativeRouter);
+app.use('/representatives', representativesRouter);
+app.use('/contracts', contractsRouter);
+
 app.use('/api/me', meRouter);
 
 app.use(errorHandler);
