@@ -45,6 +45,12 @@ export const auth = betterAuth({
     enabled: true,
     disableSignUp: true,
   },
+  advanced: {
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true, // Must be true when sameSite is "none"
+    },
+  },
   plugins: [
     username({ minUsernameLength: 3, maxUsernameLength: 50 }),
     admin({
