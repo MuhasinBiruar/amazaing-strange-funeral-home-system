@@ -2,6 +2,7 @@ import type { GenericAbortSignal } from 'axios';
 import { API } from './api';
 
 // TODO: Move the folder out of client/app/ and into client/
+// TODO: Remove this contractService because it is being replaced
 
 export interface ContractSchema {
   contractid: number;
