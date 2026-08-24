@@ -11,10 +11,14 @@ import useDebouncedState from '@/utils/useDebouncedValue';
 import TableHeader from './_components/tableHeader';
 import TableFooter from './_components/tableFooter';
 import TableBody from './_components/tableBody';
+import { usePathname, useRouter } from 'next/navigation';
 
 const SEARCH_DEBOUNCE_MS = 500 as const;
 
 export default function ContractsPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortableColumnKey>('contractid');
   const [sortDir, setSortDir] = useState<SortDir>('DESC');
@@ -91,7 +95,12 @@ export default function ContractsPage() {
               file.
             </p>
           </div>
-          <button className="hidden sm:flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition shrink-0">
+          <button
+            className="hidden sm:flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition shrink-0"
+            onClick={() => {
+              router.push(`${pathname}/create`);
+            }}
+          >
             <Plus size={16} />
             New contract
           </button>
