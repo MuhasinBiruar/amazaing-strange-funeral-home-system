@@ -12,6 +12,7 @@ import errorHandler from './middleware/error-handler';
 import burialrecordsRouter from './routes/burialrecords.ts';
 import contractsRouter from './routes/contracts.ts';
 import packagesRouter from './routes/packages.ts';
+import casesRouter from './routes/cases.ts';
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/documents', documentsRouter);
 app.use('/representatives', representativesRouter);
 app.use('/contracts', contractsRouter);
 app.use('/packages', packagesRouter);
+app.use('/cases', casesRouter);
 
 app.use('/api/me', meRouter);
 
