@@ -2,10 +2,7 @@ import pool from '@/db.ts';
 import { NotFoundError } from '@/errors';
 import requireAuth from '@/middleware/require-auth.ts';
 import validate from '@/middleware/validate.ts';
-import {
-  representativeSchema,
-  type RepresentativeSchema,
-} from '@/schemas/representative.ts';
+import { representativeSchema, type RepresentativeSchema } from 'shared';
 import {
   Router,
   type NextFunction,

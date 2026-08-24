@@ -18,6 +18,7 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "shared": "*",
     "better-auth": "^1.6.27",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
