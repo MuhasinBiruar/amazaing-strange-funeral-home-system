@@ -8,7 +8,7 @@ import pool from '@/db.ts';
 import validate from '@/middleware/validate.ts';
 import requireAuth from '@/middleware/require-auth.ts';
 import { NotFoundError } from '@/errors';
-import { packageSchema, type PackageSchema } from '@/schemas/package.ts';
+import { packageSchema, type PackageSchema } from 'shared';
 
 const router = Router();
 
