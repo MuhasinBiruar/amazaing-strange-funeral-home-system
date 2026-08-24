@@ -57,7 +57,7 @@ export default function CreateAccountPage() {
    * Handles the form submission event.
    *
    * Prevents the default form submission behavior and collects the form data
-   * into a `StaffPayload` object. Sets the pending staff data and shows the
+   * into a `StaffSchemaType` object. Sets the pending staff data and shows the
    * confirmation modal.
    */
   function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
