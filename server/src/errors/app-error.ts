@@ -1,4 +1,8 @@
-export class AppError extends Error {
+import { AppErrorResponse } from 'shared';
+
+type IAppErrorResponse = AppErrorResponse['error'];
+
+export class AppError extends Error implements IAppErrorResponse {
   constructor(
     public readonly statusCode: number,
     public readonly code: string,
