@@ -1,20 +1,31 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { authClient } from './lib/auth-client';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { authClient } from "./lib/auth-client";
+import { useRouter } from "next/navigation";
+import AlreadyLoggedInModal from "./components/modal/already-logged-in";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const router = useRouter();
   const [welcomeUser, setWelcomeUser] = useState<{
     firstName: string;
     lastName: string;
     jobRole: string;
   } | null>(null);
+  const [isAlreadyLoggedIn, setIsAlreadyLoggedIn] = useState(false);
+
+  useEffect(() => {
+    authClient.getSession().then(({ data, error }) => {
+      if (data) {
+        setUsername(data.user?.username ?? "");
+        setIsAlreadyLoggedIn(true);
+      }
+    });
+  }, []);
 
   /**
    * Handles the login form submission. Signs in via username/password,
@@ -29,9 +40,9 @@ export default function LoginPage() {
     await authClient.signIn
       .username({ username, password })
       .then((response) => {
-        console.log('Login Info:', response);
+        console.log("Login Info:", response);
         if (response.error) {
-          setError(response.error.message ?? 'log in failed, please try again');
+          setError(response.error.message ?? "log in failed, please try again");
           return;
         } else {
           //show welcome message to user and redirect to dashboard after clicking ok button
@@ -40,14 +51,23 @@ export default function LoginPage() {
             lastName?: string;
             jobRole?: string;
           };
-          setError('');
+          setError("");
           setWelcomeUser({
-            firstName: user.firstName ?? '',
-            lastName: user.lastName ?? '',
-            jobRole: user.jobRole?.toUpperCase() ?? '',
+            firstName: user.firstName ?? "",
+            lastName: user.lastName ?? "",
+            jobRole: user.jobRole?.toUpperCase() ?? "",
           });
         }
       });
+  }
+
+  async function handleLogOut() {
+    setWelcomeUser(null);
+    await authClient.signOut().then(() => {
+      setIsAlreadyLoggedIn(false);
+      setUsername("");
+      setPassword("");
+    });
   }
 
   /**
@@ -61,7 +81,7 @@ export default function LoginPage() {
     e.preventDefault();
     setWelcomeUser(null);
     await authClient.signOut().then((response) => {
-      console.log('Sign out Info:', response);
+      console.log("Sign out Info:", response);
     });
   }
 
@@ -107,12 +127,12 @@ export default function LoginPage() {
             <div className="relative mt-1">
               <input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 autoComplete="off"
                 value={password}
                 aria-describedby="password-help"
                 onChange={(e) => setPassword(e.target.value)}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${password ? 'pr-20' : 'pr-3'}`}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${password ? "pr-20" : "pr-3"}`}
                 required
               />
               {password && (
@@ -121,7 +141,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword((visible) => !visible)}
                   className="absolute inset-y-0 right-0 px-3 text-sm font-medium text-[#00236F] hover:text-blue-700 hover:cursor-pointer"
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  {showPassword ? "Hide" : "Show"}
                 </button>
               )}
             </div>
@@ -136,31 +156,34 @@ export default function LoginPage() {
         </form>
       </div>
       {welcomeUser && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/60 bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-md text-center">
-            <h2 className="text-xl text-[#00236F] font-bold mb-4">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60 bg-opacity-50 min-h-screen w-full">
+          <div className="bg-white p-10 rounded-lg shadow-md text-center border-black shadow-black">
+            <h2 className="text-4xl text-[#00236F] font-bold mb-4">
               Welcome, {welcomeUser.firstName} {welcomeUser.lastName}
             </h2>
-            <h3 className="text-sm text-[#3a67c8] font-semibold mb-2">
+            <h3 className="text-2xl text-[#3a67c8] font-semibold mb-2">
               {welcomeUser.jobRole}
             </h3>
-            <p className="mb-4 text-gray-600 text-sm">
+            <p className="mb-4 text-gray-600 text-md">
               You have successfully logged in.
             </p>
             <button
               onClick={handleCancel}
-              className="bg-gray-300 text-gray-800 py-2 px-4 rounded-md font-medium hover:bg-gray-400 transition hover:cursor-pointer mr-2"
+              className="bg-gray-300 text-gray-800 py-4 px-8 rounded-md font-medium hover:bg-gray-400 transition hover:cursor-pointer mr-2"
             >
               Cancel
             </button>
             <button
-              onClick={() => router.push('/dashboard')}
-              className="bg-[#00236F] text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 transition hover:cursor-pointer"
+              onClick={() => router.push("/dashboard")}
+              className="bg-[#00236F] text-white py-4 px-8 rounded-md font-medium hover:bg-blue-700 transition hover:cursor-pointer"
             >
               Proceed
             </button>
           </div>
         </div>
+      )}
+      {isAlreadyLoggedIn && (
+        <AlreadyLoggedInModal username={username} handleLogOut={handleLogOut} />
       )}
     </div>
   );
