@@ -17,12 +17,6 @@ export default function LoginPage() {
     jobRole: string;
   } | null>(null);
   const [isAlreadyLoggedIn, setIsAlreadyLoggedIn] = useState(false);
-  // const [staffData, setStaffData] = useState(
-  //   {
-  //     username: "",
-  //     role: "",
-  //   } as { username: string; role: string }
-  // );
 
   useEffect(() => {
     authClient.getSession().then(({ data, error }) => {
