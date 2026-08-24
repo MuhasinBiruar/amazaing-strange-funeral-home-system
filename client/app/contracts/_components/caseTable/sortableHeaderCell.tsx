@@ -1,38 +1,30 @@
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
-import type { Column, ColumnKey, SortDir, SortableColumnKey } from './types';
+import type { Column, ColumnKey, SortOrder } from './types';
 
 export default function SortableHeaderCell({
   column,
   sortBy,
-  sortDir,
+  sortOrder,
   onSort,
 }: {
   column: Column;
   sortBy: ColumnKey;
-  sortDir: SortDir;
-  onSort: (columnKey: SortableColumnKey) => void;
+  sortOrder: SortOrder;
+  onSort: (columnKey: ColumnKey) => void;
 }) {
   const isActive = sortBy === column.key;
-
-  if (!column.sortable) {
-    return (
-      <th className="px-5 py-2.5 font-medium text-left uppercase">
-        {column.label}
-      </th>
-    );
-  }
 
   return (
     <th className="px-5 py-2.5 font-medium text-left">
       <button
-        onClick={() => onSort(column.key as SortableColumnKey)}
+        onClick={() => onSort(column.key)}
         className={`flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 ${
           isActive ? 'text-indigo-700' : 'text-gray-400'
         } uppercase`}
       >
         {column.label}
         {isActive ? (
-          sortDir === 'ASC' ? (
+          sortOrder === 'asc' ? (
             <ChevronUp size={13} />
           ) : (
             <ChevronDown size={13} />

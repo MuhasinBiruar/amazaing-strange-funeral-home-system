@@ -1,81 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import Header from '../components/header/header';
 import Footer from '../components/footer/footer';
-import type { SortableColumnKey, SortDir } from './_components/types';
-import type { ContractSchema } from '@/app/services/contractService';
-import { getPaginatedContracts } from '@/app/services/contractService';
-import useDebouncedState from '@/utils/useDebouncedValue';
-import TableHeader from './_components/tableHeader';
-import TableFooter from './_components/tableFooter';
-import TableBody from './_components/tableBody';
 import { usePathname, useRouter } from 'next/navigation';
-
-const SEARCH_DEBOUNCE_MS = 500 as const;
+import CaseTable from './_components/caseTable';
 
 export default function ContractsPage() {
   const router = useRouter();
   const pathname = usePathname();
-
-  const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState<SortableColumnKey>('contractid');
-  const [sortDir, setSortDir] = useState<SortDir>('DESC');
-  const [page, setPage] = useState(1);
-  const [limit] = useState(10);
-
-  const [contracts, setContracts] = useState<ContractSchema[]>([]);
-  const [total, setTotal] = useState(0);
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [dboSearch, commitDboSearch] = useDebouncedState(
-    search,
-    SEARCH_DEBOUNCE_MS,
-  );
-
-  const [prevDboSearch, setPrevDboSearch] = useState(dboSearch);
-  if (dboSearch !== prevDboSearch) {
-    setPrevDboSearch(dboSearch);
-    setPage(1);
-  }
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function fetchPaginatedContracts() {
-      setIsLoading(true);
-      setErrorMsg(null);
-
-      try {
-        const res = await getPaginatedContracts(
-          dboSearch,
-          sortBy,
-          sortDir,
-          page,
-          limit,
-          {
-            signal: controller.signal,
-          },
-        );
-
-        setContracts(res.data);
-        setTotal(res.meta.totalItems);
-      } catch (error) {
-        if (controller.signal.aborted) return;
-
-        console.error('Failed to load contracts:', error);
-        setErrorMsg('Could not load contracts. Try   again.');
-        setContracts([]);
-      } finally {
-        if (!controller.signal.aborted) setIsLoading(false);
-      }
-    }
-    fetchPaginatedContracts();
-
-    return () => controller.abort();
-  }, [dboSearch, sortBy, sortDir, page, limit]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -106,32 +39,7 @@ export default function ContractsPage() {
           </button>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
-          <TableHeader
-            total={total}
-            search={search}
-            setSearch={setSearch}
-            commitDboSearch={commitDboSearch}
-          />
-
-          <TableBody
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            sortDir={sortDir}
-            setSortDir={setSortDir}
-            setPage={setPage}
-            contracts={contracts}
-            errorMsg={errorMsg}
-            isLoading={isLoading}
-          />
-
-          <TableFooter
-            page={page}
-            setPage={setPage}
-            total={total}
-            limit={limit}
-          />
-        </div>
+        <CaseTable />
       </main>
 
       <Footer />
