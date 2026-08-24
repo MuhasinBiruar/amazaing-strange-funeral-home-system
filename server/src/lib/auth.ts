@@ -21,7 +21,7 @@ import { admin } from "better-auth/plugins";
 export const auth = betterAuth({
   database: new Pool({
     host: process.env.HOST,
-    port: parseInt(process.env.PORT || "5432"),
+    port: parseInt(process.env.DB_PORT || "5432"),
     database: process.env.DATABASE,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
