@@ -2,10 +2,7 @@ import pool from '@/db.ts';
 import { NotFoundError } from '@/errors';
 import requireAuth from '@/middleware/require-auth.ts';
 import validate from '@/middleware/validate.ts';
-import {
-  burialrecordSchema,
-  type BurialRecordSchema,
-} from '@/schemas/burialrecord.ts';
+import { burialrecordSchema, type BurialRecordSchema } from 'shared';
 import {
   Router,
   type NextFunction,

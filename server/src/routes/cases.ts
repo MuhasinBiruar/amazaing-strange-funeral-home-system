@@ -4,7 +4,7 @@ import {
   type Response,
   type NextFunction,
 } from 'express';
-import { getCasesQuerySchema } from '@/schemas/case';
+import { getCasesQuerySchema } from 'shared';
 import requireAuth from '@/middleware/require-auth';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 

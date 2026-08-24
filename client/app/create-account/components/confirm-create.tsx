@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { StaffPayload } from "../../services/staffService";
+import { StaffSchemaType } from 'shared';
 
 interface ConfirmCreateModalProps {
-  staffData: StaffPayload;
+  staffData: StaffSchemaType;
   isSubmitting: boolean;
   onCancel: () => void;
   onConfirm: () => void;
@@ -22,16 +22,16 @@ const ConfirmCreateModal = ({
           Confirm Account Creation
         </h3>
         <p className="text-sm text-gray-600">
-          Create an account for{" "}
+          Create an account for{' '}
           <span className="font-semibold">
             {staffData.firstName} {staffData.lastName}
-          </span>{" "}
-          with the system role{" "}
+          </span>{' '}
+          with the system role{' '}
           <span className="font-semibold">{staffData.role}</span>?
         </p>
 
         <p className="text-sm text-gray-600">
-          Note:{" "}
+          Note:{' '}
           <span className="font-semibold">
             Username will be created automatically after confirmation.
           </span>
@@ -52,7 +52,7 @@ const ConfirmCreateModal = ({
             disabled={isSubmitting}
             className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 hover:cursor-pointer"
           >
-            {isSubmitting ? "Creating..." : "Create Account"}
+            {isSubmitting ? 'Creating...' : 'Create Account'}
           </button>
         </div>
       </div>
