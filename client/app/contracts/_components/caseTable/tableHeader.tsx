@@ -1,15 +1,30 @@
 import { Search } from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
+import type { NullableDeceasedStatus } from './types';
+
+const STATUS_OPTIONS: { label: string; value: NullableDeceasedStatus }[] = [
+  { label: 'All statuses', value: null },
+  { label: 'Active', value: 'active' },
+  { label: 'Completed', value: 'completed' },
+  { label: 'Intake', value: 'intake' },
+  { label: 'Pending', value: 'pending' },
+];
 
 export default function TableHeader({
   total,
   search,
   setSearch,
+  deceasedStatus,
+  setDeceasedStatus,
+  setPage,
   commitDboSearch,
 }: {
   total: number;
   search: string;
   setSearch: Dispatch<SetStateAction<string>>;
+  deceasedStatus: NullableDeceasedStatus;
+  setDeceasedStatus: Dispatch<SetStateAction<NullableDeceasedStatus>>;
+  setPage: Dispatch<SetStateAction<number>>;
   commitDboSearch: () => void;
 }) {
   return (
@@ -22,6 +37,24 @@ export default function TableHeader({
       </div>
 
       <div className="flex items-center gap-2">
+        <select
+          value={deceasedStatus ?? ''}
+          onChange={(e) => {
+            const value = e.target.value;
+            setDeceasedStatus(
+              value === '' ? null : (value as NullableDeceasedStatus),
+            );
+            setPage(1);
+          }}
+          className="text-sm border border-gray-200 rounded-md px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 cursor-pointer"
+        >
+          {STATUS_OPTIONS.map((opt) => (
+            <option key={opt.label} value={opt.value ?? ''}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+
         <div className="relative">
           <Search
             size={14}
