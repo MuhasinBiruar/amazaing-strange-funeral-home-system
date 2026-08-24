@@ -6,7 +6,7 @@ import {
 } from 'express';
 import pool from '@/db.ts';
 import validate from '@/middleware/validate.ts';
-import { documentSchema, type DocumentSchema } from '@/schemas/document';
+import { documentSchema, type DocumentSchema } from 'shared';
 import requireAuth from '@/middleware/require-auth.ts';
 import { NotFoundError } from '@/errors';
 

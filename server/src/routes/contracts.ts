@@ -6,7 +6,7 @@ import {
 } from 'express';
 import pool from '@/db.ts';
 import requireAuth from '@/middleware/require-auth.ts';
-import { contractSchema, type ContractSchema } from '@/schemas/contract.ts';
+import { contractSchema, type ContractSchema } from 'shared';
 import { NotFoundError } from '@/errors/http-errors.ts';
 import validate from '@/middleware/validate.ts';
 
