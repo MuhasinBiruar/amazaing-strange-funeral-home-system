@@ -21,13 +21,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html
-      lang="en"
-      className={`${workSans.variable} antialiased bg-white`}
-    >
-      <body className="min-h-[100dvh] flex flex-col bg-white">
-        {children}
-      </body>
+    <html lang="en" className={`${workSans.variable} antialiased bg-white`}>
+      <body className="min-h-dvh flex flex-col bg-white">{children}</body>
     </html>
   );
 }

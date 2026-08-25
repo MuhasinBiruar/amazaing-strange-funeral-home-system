@@ -1,26 +1,23 @@
-"use client";
+'use client';
 
-import Header from "../components/header/header";
-import Footer from "../components/footer/footer";
-import { useRouter } from "next/navigation";
-import PageGuard from "../components/pageguard/page";
+import Header from '../components/header/header';
+import Footer from '../components/footer/footer';
+import { useRouter } from 'next/navigation';
+import PageGuard from '../components/pageguard/page';
 import {
   Wallet,
   AlertTriangle,
   FileSignature,
   UserPlus,
   ClipboardCheck,
-  RefreshCcw,
-  FolderOpen,
-  Package,
-} from "lucide-react";
+} from 'lucide-react';
 
 const modules = [
-  { name: "Intake & Profiling", icon: UserPlus, routeTo: "/intake" },
-  { name: "Contracting", icon: FileSignature, routeTo: "/contracts" },
-  { name: "Financial Dashboard", icon: Wallet, routeTo: "/dashboard" },
-  { name: "Special Cases", icon: AlertTriangle, routeTo: "/dashboard" },
-  { name: "Inventory Audits", icon: ClipboardCheck, routeTo: "/dashboard" },
+  { name: 'Intake & Profiling', icon: UserPlus, routeTo: '/intake' },
+  { name: 'Contracting', icon: FileSignature, routeTo: '/contracts' },
+  { name: 'Financial Dashboard', icon: Wallet, routeTo: '/dashboard' },
+  { name: 'Special Cases', icon: AlertTriangle, routeTo: '/dashboard' },
+  { name: 'Inventory Audits', icon: ClipboardCheck, routeTo: '/dashboard' },
   // { name: "Daily Payments", icon: RefreshCcw },
   // { name: "Document Hub", icon: FolderOpen },
   // { name: "Basic Inventory", icon: Package },
@@ -42,7 +39,7 @@ export default function DashboardPage() {
   const router = useRouter();
   return (
     <PageGuard>
-      <div className="min-h-[100dvh] bg-white flex flex-col">
+      <div className="min-h-dvh bg-white flex flex-col">
         <Header />
         <main className="flex-1 flex flex-col w-[92vw] lg:w-[80vw] mx-auto px-[2vw] pt-[5vh] pb-[4vh] min-h-0">
           <div className="text-left sm:text-center pb-6 shrink-0">
@@ -57,7 +54,7 @@ export default function DashboardPage() {
             {modules.map(({ name, icon: Icon, routeTo }) => (
               <button
                 key={name}
-                className="grow basis-[45%] sm:basis-[30%] max-w-[420px] flex flex-col items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 hover:border-indigo-400 hover:shadow-md transition cursor-pointer"
+                className="grow basis-[45%] sm:basis-[30%] max-w-105 flex flex-col items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 hover:border-indigo-400 hover:shadow-md transition cursor-pointer"
                 onClick={() => router.push(routeTo)}
               >
                 <span className="flex items-center justify-center rounded-full bg-indigo-50 text-indigo-600 w-[clamp(2.25rem,3.5vw,3rem)] h-[clamp(2.25rem,3.5vw,3rem)]">

@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { authClient } from "./lib/auth-client";
-import { useRouter } from "next/navigation";
-import AlreadyLoggedInModal from "./components/modal/already-logged-in";
+import { useState, useEffect } from 'react';
+import { authClient } from './lib/auth-client';
+import { useRouter } from 'next/navigation';
+import AlreadyLoggedInModal from './components/modal/already-logged-in';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const router = useRouter();
   const [welcomeUser, setWelcomeUser] = useState<{
     firstName: string;
@@ -19,9 +19,9 @@ export default function LoginPage() {
   const [isAlreadyLoggedIn, setIsAlreadyLoggedIn] = useState(false);
 
   useEffect(() => {
-    authClient.getSession().then(({ data, error }) => {
+    authClient.getSession().then(({ data }) => {
       if (data) {
-        setUsername(data.user?.username ?? "");
+        setUsername(data.user?.username ?? '');
         setIsAlreadyLoggedIn(true);
       }
     });
@@ -40,9 +40,9 @@ export default function LoginPage() {
     await authClient.signIn
       .username({ username, password })
       .then((response) => {
-        console.log("Login Info:", response);
+        console.log('Login Info:', response);
         if (response.error) {
-          setError(response.error.message ?? "log in failed, please try again");
+          setError(response.error.message ?? 'log in failed, please try again');
           return;
         } else {
           //show welcome message to user and redirect to dashboard after clicking ok button
@@ -51,11 +51,11 @@ export default function LoginPage() {
             lastName?: string;
             jobRole?: string;
           };
-          setError("");
+          setError('');
           setWelcomeUser({
-            firstName: user.firstName ?? "",
-            lastName: user.lastName ?? "",
-            jobRole: user.jobRole?.toUpperCase() ?? "",
+            firstName: user.firstName ?? '',
+            lastName: user.lastName ?? '',
+            jobRole: user.jobRole?.toUpperCase() ?? '',
           });
         }
       });
@@ -65,8 +65,8 @@ export default function LoginPage() {
     setWelcomeUser(null);
     await authClient.signOut().then(() => {
       setIsAlreadyLoggedIn(false);
-      setUsername("");
-      setPassword("");
+      setUsername('');
+      setPassword('');
     });
   }
 
@@ -81,7 +81,7 @@ export default function LoginPage() {
     e.preventDefault();
     setWelcomeUser(null);
     await authClient.signOut().then((response) => {
-      console.log("Sign out Info:", response);
+      console.log('Sign out Info:', response);
     });
   }
 
@@ -127,12 +127,12 @@ export default function LoginPage() {
             <div className="relative mt-1">
               <input
                 id="password"
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 autoComplete="off"
                 value={password}
                 aria-describedby="password-help"
                 onChange={(e) => setPassword(e.target.value)}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${password ? "pr-20" : "pr-3"}`}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${password ? 'pr-20' : 'pr-3'}`}
                 required
               />
               {password && (
@@ -141,7 +141,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword((visible) => !visible)}
                   className="absolute inset-y-0 right-0 px-3 text-sm font-medium text-[#00236F] hover:text-blue-700 hover:cursor-pointer"
                 >
-                  {showPassword ? "Hide" : "Show"}
+                  {showPassword ? 'Hide' : 'Show'}
                 </button>
               )}
             </div>
@@ -174,7 +174,7 @@ export default function LoginPage() {
               Cancel
             </button>
             <button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push('/dashboard')}
               className="bg-[#00236F] text-white py-4 px-8 rounded-md font-medium hover:bg-blue-700 transition hover:cursor-pointer"
             >
               Proceed
