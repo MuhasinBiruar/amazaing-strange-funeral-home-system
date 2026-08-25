@@ -16,6 +16,6 @@ export const createDeceasedRecordQuerySchema = z.object({
   representedby: z.int32(),
 });
 
-export type CreateDeceasedRecordQuery = z.infer<
-  typeof createDeceasedRecordQuerySchema
->;
+export const deceasedrecordPatchSchema =
+  createDeceasedRecordQuerySchema.partial();
+export type DeceasedRecordSchema = z.infer<typeof deceasedrecordPatchSchema>;

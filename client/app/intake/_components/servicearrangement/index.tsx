@@ -1,4 +1,4 @@
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle } from "lucide-react";
 
 interface ServiceArrangementProps {
   planType: string;
@@ -29,7 +29,7 @@ export default function ServiceArrangement({
         </select>
       </div>
 
-      {planType === 'Life Plan' && (
+      {planType === "Life Plan" && (
         <div className="animate-in fade-in slide-in-from-top-2 duration-300">
           <label className="block text-xs font-semibold text-gray-700 mb-1">
             LIFE PLAN COMPANY
