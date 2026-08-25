@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { Building2 } from "lucide-react";
-import { authClient } from "@/app/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from 'react';
+import { Building2 } from 'lucide-react';
+import { authClient } from '@/app/lib/auth-client';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState('');
   const [open, setOpen] = useState(false);
   const [clickLogOut, setClickLogOut] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    authClient.getSession().then(({ data, error }) => {
-      console.log("Session data:", data); //remove later
+    authClient.getSession().then(({ data }) => {
+      console.log('Session data:', data); //remove later
       const user = data?.user as unknown as { jobRole?: string } | undefined;
-      setRole(user?.jobRole ?? "Unknown Role");
+      setRole(user?.jobRole ?? 'Unknown Role');
     });
   }, []);
 
@@ -61,7 +61,7 @@ export default function Header() {
                 onClick={() => {
                   authClient.signOut();
                   setClickLogOut(false);
-                  router.push("/");
+                  router.push('/');
                 }}
                 className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-500 hover:cursor-pointer"
               >

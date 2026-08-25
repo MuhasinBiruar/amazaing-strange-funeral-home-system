@@ -16,7 +16,7 @@ import DeleteModal from './_components/deletemodal';
  * Intake page for creating a new deceased profile and managing associated documents.
  *
  * @todo Implement form submission logic, validation, and backend integration for saving the deceased profile and documents.
- * 
+ *
  * @remarks
  * the login form itself performs no client-side redirect until
  * the user clicks "Proceed" on the welcome modal.

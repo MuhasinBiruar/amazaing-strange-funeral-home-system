@@ -1,6 +1,5 @@
-"use client";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+'use client';
+import { useRouter } from 'next/navigation';
 
 const AlreadyLoggedInModal = ({
   username,
@@ -24,7 +23,7 @@ const AlreadyLoggedInModal = ({
           Please log out first before logging in as someone else
         </p>
         <button
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push('/dashboard')}
           className="bg-gray-300 text-gray-800 py-4 px-8 rounded-md font-medium hover:bg-gray-400 transition hover:cursor-pointer mr-2"
         >
           Cancel

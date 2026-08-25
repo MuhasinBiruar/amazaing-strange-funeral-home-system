@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
 interface SystemRoleInputProps {
-  role: "admin" | "user";
-  onRoleChange: (role: "admin" | "user") => void;
+  role: 'admin' | 'user';
+  onRoleChange: (role: 'admin' | 'user') => void;
 }
 
 const SystemRoleInput = ({ role, onRoleChange }: SystemRoleInputProps) => {
@@ -16,15 +16,15 @@ const SystemRoleInput = ({ role, onRoleChange }: SystemRoleInputProps) => {
         in this System)
       </span>
       <div className="grid grid-cols-2 gap-2">
-        {(["user", "admin"] as const).map((rol) => (
+        {(['user', 'admin'] as const).map((rol) => (
           <button
             type="button"
             key={rol}
             onClick={() => onRoleChange(rol)}
             className={`py-2 px-1 text-xs sm:text-sm font-medium rounded-lg border transition ${
               role === rol
-                ? "bg-indigo-900 text-white border-indigo-900 hover:cursor-pointer"
-                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:cursor-pointer"
+                ? 'bg-indigo-900 text-white border-indigo-900 hover:cursor-pointer'
+                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:cursor-pointer'
             }`}
           >
             {rol}
