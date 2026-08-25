@@ -1,4 +1,4 @@
-import { Upload, Trash2, CheckCircle2 } from 'lucide-react';
+import { Upload, Trash2, CheckCircle2 } from "lucide-react";
 
 interface DocumentChecklistProps {
   documentProgress: number;

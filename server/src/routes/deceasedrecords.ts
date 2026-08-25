@@ -4,14 +4,15 @@ import {
   type Request,
   type Response,
 } from 'express';
-import pool from '@/db';
-import validate from '@/middleware/validate';
-import requireAuth from '@/middleware/require-auth';
-import { NotFoundError } from '@/errors';
+import pool from '@/db.ts';
 import {
-  createDeceasedRecordQuerySchema,
-  type CreateDeceasedRecordQuery,
+  deceasedrecordSchema,
+  deceasedrecordPatchSchema,
+  type DeceasedRecordSchema,
 } from 'shared';
+import validate from '@/middleware/validate.ts';
+import requireAuth from '@/middleware/require-auth.ts';
+import { NotFoundError } from '@/errors';
 
 const router = Router();
 
@@ -45,9 +46,9 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 router.post(
   '/',
   requireAuth,
-  validate(createDeceasedRecordQuerySchema),
+  validate(deceasedrecordSchema),
   async (
-    req: Request<{}, {}, CreateDeceasedRecordQuery>,
+    req: Request<{}, {}, DeceasedRecordSchema>,
     res: Response,
     next: NextFunction,
   ) => {
@@ -89,7 +90,45 @@ router.post(
       res.status(201).json({
         data: result.rows[0],
       });
-    } catch (error) {
+    } catch (error: any) {
+      next(error);
+    }
+  },
+);
+
+router.patch(
+  '/:id',
+  requireAuth,
+  validate(deceasedrecordPatchSchema),
+  async (
+    req: Request<{ id: string }, {}, Partial<DeceasedRecordSchema>>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const { id } = req.params;
+      const parsed = req.body;
+
+      // Build the SET clause dynamically based on the provided fields
+      const setClause = Object.keys(parsed)
+        .map((key, index) => `${key} = $${index + 1}`)
+        .join(', ');
+
+      // Build the VALUES array for the query
+      const values = Object.values(parsed);
+
+      // Add the caseid to the end of the values array
+      values.push(id);
+
+      const result = await pool.query(
+        `UPDATE DeceasedRecord SET ${setClause} WHERE caseid = $${values.length} RETURNING *`,
+        values,
+      );
+
+      if (result.rows.length === 0) throw new NotFoundError();
+
+      res.json({ data: result.rows[0] });
+    } catch (error: any) {
       next(error);
     }
   },
