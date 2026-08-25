@@ -1,4 +1,4 @@
-import { AlertCircle, X, FileText } from 'lucide-react';
+import { AlertCircle, X, FileText } from "lucide-react";
 
 interface DeleteModalProps {
   filesToDelete: string[];
