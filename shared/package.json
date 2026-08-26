@@ -16,7 +16,7 @@
     "dev": "tsc --watch"
   },
   "devDependencies": {
-    "typescript": "^7.0.2"
+    "typescript": "^5"
   },
   "dependencies": {
     "zod": "^4.4.3"
