@@ -55,7 +55,8 @@ export default function errorHandler(
 
   if (
     error instanceof SyntaxError &&
-    (error as any).status === 400 &&
+    'status' in error &&
+    error.status === 400 &&
     'body' in error
   ) {
     return res.status(400).json({

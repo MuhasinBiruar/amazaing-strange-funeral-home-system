@@ -7,12 +7,12 @@ services:
     command: npm run dev --workspace=server
     working_dir: /usr/src/app
     env_file:
-      - server/.env 
+      - server/.env
     ports:
-      - "4000:4000"
+      - '4000:4000'
     environment:
       NODE_ENV: development
-      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_USEPOLLING: 'true'
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
@@ -29,11 +29,11 @@ services:
     command: npm run dev --workspace=client -- --hostname 0.0.0.0 --port 3000
     working_dir: /usr/src/app
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       NODE_ENV: development
-      CHOKIDAR_USEPOLLING: "true"
-      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: 'true'
+      WATCHPACK_POLLING: 'true'
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules

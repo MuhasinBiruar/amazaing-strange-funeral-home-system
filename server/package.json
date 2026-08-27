@@ -6,24 +6,26 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc --noEmit && tsdown",
-    "start": "node dist/index.mjs"
+    "start": "node dist/index.mjs",
+    "lint": "eslint . --fix"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^26.2.0",
     "@types/pg": "^8.21.0",
+    "eslint": "^9.39.5",
     "tsdown": "^0.22.14",
     "tsx": "^4.23.11",
-    "typescript": "^7.0.2"
+    "typescript": "^5"
   },
   "dependencies": {
-    "shared": "*",
     "better-auth": "^1.6.27",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "pg": "^8.22.0",
+    "shared": "*",
     "zod": "^4.4.3"
   }
 }

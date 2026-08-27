@@ -60,7 +60,7 @@ router.get(
 
       // Start building `whereClause`
       const whereConditions: string[] = [];
-      const queryParams: any[] = [];
+      const queryParams: unknown[] = [];
       let paramIndex = 1;
 
       if (status) {
