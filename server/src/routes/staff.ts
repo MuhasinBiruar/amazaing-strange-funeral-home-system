@@ -84,7 +84,7 @@ router.post(
           'A staff member with the same first and last name already exists.',
         );
 
-      let username = await uniqueUsername(
+      const username = await uniqueUsername(
         `${parsed.firstName.toLowerCase()[0]}${parsed.middleName?.toLowerCase()[0] || ''}${parsed.lastName.toLowerCase()}`,
       );
       const email = parsed.email ?? `${username}@staff.internal`;
