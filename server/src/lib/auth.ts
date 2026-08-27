@@ -6,14 +6,6 @@ import { admin } from 'better-auth/plugins';
 /**
  * Better Auth server configuration for the funeral home system.
  *
- * Maps the `user` model onto the existing `staff` table (with custom
- * fields for name parts, job role, active status, and contact number)
- * rather than a dedicated `user` table. Public self-signup is disabled
- * — accounts are created only via `auth.api.createUser` by an admin.
- * Staff log in with username + password (email is a placeholder,
- * unused in practice). Cross-origin requests from the Next.js frontend
- * are permitted via `trustedOrigins`.
- *
  * @todo Replace the `adminUserIds` placeholder with the real staff ID
  * of the first seeded admin account.
  */
@@ -47,8 +39,8 @@ export const auth = betterAuth({
   },
   advanced: {
     defaultCookieAttributes: {
-      sameSite: 'none',
-      secure: true, // Must be true when sameSite is "none"
+      sameSite: 'lax',
+      secure: true,
     },
   },
   plugins: [

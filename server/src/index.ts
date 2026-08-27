@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import app from './app.js'; // or "./app" depending on your bundler setup
-import pool from './db.js';
+import pool from './db';
+import app from './app';
 
 // Prioritize Render's assigned PORT, then APP_PORT, then fallback to 4000
 const PORT = Number(process.env.PORT || process.env.APP_PORT) || 4000;
