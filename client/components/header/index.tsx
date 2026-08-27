@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Building2 } from 'lucide-react';
-import { authClient } from '@/app/lib/auth-client';
+import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 
 export default function Header() {

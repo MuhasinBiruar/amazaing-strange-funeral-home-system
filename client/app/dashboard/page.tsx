@@ -1,9 +1,9 @@
 'use client';
 
-import Header from '../components/header/header';
-import Footer from '../components/footer/footer';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
 import { useRouter } from 'next/navigation';
-import PageGuard from '../components/pageguard/page';
+import PageGuard from '@/components/pageGuard';
 import {
   Wallet,
   AlertTriangle,
