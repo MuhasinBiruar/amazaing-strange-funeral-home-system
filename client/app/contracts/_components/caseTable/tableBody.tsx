@@ -12,7 +12,9 @@ const COLUMNS: Column[] = [
   { key: 'burialdatedeadline', label: 'Burial deadline' },
   { key: 'total_pending_docs', label: 'Total pending docs.' },
   { key: 'totalamount', label: 'Total amount' },
-  { key: 'deceased_status', label: 'Deceased status' },
+  { key: 'servicestatus', label: 'Service status' },
+  { key: 'datecreated', label: 'Date created' },
+  { key: 'managed_by_name', label: 'Manager name' },
 ];
 
 function formatCurrency(value: unknown) {
@@ -52,16 +54,18 @@ export default function TableBody({
   isLoading: boolean;
 }) {
   return (
-    <div className="relative overflow-x-auto">
-      <table className="w-full table-fixed text-sm">
+    <div className="overflow-x-auto relative">
+      <table className="w-full table-auto text-sm text-center">
         <colgroup>
-          <col className="w-[10%]" />
-          <col className="w-[19%]" />
-          <col className="w-[19%]" />
-          <col className="w-[13%]" />
-          <col className="w-[10%]" />
-          <col className="w-[16%]" />
-          <col className="w-[13%]" />
+          <col className="w-25" />
+          <col className="w-45" />
+          <col className="w-45" />
+          <col className="w-35" />
+          <col className="w-30" />
+          <col className="w-35" />
+          <col className="w-32.5" />
+          <col className="w-32.5" />
+          <col className="w-40" />
         </colgroup>
 
         <thead>
@@ -118,13 +122,13 @@ export default function TableBody({
                 <td className="px-5 py-3 text-gray-800 font-medium whitespace-nowrap">
                   #{c.caseid}
                 </td>
-                <td className="px-5 py-3 text-gray-500 whitespace-break-spaces">
+                <td className="px-5 py-3 text-gray-500 wrap-break-word">
                   {/* TODO: Add href for linking deceased_name */}
                   <Link href={`contracts?caseid=${c.caseid}`}>
                     {c.deceased_name}
                   </Link>
                 </td>
-                <td className="px-5 py-3 text-gray-500 whitespace-break-spaces">
+                <td className="px-5 py-3 text-gray-500 wrap-break-word">
                   {c.representative_name}
                 </td>
                 <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
@@ -136,9 +140,15 @@ export default function TableBody({
                 <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
                   {formatCurrency(c.totalamount)}
                 </td>
-                <td className="px-5 py-3 text-gray-500 font-medium whitespace-nowrap wrap">
-                  {c.deceased_status[0].toUpperCase()}
-                  {c.deceased_status.slice(1)}
+                <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
+                  {c.servicestatus[0].toUpperCase()}
+                  {c.servicestatus.slice(1)}
+                </td>
+                <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
+                  {formatDate(c.datecreated)}
+                </td>
+                <td className="px-5 py-3 text-gray-500 wrap-break-word">
+                  {c.managed_by_name}
                 </td>
               </tr>
             ))}
