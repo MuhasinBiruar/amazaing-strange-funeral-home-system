@@ -30,8 +30,6 @@
     "typescript": "^5"
   },
   "optionalDependencies": {
-    "@tailwindcss/oxide-linux-x64-gnu": "^4.3.3",
-    "install": "^0.13.0",
-    "npm": "^11.19.0"
+    "@tailwindcss/oxide-linux-x64-gnu": "^4.3.3"
   }
 }
