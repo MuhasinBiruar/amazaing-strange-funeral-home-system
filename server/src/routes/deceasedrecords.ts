@@ -86,7 +86,7 @@ router.post(
       res.status(201).json({
         data: result.rows[0],
       });
-    } catch (error: any) {
+    } catch (error) {
       next(error);
     }
   },
