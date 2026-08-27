@@ -7,4 +7,4 @@ export const burialrecordSchema = z.object({
   caseid: z.int32(),
 });
 
-export type BurialRecordSchema = z.infer<typeof burialrecordSchema>;
+export type BurialRecord = z.infer<typeof burialrecordSchema>;

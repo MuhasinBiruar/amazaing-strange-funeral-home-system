@@ -13,4 +13,4 @@ export const representativeSchema = z.object({
   datecreated: z.coerce.date(),
 });
 
-export type RepresentativeSchema = z.infer<typeof representativeSchema>;
+export type Representative = z.infer<typeof representativeSchema>;

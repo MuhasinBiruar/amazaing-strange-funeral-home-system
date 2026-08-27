@@ -11,4 +11,4 @@ export const contractSchema = z.object({
   packageid: z.int32(),
 });
 
-export type ContractSchema = z.infer<typeof contractSchema>;
+export type Contract = z.infer<typeof contractSchema>;

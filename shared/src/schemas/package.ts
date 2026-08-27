@@ -9,4 +9,4 @@ export const packageSchema = z.object({
   inclusions: withNullDefault(z.string().min(1)),
 });
 
-export type PackageSchema = z.infer<typeof packageSchema>;
+export type Package = z.infer<typeof packageSchema>;

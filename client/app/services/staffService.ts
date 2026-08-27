@@ -1,4 +1,4 @@
-import type { AppErrorResponse, StaffSchemaType } from 'shared';
+import type { AppErrorResponse, Staff } from 'shared';
 import { API } from './api';
 import axios from 'axios';
 
@@ -38,7 +38,7 @@ export function extractErrorMessage(data: AppErrorResponse): string {
   return data.error.message;
 }
 
-export const createStaff = async (staffData: StaffSchemaType) => {
+export const createStaff = async (staffData: Staff) => {
   try {
     const res = await API.post('/staff', staffData);
     return res.data;

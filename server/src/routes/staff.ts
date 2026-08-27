@@ -8,7 +8,7 @@ import pool from '@/db.ts';
 import requireAuth from '@/middleware/require-auth.ts';
 import { auth } from '@/lib/auth.ts';
 import validate from '@/middleware/validate.ts';
-import { staffSchema, type StaffSchemaType } from 'shared';
+import { staffSchema, type Staff } from 'shared';
 import requireAdmin from '@/middleware/require-admin.ts';
 import { ConflictError, NotFoundError } from '@/errors';
 
@@ -68,11 +68,7 @@ router.post(
   requireAuth,
   requireAdmin,
   validate(staffSchema),
-  async (
-    req: Request<{}, {}, StaffSchemaType>,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  async (req: Request<{}, {}, Staff>, res: Response, next: NextFunction) => {
     try {
       const parsed = req.body;
       const isExisting = await checkFirstLastNameExists(

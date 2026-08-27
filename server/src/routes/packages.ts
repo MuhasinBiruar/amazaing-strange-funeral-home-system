@@ -8,7 +8,7 @@ import pool from '@/db.ts';
 import validate from '@/middleware/validate.ts';
 import requireAuth from '@/middleware/require-auth.ts';
 import { NotFoundError } from '@/errors';
-import { packageSchema, type PackageSchema } from 'shared';
+import { packageSchema, type Package } from 'shared';
 
 const router = Router();
 
@@ -43,11 +43,7 @@ router.post(
   '/',
   requireAuth,
   validate(packageSchema),
-  async (
-    req: Request<{}, {}, PackageSchema>,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  async (req: Request<{}, {}, Package>, res: Response, next: NextFunction) => {
     try {
       const parsed = req.body;
       const result = await pool.query(
