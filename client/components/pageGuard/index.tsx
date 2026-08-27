@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { authClient } from '../../lib/auth-client';
+import { authClient } from '@/lib/auth-client';
 
 /**
  * Client-side route guard that verifies the current user has an active

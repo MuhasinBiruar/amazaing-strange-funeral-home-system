@@ -1,8 +1,8 @@
 'use client';
 
 import { Plus } from 'lucide-react';
-import Header from '../components/header/header';
-import Footer from '../components/footer/footer';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
 import { usePathname, useRouter } from 'next/navigation';
 import CaseTable from './_components/caseTable';
 
