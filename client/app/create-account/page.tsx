@@ -16,7 +16,7 @@ import {
   ConfirmCreateModal,
 } from './components';
 
-import { StaffSchemaType } from 'shared';
+import { Staff } from 'shared';
 import { createStaff } from '../services/staffService';
 import { User } from 'lucide-react';
 
@@ -45,8 +45,7 @@ export default function CreateAccountPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [role, setRole] = useState<'admin' | 'user'>('user');
   const [showConfirm, setShowConfirm] = useState(false);
-  const [pendingStaffData, setPendingStaffData] =
-    useState<StaffSchemaType | null>(null);
+  const [pendingStaffData, setPendingStaffData] = useState<Staff | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const toastCenter = useRef<Toast>(null);
 
@@ -57,7 +56,7 @@ export default function CreateAccountPage() {
    * Handles the form submission event.
    *
    * Prevents the default form submission behavior and collects the form data
-   * into a `StaffSchemaType` object. Sets the pending staff data and shows the
+   * into a `Staff` object. Sets the pending staff data and shows the
    * confirmation modal.
    */
   function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {

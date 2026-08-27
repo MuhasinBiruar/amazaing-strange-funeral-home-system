@@ -1,9 +1,9 @@
 'use client';
 
-import { StaffSchemaType } from 'shared';
+import { Staff } from 'shared';
 
 interface ConfirmCreateModalProps {
-  staffData: StaffSchemaType;
+  staffData: Staff;
   isSubmitting: boolean;
   onCancel: () => void;
   onConfirm: () => void;

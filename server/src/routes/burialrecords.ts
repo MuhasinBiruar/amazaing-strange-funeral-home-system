@@ -2,7 +2,7 @@ import pool from '@/db.ts';
 import { NotFoundError } from '@/errors';
 import requireAuth from '@/middleware/require-auth.ts';
 import validate from '@/middleware/validate.ts';
-import { burialrecordSchema, type BurialRecordSchema } from 'shared';
+import { burialrecordSchema, type BurialRecord } from 'shared';
 import {
   Router,
   type NextFunction,
@@ -48,7 +48,7 @@ router.post(
   requireAuth,
   validate(burialrecordSchema),
   async (
-    req: Request<{}, {}, BurialRecordSchema>,
+    req: Request<{}, {}, BurialRecord>,
     res: Response,
     next: NextFunction,
   ) => {

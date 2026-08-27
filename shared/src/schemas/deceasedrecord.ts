@@ -16,4 +16,4 @@ export const deceasedrecordSchema = z.object({
   representedby: z.int32(),
 });
 
-export type DeceasedRecordSchema = z.infer<typeof deceasedrecordSchema>;
+export type DeceasedRecord = z.infer<typeof deceasedrecordSchema>;
