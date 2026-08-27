@@ -8,4 +8,4 @@ export interface Column {
 
 export type SortOrder = GetCasesQuery['sortOrder'];
 
-export type NullableDeceasedStatus = Case['deceased_status'] | null;
+export type NullableDeceasedStatus = Case['servicestatus'] | null;

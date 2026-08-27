@@ -17,7 +17,9 @@ const SORT_COLUMNS: Record<string, string> = {
   burialdatedeadline: 'c.burialdatedeadline',
   total_pending_docs: 'total_pending_docs',
   totalamount: 'c.totalamount',
-  deceased_status: 'dr.servicestatus',
+  servicestatus: 'dr.servicestatus',
+  datecreated: 'dr.datecreated',
+  managed_by_name: 'managed_by_name',
 };
 
 /**
@@ -43,13 +45,16 @@ router.get(
           c.burialdatedeadline,
           COALESCE(d.pending_docs, 0)::int AS total_pending_docs,
           c.totalamount,
-          dr.servicestatus AS deceased_status
+          dr.servicestatus,
+          dr.datecreated,
+          CONCAT_WS(' ', NULLIF(s."firstName", ''), NULLIF(s."middleName", ''), NULLIF(s."lastName", '')) AS managed_by_name
       `;
 
       const fromAndJoins = `
         FROM public.deceasedrecord dr
         LEFT JOIN public.contract c ON dr.caseid = c.caseid
         LEFT JOIN public.representative r ON dr.representedby = r.representativeid
+        LEFT JOIN public.staff s ON dr.managedby = s.id
         LEFT JOIN (
           SELECT caseid, COUNT(documentid) as pending_docs
           FROM public.document
@@ -70,11 +75,12 @@ router.get(
       }
 
       if (search) {
-        // Searches through: deceasedrec.caseid, deceasedrec.name, rep.name
+        // Searches through: deceasedrec.caseid, deceasedrec.name, rep.name, staff.name
         whereConditions.push(`(
           dr.caseid::text ILIKE $${paramIndex} OR
           CONCAT_WS(' ', dr.firstname, dr.middlename, dr.lastname) ILIKE $${paramIndex} OR
-          CONCAT_WS(' ', r.firstname, r.middlename, r.lastname) ILIKE $${paramIndex}
+          CONCAT_WS(' ', r.firstname, r.middlename, r.lastname) ILIKE $${paramIndex} OR
+          CONCAT_WS(' ', s."firstName", s."middleName", s."lastName") ILIKE $${paramIndex}
         )`);
         queryParams.push(`%${search}%`);
         paramIndex++;

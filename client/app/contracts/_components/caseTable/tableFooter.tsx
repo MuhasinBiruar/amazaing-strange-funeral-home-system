@@ -17,7 +17,7 @@ export default function TableFooter({
   const getPageNumbers = () => {
     const pageNumbers: (number | string)[] = [];
 
-    if (totalPages <= 7) {
+    if (totalPages <= 6) {
       for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
     } else {
       if (page <= 4) {
@@ -41,7 +41,7 @@ export default function TableFooter({
   };
 
   return (
-    <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100">
+    <div className="flex flex-col-reverse sm:flex-row gap-2 items-center justify-between px-5 py-4 border-t border-gray-100">
       <span className="text-xs text-gray-400">
         Page {page} of {totalPages}
       </span>
