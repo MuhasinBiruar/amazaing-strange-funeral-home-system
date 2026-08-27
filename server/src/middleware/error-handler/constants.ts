@@ -33,7 +33,10 @@ export const FK_CONSTRAINTS: Record<
   },
 };
 
-export const UNIQUE_CONSTRAINTS: Record<string, { field: string; message: string }> = {
+export const UNIQUE_CONSTRAINTS: Record<
+  string,
+  { field: string; message: string }
+> = {
   contract_caseid_key: {
     field: 'caseid',
     message: 'A contract for this case already exists.',
