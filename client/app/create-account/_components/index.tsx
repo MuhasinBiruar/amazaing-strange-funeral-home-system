@@ -1,4 +1,3 @@
-// app/create-account/components/index.ts
 export { default as NameInput } from './name';
 export { default as EmailInput } from './email';
 export { default as ContactNumberInput } from './contact-number';

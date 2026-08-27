@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import Header from '../components/header/header';
-import Footer from '../components/footer/footer';
-import PageGuard from '../components/pageguard/page';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import PageGuard from '@/components/pageGuard';
 import { Toast } from 'primereact/toast';
 import 'primereact/resources/themes/lara-light-cyan/theme.css';
 import {
@@ -14,10 +14,9 @@ import {
   RoleInput,
   SystemRoleInput,
   ConfirmCreateModal,
-} from './components';
-
+} from './_components';
 import { Staff } from 'shared';
-import { createStaff } from '../services/staffService';
+import { createStaff } from '@/services/staffService';
 import { User } from 'lucide-react';
 
 /**

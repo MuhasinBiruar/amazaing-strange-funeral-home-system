@@ -5,7 +5,7 @@ import TableHeader from './tableHeader';
 import TableFooter from './tableFooter';
 import TableBody from './tableBody';
 import type { Case } from 'shared';
-import { getCases } from '@/app/services/caseService';
+import { getCases } from '@/services/caseService';
 
 const SEARCH_DEBOUNCE_MS = 500 as const;
 

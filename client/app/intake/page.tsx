@@ -1,9 +1,9 @@
 'use client';
 
-import Header from '../components/header/header';
-import Footer from '../components/footer/footer';
-import PageGuard from '../components/pageguard/page';
 import { useState } from 'react';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import PageGuard from '@/components/pageGuard';
 import VitalStatistics from './_components/vitalstatistics';
 import PhysicalDescription from './_components/physicaldescription';
 import ServiceArrangement from './_components/servicearrangement';
