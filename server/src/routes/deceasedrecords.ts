@@ -5,10 +5,7 @@ import {
   type Response,
 } from 'express';
 import pool from '@/db.ts';
-import {
-  deceasedrecordSchema,
-  type DeceasedRecordSchema,
-} from 'shared';
+import { deceasedrecordSchema, type DeceasedRecordSchema } from 'shared';
 import validate from '@/middleware/validate.ts';
 import requireAuth from '@/middleware/require-auth.ts';
 import { NotFoundError } from '@/errors';
