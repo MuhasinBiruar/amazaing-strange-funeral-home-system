@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { authClient } from './lib/auth-client';
+import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
-import AlreadyLoggedInModal from './components/modal/already-logged-in';
+import AlreadyLoggedInModal from '@/components/modals/already-logged-in';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
