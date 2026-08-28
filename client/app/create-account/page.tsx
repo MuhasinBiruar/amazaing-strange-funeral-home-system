@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useRef } from "react";
-import Header from "../components/header/header";
-import Footer from "../components/footer/footer";
-import PageGuard from "../components/pageguard/page";
-import { Toast } from "primereact/toast";
-import "primereact/resources/themes/lara-light-cyan/theme.css";
+import { useState, useRef } from 'react';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import PageGuard from '@/components/pageGuard';
+import { Toast } from 'primereact/toast';
+import 'primereact/resources/themes/lara-light-cyan/theme.css';
 import {
   NameInput,
   EmailInput,
@@ -14,10 +14,10 @@ import {
   RoleInput,
   SystemRoleInput,
   ConfirmCreateModal,
-} from "./components";
-
-import { createStaff, type StaffPayload } from "../services/staffService";
-import { User } from "lucide-react";
+} from './_components';
+import { createStaff } from '@/services/staffService';
+import { User } from 'lucide-react';
+import type { CreateStaffQuery } from 'shared';
 
 /**
  * Admin-only page for creating a new staff account.
@@ -32,21 +32,20 @@ import { User } from "lucide-react";
  * Wrapped in `PageGuard`, so access is restricted to authenticated (and
  * implicitly admin) users; the backend independently enforces
  * `requireAuth`/`requireAdmin` on the `/staff` POST endpoint as well.
- * 
+ *
  * @todo Consider adding a "reset form" button to clear the form after successful submission.
  * @todo Implement a way to hide the password in the success toast, e.g., by using a password strength indicator or a "show password" toggle.
- * 
+ *
  * @remarks The confirmation modal and success toast currently display
  * the staff member's password in plaintext, we need to review before shipping if
  * this is a concern for shoulder-surfing or screen-sharing.
  */
 export default function CreateAccountPage() {
-  const [errorMessage, setErrorMessage] = useState("");
-  const [role, setRole] = useState<"admin" | "user">("user");
+  const [errorMessage, setErrorMessage] = useState('');
+  const [role, setRole] = useState<'admin' | 'user'>('user');
   const [showConfirm, setShowConfirm] = useState(false);
-  const [pendingStaffData, setPendingStaffData] = useState<StaffPayload | null>(
-    null,
-  );
+  const [pendingStaffData, setPendingStaffData] =
+    useState<CreateStaffQuery | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const toastCenter = useRef<Toast>(null);
 
@@ -57,7 +56,7 @@ export default function CreateAccountPage() {
    * Handles the form submission event.
    *
    * Prevents the default form submission behavior and collects the form data
-   * into a `StaffPayload` object. Sets the pending staff data and shows the
+   * into a `Staff` object. Sets the pending staff data and shows the
    * confirmation modal.
    */
   function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -65,18 +64,19 @@ export default function CreateAccountPage() {
     const formData = new FormData(event.currentTarget);
 
     const staffData = {
-      firstName: formData.get("firstName") as string,
-      middleName: emptyToNull(formData.get("middleName")),
-      lastName: formData.get("lastName") as string,
-      email: emptyToNull(formData.get("email")),
-      contactNumber: emptyToNull(formData.get("contactNumber")),
-      jobRole: emptyToNull(formData.get("jobRole")),
+      firstName: formData.get('firstName') as string,
+      middleName: emptyToNull(formData.get('middleName')),
+      lastName: formData.get('lastName') as string,
+      email: emptyToNull(formData.get('email')),
+      contactNumber: emptyToNull(formData.get('contactNumber')),
+      jobRole: emptyToNull(formData.get('jobRole')),
       role: role,
-      password: formData.get("password") as string,
+      password: formData.get('password') as string,
+      isActive: true,
     };
 
     setPendingStaffData(staffData);
-    setErrorMessage("");
+    setErrorMessage('');
     setShowConfirm(true); // open modal instead of submitting immediately
   }
   /**
@@ -100,12 +100,12 @@ export default function CreateAccountPage() {
     setIsSubmitting(true);
     try {
       await createStaff(pendingStaffData).then((res) => {
-        console.log("Staff account created successfully:", res);
+        console.log('Staff account created successfully:', res);
         const username = res.data.user.username;
         const { password } = pendingStaffData;
         toastCenter.current?.show({
-          severity: "success",
-          summary: "Account Created",
+          severity: 'success',
+          summary: 'Account Created',
           detail: (
             <div>
               <div>Username: {username}</div>
@@ -118,7 +118,7 @@ export default function CreateAccountPage() {
       setShowConfirm(false);
     } catch (error) {
       setErrorMessage(
-        (error as Error).message ?? "Something went wrong. Please try again.",
+        (error as Error).message ?? 'Something went wrong. Please try again.',
       );
       setShowConfirm(false); // close modal so the error is visible on the form
     } finally {

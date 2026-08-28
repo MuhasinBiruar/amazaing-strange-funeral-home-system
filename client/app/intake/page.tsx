@@ -1,9 +1,9 @@
 'use client';
 
-import Header from '../components/header/header';
-import Footer from '../components/footer/footer';
-import PageGuard from '../components/pageguard/page';
 import { useState } from 'react';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import PageGuard from '@/components/pageGuard';
 import VitalStatistics from './_components/vitalstatistics';
 import PhysicalDescription from './_components/physicaldescription';
 import ServiceArrangement from './_components/servicearrangement';
@@ -16,7 +16,7 @@ import DeleteModal from './_components/deletemodal';
  * Intake page for creating a new deceased profile and managing associated documents.
  *
  * @todo Implement form submission logic, validation, and backend integration for saving the deceased profile and documents.
- * 
+ *
  * @remarks
  * the login form itself performs no client-side redirect until
  * the user clicks "Proceed" on the welcome modal.

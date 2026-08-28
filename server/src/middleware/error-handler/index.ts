@@ -2,7 +2,7 @@ import { APIError } from 'better-auth';
 import { Request, Response, NextFunction } from 'express';
 import { DatabaseError } from 'pg';
 import { ZodError } from 'zod';
-import { handleDatabaseError } from './handlers.ts';
+import { handleDatabaseError } from './handlers';
 import { AppError } from '@/errors';
 
 export default function errorHandler(
@@ -55,7 +55,8 @@ export default function errorHandler(
 
   if (
     error instanceof SyntaxError &&
-    (error as any).status === 400 &&
+    'status' in error &&
+    error.status === 400 &&
     'body' in error
   ) {
     return res.status(400).json({

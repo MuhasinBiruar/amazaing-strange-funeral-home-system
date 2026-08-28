@@ -4,14 +4,14 @@ import {
   type Request,
   type Response,
 } from 'express';
-import pool from '@/db.ts';
-import {
-  deceasedrecordSchema,
-  type DeceasedRecordSchema,
-} from '@/schemas/deceasedrecord';
-import validate from '@/middleware/validate.ts';
-import requireAuth from '@/middleware/require-auth.ts';
+import pool from '@/db';
+import validate from '@/middleware/validate';
+import requireAuth from '@/middleware/require-auth';
 import { NotFoundError } from '@/errors';
+import {
+  createDeceasedRecordQuerySchema,
+  type CreateDeceasedRecordQuery,
+} from 'shared';
 
 const router = Router();
 
@@ -45,9 +45,9 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 router.post(
   '/',
   requireAuth,
-  validate(deceasedrecordSchema),
+  validate(createDeceasedRecordQuerySchema),
   async (
-    req: Request<{}, {}, DeceasedRecordSchema>,
+    req: Request<{}, {}, CreateDeceasedRecordQuery>,
     res: Response,
     next: NextFunction,
   ) => {
@@ -89,7 +89,7 @@ router.post(
       res.status(201).json({
         data: result.rows[0],
       });
-    } catch (error: any) {
+    } catch (error) {
       next(error);
     }
   },
