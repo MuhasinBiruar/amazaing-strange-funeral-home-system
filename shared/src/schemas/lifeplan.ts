@@ -2,8 +2,8 @@ import z from 'zod';
 import {
   paginationQuerySchema,
   paginationResponseSchema,
-} from './util/pagination-schema.ts';
-import withNullDefault from './util/with-null-default.ts';
+} from './util/pagination-schema';
+import withNullDefault from './util/with-null-default';
 
 export const lifeplanSchema = z.object({
   planid: z.int32(),
