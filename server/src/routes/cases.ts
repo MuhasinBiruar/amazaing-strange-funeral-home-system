@@ -75,7 +75,8 @@ router.get(
       }
 
       if (search) {
-        // Searches through: deceasedrec.caseid, deceasedrec.name, rep.name, staff.name
+        // Searches through: deceasedrec.caseid, deceasedrec.name,
+        // rep.name, staff.name
         whereConditions.push(`(
           dr.caseid::text ILIKE $${paramIndex} OR
           CONCAT_WS(' ', dr.firstname, dr.middlename, dr.lastname) ILIKE $${paramIndex} OR
