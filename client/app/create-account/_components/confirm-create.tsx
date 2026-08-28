@@ -1,9 +1,9 @@
 'use client';
 
-import { Staff } from 'shared';
+import { type CreateStaffQuery } from 'shared';
 
 interface ConfirmCreateModalProps {
-  staffData: Staff;
+  staffData: CreateStaffQuery;
   isSubmitting: boolean;
   onCancel: () => void;
   onConfirm: () => void;

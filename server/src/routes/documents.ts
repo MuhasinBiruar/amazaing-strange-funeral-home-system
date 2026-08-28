@@ -6,9 +6,9 @@ import {
 } from 'express';
 import pool from '@/db.ts';
 import validate from '@/middleware/validate.ts';
-import { documentSchema, type Document } from 'shared';
 import requireAuth from '@/middleware/require-auth.ts';
 import { NotFoundError } from '@/errors';
+import { createDocumentQuerySchema, type CreateDocumentQuery } from 'shared';
 
 const router = Router();
 
@@ -42,8 +42,12 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 router.post(
   '/',
   requireAuth,
-  validate(documentSchema),
-  async (req: Request<{}, {}, Document>, res: Response, next: NextFunction) => {
+  validate(createDocumentQuerySchema),
+  async (
+    req: Request<{}, {}, CreateDocumentQuery>,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const parsed = req.body;
       const result = await pool.query(

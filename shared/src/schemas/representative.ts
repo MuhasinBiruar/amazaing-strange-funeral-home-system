@@ -3,7 +3,7 @@ import withNullDefault from './util/with-null-default.ts';
 import nameSchema from './util/name-schema.ts';
 import contactNumberSchema from './util/contact-number-schema.ts';
 
-export const representativeSchema = z.object({
+export const createRepresentativeQuerySchema = z.object({
   firstname: nameSchema('First name'),
   middlename: nameSchema('Middle name'),
   lastname: nameSchema('Last name'),
@@ -13,4 +13,6 @@ export const representativeSchema = z.object({
   datecreated: z.coerce.date(),
 });
 
-export type Representative = z.infer<typeof representativeSchema>;
+export type CreateRepresentativeQuery = z.infer<
+  typeof createRepresentativeQuerySchema
+>;

@@ -6,9 +6,9 @@ import {
 } from 'express';
 import pool from '@/db.ts';
 import requireAuth from '@/middleware/require-auth.ts';
-import { contractSchema, type Contract } from 'shared';
 import { NotFoundError } from '@/errors/http-errors.ts';
 import validate from '@/middleware/validate.ts';
+import { createContractQuerySchema, type CreateContractQuery } from 'shared';
 
 const router = Router();
 
@@ -46,8 +46,12 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 router.post(
   '/',
   requireAuth,
-  validate(contractSchema),
-  async (req: Request<{}, {}, Contract>, res: Response, next: NextFunction) => {
+  validate(createContractQuerySchema),
+  async (
+    req: Request<{}, {}, CreateContractQuery>,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const parsed = req.body;
       const result = await pool.query(
