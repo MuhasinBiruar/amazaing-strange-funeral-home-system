@@ -95,7 +95,7 @@ export default function RepresentativeInfo({
             <textarea
               value={data.rep_address || ''}
               onChange={(e) => onChange('rep_address', e.target.value)}
-              className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 pl-10 text-sm focus:ring-indigo-500 focus:border-indigo-500 min-h-[80px]"
+              className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 pl-10 text-sm focus:ring-indigo-500 focus:border-indigo-500 min-h-20"
               placeholder="House/Block/Lot No., Street, Barangay, City/Municipality, Province"
             />
           </div>
