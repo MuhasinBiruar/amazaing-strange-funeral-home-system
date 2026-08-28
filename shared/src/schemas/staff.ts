@@ -4,7 +4,7 @@ import contactNumberSchema from './util/contact-number-schema.ts';
 import nameSchema from './util/name-schema.ts';
 import passwordSchema from './util/password-schema.ts';
 
-export const staffSchema = z.object({
+export const createStaffQuerySchema = z.object({
   email: withNullDefault(
     z
       .email('Invalid email address')
@@ -25,4 +25,4 @@ export const staffSchema = z.object({
   contactNumber: withNullDefault(contactNumberSchema),
 });
 
-export type Staff = z.infer<typeof staffSchema>;
+export type CreateStaffQuery = z.infer<typeof createStaffQuerySchema>;

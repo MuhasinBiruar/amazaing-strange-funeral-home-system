@@ -4,63 +4,61 @@ import {
   type Response,
   type NextFunction,
 } from 'express';
-import { getCasesQuerySchema } from 'shared';
+import {
+  createLifeplanQuery,
+  getLifeplansQuerySchema,
+  type CreateLifeplanQuery,
+} from 'shared';
 import requireAuth from '@/middleware/require-auth';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
+import validate from '@/middleware/validate';
+import pool from '@/db';
 
 const router = Router();
 
 const SORT_COLUMNS: Record<string, string> = {
-  caseid: 'dr.caseid',
+  planid: 'l.planid',
+  plannumber: 'l.plannumber',
+  planholdername: 'l.planholdername',
+  minimumthreshold: 'l.minimumthreshold',
+  totalamount: 'l.totalamount',
+  caseid: 'l.caseid',
   deceased_name: 'deceased_name',
-  representative_name: 'representative_name',
-  burialdatedeadline: 'c.burialdatedeadline',
-  total_pending_docs: 'total_pending_docs',
-  totalamount: 'c.totalamount',
-  servicestatus: 'dr.servicestatus',
-  datecreated: 'dr.datecreated',
-  managed_by_name: 'managed_by_name',
+  companyid: 'l.companyid',
+  company_name: 'lc.companyname',
 };
 
 /**
  * Sample URLs
- * `http://localhost:4000/cases`
- * `http://localhost:4000/cases?search=Juan`
- * `http://localhost:4000/cases?status=active`
- * `http://localhost:4000/cases?search=Dela%20Cruz&status=pending&sortBy=burialdatedeadline&sortOrder=asc&page=1&limit=20`
+ * `http://localhost:4000/lifeplans`
+ * `http://localhost:4000/lifeplans?search=Dela%20Cruz`
+ * `http://localhost:4000/lifeplans?search=ABC%20Life&sortBy=totalamount&sortOrder=desc&page=1&limit=20`
  */
 router.get(
   '/',
   requireAuth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { page, limit, search, status, sortBy, sortOrder } =
-        getCasesQuerySchema.parse(req.query);
+      const { page, limit, search, sortBy, sortOrder } =
+        getLifeplansQuerySchema.parse(req.query);
 
       const selectClause = `
         SELECT 
-          dr.caseid,
+          l.planid,
+          l.plannumber,
+          l.planholdername,
+          l.minimumthreshold,
+          l.totalamount,
+          l.caseid AS caseid,
           CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
-          CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
-          c.burialdatedeadline,
-          COALESCE(d.pending_docs, 0)::int AS total_pending_docs,
-          c.totalamount,
-          dr.servicestatus,
-          dr.datecreated,
-          CONCAT_WS(' ', NULLIF(s."firstName", ''), NULLIF(s."middleName", ''), NULLIF(s."lastName", '')) AS managed_by_name
+          l.companyid AS companyid,
+          lc.companyname AS company_name
       `;
 
       const fromAndJoins = `
-        FROM public.deceasedrecord dr
-        LEFT JOIN public.contract c ON dr.caseid = c.caseid
-        LEFT JOIN public.representative r ON dr.representedby = r.representativeid
-        LEFT JOIN public.staff s ON dr.managedby = s.id
-        LEFT JOIN (
-          SELECT caseid, COUNT(documentid) as pending_docs
-          FROM public.document
-          WHERE verificationstatus = 'pending'
-          GROUP BY caseid
-        ) d ON dr.caseid = d.caseid
+        FROM public.lifeplan l
+        LEFT JOIN public.deceasedrecord dr ON l.caseid = dr.caseid
+        LEFT JOIN public.lifeplancompany lc ON l.companyid = lc.companyid
       `;
 
       // Start building `whereClause`
@@ -68,20 +66,15 @@ router.get(
       const queryParams: unknown[] = [];
       let paramIndex = 1;
 
-      if (status) {
-        whereConditions.push(`dr.servicestatus = $${paramIndex}`);
-        queryParams.push(status);
-        paramIndex++;
-      }
-
       if (search) {
-        // Searches through: deceasedrec.caseid, deceasedrec.name,
-        // rep.name, staff.name
+        // Searches through: lifeplan.plannumber, lifeplan.planholdername,
+        // lifeplan.caseid, deceasedrecord.name, lifeplancompany.companyname
         whereConditions.push(`(
-          dr.caseid::text ILIKE $${paramIndex} OR
+          l.plannumber ILIKE $${paramIndex} OR
+          l.planholdername ILIKE $${paramIndex} OR
+          l.caseid::text ILIKE $${paramIndex} OR
           CONCAT_WS(' ', dr.firstname, dr.middlename, dr.lastname) ILIKE $${paramIndex} OR
-          CONCAT_WS(' ', r.firstname, r.middlename, r.lastname) ILIKE $${paramIndex} OR
-          CONCAT_WS(' ', s."firstName", s."middleName", s."lastName") ILIKE $${paramIndex}
+          lc.companyname ILIKE $${paramIndex}
         )`);
         queryParams.push(`%${search}%`);
         paramIndex++;
@@ -107,7 +100,7 @@ router.get(
           `;
 
           const countQuery = `
-            SELECT COUNT(dr.caseid) as total
+            SELECT COUNT(l.planid) as total
             ${fromAndJoins}
             ${whereClause}
           `;
@@ -131,6 +124,46 @@ router.get(
           limit,
           totalPages: Math.ceil(totalRecords / limit),
         },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.post(
+  '/',
+  requireAuth,
+  validate(createLifeplanQuery),
+  async (
+    req: Request<{}, {}, CreateLifeplanQuery>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const parsed = req.body;
+      const result = await pool.query(
+        `
+        INSERT INTO lifeplan (
+          plannumber,
+          planholdername,
+          minimumthreshold,
+          totalamount,
+          caseid,
+          companyid
+        ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING planid;`,
+        [
+          parsed.plannumber,
+          parsed.planholdername,
+          parsed.minimumthreshold,
+          parsed.totalamount,
+          parsed.caseid,
+          parsed.companyid,
+        ],
+      );
+
+      res.status(201).json({
+        data: result.rows[0],
       });
     } catch (error) {
       next(error);

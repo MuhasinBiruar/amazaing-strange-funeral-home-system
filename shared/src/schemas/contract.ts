@@ -1,7 +1,7 @@
 import z from 'zod';
 import withNullDefault from './util/with-null-default.ts';
 
-export const contractSchema = z.object({
+export const createContractQuerySchema = z.object({
   signeddate: z.coerce.date(),
   burialdatedeadline: z.coerce.date(),
   totalamount: z.float64(),
@@ -11,4 +11,4 @@ export const contractSchema = z.object({
   packageid: z.int32(),
 });
 
-export type Contract = z.infer<typeof contractSchema>;
+export type CreateContractQuery = z.infer<typeof createContractQuerySchema>;

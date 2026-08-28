@@ -1,10 +1,12 @@
 import { z } from 'zod';
 import withNullDefault from './util/with-null-default.ts';
 
-export const burialrecordSchema = z.object({
+export const createBurialRecordQuerySchema = z.object({
   burialdate: withNullDefault(z.coerce.date()),
   burialsite: withNullDefault(z.string().min(1)),
   caseid: z.int32(),
 });
 
-export type BurialRecord = z.infer<typeof burialrecordSchema>;
+export type CreateBurialRecordQuery = z.infer<
+  typeof createBurialRecordQuerySchema
+>;
