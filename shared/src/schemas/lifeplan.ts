@@ -19,14 +19,6 @@ export const lifeplanSchema = z.object({
 
 export type Lifeplan = z.infer<typeof lifeplanSchema>;
 
-export const lifeplanCompanySchema = z.object({
-  companyid: z.int32(),
-  companyname: z.string(),
-  contactinfo: withNullDefault(z.string().min(1)),
-});
-
-export type LifeplanCompany = z.infer<typeof lifeplanCompanySchema>;
-
 export const getLifeplansQuerySchema = paginationQuerySchema.extend({
   search: z.string().optional(),
   sortBy: z.keyof(lifeplanSchema).default('planid'),
