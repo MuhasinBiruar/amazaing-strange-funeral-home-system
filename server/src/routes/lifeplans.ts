@@ -4,9 +4,15 @@ import {
   type Response,
   type NextFunction,
 } from 'express';
-import { getLifeplansQuerySchema } from 'shared';
+import {
+  createLifeplanQuery,
+  getLifeplansQuerySchema,
+  type CreateLifeplanQuery,
+} from 'shared';
 import requireAuth from '@/middleware/require-auth';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
+import validate from '@/middleware/validate';
+import pool from '@/db';
 
 const router = Router();
 
@@ -118,6 +124,46 @@ router.get(
           limit,
           totalPages: Math.ceil(totalRecords / limit),
         },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.post(
+  '/',
+  requireAuth,
+  validate(createLifeplanQuery),
+  async (
+    req: Request<{}, {}, CreateLifeplanQuery>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const parsed = req.body;
+      const result = await pool.query(
+        `
+        INSERT INTO lifeplan (
+          plannumber,
+          planholdername,
+          minimumthreshold,
+          totalamount,
+          caseid,
+          companyid
+        ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING planid;`,
+        [
+          parsed.plannumber,
+          parsed.planholdername,
+          parsed.minimumthreshold,
+          parsed.totalamount,
+          parsed.caseid,
+          parsed.companyid,
+        ],
+      );
+
+      res.status(201).json({
+        data: result.rows[0],
       });
     } catch (error) {
       next(error);
