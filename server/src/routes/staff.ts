@@ -4,11 +4,11 @@ import {
   type Request,
   type Response,
 } from 'express';
-import pool from '@/db.ts';
-import requireAuth from '@/middleware/require-auth.ts';
-import { auth } from '@/lib/auth.ts';
-import validate from '@/middleware/validate.ts';
-import requireAdmin from '@/middleware/require-admin.ts';
+import pool from '@/db';
+import requireAuth from '@/middleware/require-auth';
+import { auth } from '@/lib/auth';
+import validate from '@/middleware/validate';
+import requireAdmin from '@/middleware/require-admin';
 import { ConflictError, NotFoundError } from '@/errors';
 import { createStaffQuerySchema, type CreateStaffQuery } from 'shared';
 

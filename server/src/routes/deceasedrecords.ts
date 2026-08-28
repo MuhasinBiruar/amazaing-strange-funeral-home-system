@@ -4,9 +4,9 @@ import {
   type Request,
   type Response,
 } from 'express';
-import pool from '@/db.ts';
-import validate from '@/middleware/validate.ts';
-import requireAuth from '@/middleware/require-auth.ts';
+import pool from '@/db';
+import validate from '@/middleware/validate';
+import requireAuth from '@/middleware/require-auth';
 import { NotFoundError } from '@/errors';
 import {
   createDeceasedRecordQuerySchema,

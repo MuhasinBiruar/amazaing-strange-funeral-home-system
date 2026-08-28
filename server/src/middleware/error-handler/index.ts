@@ -2,7 +2,7 @@ import { APIError } from 'better-auth';
 import { Request, Response, NextFunction } from 'express';
 import { DatabaseError } from 'pg';
 import { ZodError } from 'zod';
-import { handleDatabaseError } from './handlers.ts';
+import { handleDatabaseError } from './handlers';
 import { AppError } from '@/errors';
 
 export default function errorHandler(
