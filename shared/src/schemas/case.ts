@@ -18,8 +18,7 @@ export const caseSchema = z.object({
 
 export type Case = z.infer<typeof caseSchema>;
 
-export const getCasesQuerySchema = z.object({
-  ...paginationQuerySchema.shape,
+export const getCasesQuerySchema = paginationQuerySchema.extend({
   search: z.string().optional(),
   status: caseSchema.shape.servicestatus.optional(),
   sortBy: z.keyof(caseSchema).default('caseid'),
@@ -28,8 +27,7 @@ export const getCasesQuerySchema = z.object({
 
 export type GetCasesQuery = z.infer<typeof getCasesQuerySchema>;
 
-export const getCasesResponseSchema = z.object({
-  ...paginationResponseSchema.shape,
+export const getCasesResponseSchema = paginationResponseSchema.extend({
   data: z.array(caseSchema),
 });
 
