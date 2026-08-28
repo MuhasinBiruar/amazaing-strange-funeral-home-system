@@ -1,4 +1,8 @@
 import z from 'zod';
+import {
+  paginationQuerySchema,
+  paginationResponseSchema,
+} from './util/pagination-schema';
 
 export const caseSchema = z.object({
   caseid: z.int(),
@@ -15,8 +19,7 @@ export const caseSchema = z.object({
 export type Case = z.infer<typeof caseSchema>;
 
 export const getCasesQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).max(100).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10),
+  ...paginationQuerySchema.shape,
   search: z.string().optional(),
   status: caseSchema.shape.servicestatus.optional(),
   sortBy: z.keyof(caseSchema).default('caseid'),
@@ -26,13 +29,8 @@ export const getCasesQuerySchema = z.object({
 export type GetCasesQuery = z.infer<typeof getCasesQuerySchema>;
 
 export const getCasesResponseSchema = z.object({
+  ...paginationResponseSchema.shape,
   data: z.array(caseSchema),
-  meta: z.object({
-    total: z.number().int(),
-    page: z.number().int(),
-    limit: z.number().int(),
-    totalPages: z.number().int(),
-  }),
 });
 
 export type GetCasesResponse = z.infer<typeof getCasesResponseSchema>;
