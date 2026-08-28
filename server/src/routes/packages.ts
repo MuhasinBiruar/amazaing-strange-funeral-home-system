@@ -8,7 +8,7 @@ import pool from '@/db.ts';
 import validate from '@/middleware/validate.ts';
 import requireAuth from '@/middleware/require-auth.ts';
 import { NotFoundError } from '@/errors';
-import { packageSchema, type Package } from 'shared';
+import { createPackageQuerySchema, type CreatePackageQuery } from 'shared';
 
 const router = Router();
 
@@ -42,8 +42,12 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 router.post(
   '/',
   requireAuth,
-  validate(packageSchema),
-  async (req: Request<{}, {}, Package>, res: Response, next: NextFunction) => {
+  validate(createPackageQuerySchema),
+  async (
+    req: Request<{}, {}, CreatePackageQuery>,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const parsed = req.body;
       const result = await pool.query(

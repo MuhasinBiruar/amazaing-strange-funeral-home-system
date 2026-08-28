@@ -5,10 +5,13 @@ import {
   type Response,
 } from 'express';
 import pool from '@/db.ts';
-import { deceasedrecordSchema, type DeceasedRecord } from 'shared';
 import validate from '@/middleware/validate.ts';
 import requireAuth from '@/middleware/require-auth.ts';
 import { NotFoundError } from '@/errors';
+import {
+  createDeceasedRecordQuerySchema,
+  type CreateDeceasedRecordQuery,
+} from 'shared';
 
 const router = Router();
 
@@ -42,9 +45,9 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 router.post(
   '/',
   requireAuth,
-  validate(deceasedrecordSchema),
+  validate(createDeceasedRecordQuerySchema),
   async (
-    req: Request<{}, {}, DeceasedRecord>,
+    req: Request<{}, {}, CreateDeceasedRecordQuery>,
     res: Response,
     next: NextFunction,
   ) => {

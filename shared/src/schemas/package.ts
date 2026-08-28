@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import withNullDefault from './util/with-null-default.ts';
 
-export const packageSchema = z.object({
+export const createPackageQuerySchema = z.object({
   packagename: z.string().min(1).max(255),
   packagetype: z.enum(['Basic', 'OG', 'Metal Casket', 'High End']),
   price: z.float64(),
@@ -9,4 +9,4 @@ export const packageSchema = z.object({
   inclusions: withNullDefault(z.string().min(1)),
 });
 
-export type Package = z.infer<typeof packageSchema>;
+export type CreatePackageQuery = z.infer<typeof createPackageQuerySchema>;

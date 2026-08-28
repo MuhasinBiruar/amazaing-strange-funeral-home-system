@@ -13,6 +13,7 @@ import burialrecordsRouter from './routes/burialrecords.ts';
 import contractsRouter from './routes/contracts.ts';
 import packagesRouter from './routes/packages.ts';
 import casesRouter from './routes/cases.ts';
+import lifeplansRouter from './routes/lifeplans.ts';
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/burialrecords', burialrecordsRouter);
 app.use('/deceasedrecords', deceasedRecordsRouter);
 app.use('/staff', staffRouter);
 app.use('/documents', documentsRouter);
+app.use('/lifeplans', lifeplansRouter);
 app.use('/representatives', representativesRouter);
 app.use('/contracts', contractsRouter);
 app.use('/packages', packagesRouter);
