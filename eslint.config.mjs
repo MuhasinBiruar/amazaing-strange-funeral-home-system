@@ -28,6 +28,7 @@ export default defineConfig([
             'eslint.config.mjs',
             'server/tsdown.config.ts',
             'client/postcss.config.mjs',
+            'shared/tsdown.config.ts',
           ],
         },
         tsconfigRootDir: import.meta.dirname,
@@ -50,6 +51,7 @@ export default defineConfig([
       'eslint.config.mjs',
       'server/tsdown.config.ts',
       'client/postcss.config.mjs',
+      'shared/tsdown.config.ts',
     ],
     languageOptions: {
       globals: globals.node,

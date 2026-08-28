@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import withNullDefault from './util/with-null-default.ts';
+import withNullDefault from './util/with-null-default';
 
 export const createDeceasedRecordQuerySchema = z.object({
   firstname: z.string().min(1),

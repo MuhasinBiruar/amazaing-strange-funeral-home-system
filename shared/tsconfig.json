@@ -4,10 +4,7 @@
     "target": "ES2022",
     "module": "preserve",
     "moduleResolution": "bundler",
-    "declaration": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "rewriteRelativeImportExtensions": true,
+    "noEmit": true,
     "allowImportingTsExtensions": true
   },
   "include": ["./src/"]

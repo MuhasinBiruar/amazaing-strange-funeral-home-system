@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import withNullDefault from './util/with-null-default.ts';
-import nameSchema from './util/name-schema.ts';
-import contactNumberSchema from './util/contact-number-schema.ts';
+import withNullDefault from './util/with-null-default';
+import nameSchema from './util/name-schema';
+import contactNumberSchema from './util/contact-number-schema';
 
 export const createRepresentativeQuerySchema = z.object({
   firstname: nameSchema('First name'),
