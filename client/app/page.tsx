@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { authClient } from './lib/auth-client';
+import { useState, useEffect } from 'react';
+import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
+import AlreadyLoggedInModal from '@/components/modals/already-logged-in';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -15,6 +16,16 @@ export default function LoginPage() {
     lastName: string;
     jobRole: string;
   } | null>(null);
+  const [isAlreadyLoggedIn, setIsAlreadyLoggedIn] = useState(false);
+
+  useEffect(() => {
+    authClient.getSession().then(({ data }) => {
+      if (data) {
+        setUsername(data.user?.username ?? '');
+        setIsAlreadyLoggedIn(true);
+      }
+    });
+  }, []);
 
   /**
    * Handles the login form submission. Signs in via username/password,
@@ -48,6 +59,15 @@ export default function LoginPage() {
           });
         }
       });
+  }
+
+  async function handleLogOut() {
+    setWelcomeUser(null);
+    await authClient.signOut().then(() => {
+      setIsAlreadyLoggedIn(false);
+      setUsername('');
+      setPassword('');
+    });
   }
 
   /**
@@ -136,31 +156,34 @@ export default function LoginPage() {
         </form>
       </div>
       {welcomeUser && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/60 bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-md text-center">
-            <h2 className="text-xl text-[#00236F] font-bold mb-4">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60 bg-opacity-50 min-h-screen w-full">
+          <div className="bg-white p-10 rounded-lg shadow-md text-center border-black shadow-black">
+            <h2 className="text-4xl text-[#00236F] font-bold mb-4">
               Welcome, {welcomeUser.firstName} {welcomeUser.lastName}
             </h2>
-            <h3 className="text-sm text-[#3a67c8] font-semibold mb-2">
+            <h3 className="text-2xl text-[#3a67c8] font-semibold mb-2">
               {welcomeUser.jobRole}
             </h3>
-            <p className="mb-4 text-gray-600 text-sm">
+            <p className="mb-4 text-gray-600 text-md">
               You have successfully logged in.
             </p>
             <button
               onClick={handleCancel}
-              className="bg-gray-300 text-gray-800 py-2 px-4 rounded-md font-medium hover:bg-gray-400 transition hover:cursor-pointer mr-2"
+              className="bg-gray-300 text-gray-800 py-4 px-8 rounded-md font-medium hover:bg-gray-400 transition hover:cursor-pointer mr-2"
             >
               Cancel
             </button>
             <button
               onClick={() => router.push('/dashboard')}
-              className="bg-[#00236F] text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 transition hover:cursor-pointer"
+              className="bg-[#00236F] text-white py-4 px-8 rounded-md font-medium hover:bg-blue-700 transition hover:cursor-pointer"
             >
               Proceed
             </button>
           </div>
         </div>
+      )}
+      {isAlreadyLoggedIn && (
+        <AlreadyLoggedInModal username={username} handleLogOut={handleLogOut} />
       )}
     </div>
   );

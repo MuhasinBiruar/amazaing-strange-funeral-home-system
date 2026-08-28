@@ -1,11 +1,11 @@
-import pool from '@/db.ts';
+import pool from '@/db';
 import { NotFoundError } from '@/errors';
-import requireAuth from '@/middleware/require-auth.ts';
-import validate from '@/middleware/validate.ts';
+import requireAuth from '@/middleware/require-auth';
+import validate from '@/middleware/validate';
 import {
-  representativeSchema,
-  type RepresentativeSchema,
-} from '@/schemas/representative.ts';
+  createRepresentativeQuerySchema,
+  type CreateRepresentativeQuery,
+} from 'shared';
 import {
   Router,
   type NextFunction,
@@ -49,9 +49,9 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 router.post(
   '/',
   requireAuth,
-  validate(representativeSchema),
+  validate(createRepresentativeQuerySchema),
   async (
-    req: Request<{}, {}, RepresentativeSchema>,
+    req: Request<{}, {}, CreateRepresentativeQuery>,
     res: Response,
     next: NextFunction,
   ) => {

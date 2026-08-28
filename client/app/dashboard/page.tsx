@@ -1,18 +1,15 @@
 'use client';
 
-import Header from "../components/header/header";
-import Footer from "../components/footer/footer";
-import { useRouter } from "next/navigation";
-import PageGuard from "../components/pageguard/page";
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import { useRouter } from 'next/navigation';
+import PageGuard from '@/components/pageGuard';
 import {
   Wallet,
   AlertTriangle,
   FileSignature,
   UserPlus,
   ClipboardCheck,
-  RefreshCcw,
-  FolderOpen,
-  Package,
 } from 'lucide-react';
 
 const modules = [
@@ -42,24 +39,31 @@ export default function DashboardPage() {
   const router = useRouter();
   return (
     <PageGuard>
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="min-h-dvh bg-white flex flex-col">
         <Header />
-        <main className="flex-1 w-full max-w-5xl mx-auto overflow-hidden">
-          <div className="text-left sm:text-center pt-5 sm:pt-8 pb-4 px-4 sm:px-6">
-            <h1 className="text-xl sm:text-2xl font-bold text-indigo-900">Dashboard</h1>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">Choose a service to get started.</p>
+        <main className="flex-1 flex flex-col w-[92vw] lg:w-[80vw] mx-auto px-[2vw] pt-[5vh] pb-[4vh] min-h-0">
+          <div className="text-left sm:text-center pb-6 shrink-0">
+            <h1 className="text-[clamp(1.25rem,1.8vw,2rem)] font-bold text-indigo-900">
+              Dashboard
+            </h1>
+            <p className="text-[clamp(0.75rem,1vw,0.95rem)] text-gray-500 mt-1">
+              Choose a service to get started.
+            </p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 px-4 sm:px-6 pb-6 sm:pb-8">
+          <div className="flex-1 flex flex-wrap content-stretch justify-center gap-4 w-full">
             {modules.map(({ name, icon: Icon, routeTo }) => (
               <button
                 key={name}
-                className="flex flex-col items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white py-5 sm:py-6 px-2 hover:border-indigo-400 hover:shadow-md transition cursor-pointer"
+                className="grow basis-[45%] sm:basis-[30%] max-w-105 flex flex-col items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 hover:border-indigo-400 hover:shadow-md transition cursor-pointer"
                 onClick={() => router.push(routeTo)}
               >
-                <span className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
-                  <Icon size={18} />
+                <span className="flex items-center justify-center rounded-full bg-indigo-50 text-indigo-600 w-[clamp(2.25rem,3.5vw,3rem)] h-[clamp(2.25rem,3.5vw,3rem)]">
+                  <Icon
+                    size={18}
+                    className="w-[clamp(1.1rem,1.6vw,1.5rem)] h-[clamp(1.1rem,1.6vw,1.5rem)]"
+                  />
                 </span>
-                <span className="text-xs sm:text-sm font-medium text-gray-700 text-center leading-tight">
+                <span className="text-[clamp(0.8rem,1.1vw,1rem)] font-medium text-gray-700 text-center leading-tight">
                   {name}
                 </span>
               </button>

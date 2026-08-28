@@ -31,9 +31,20 @@ export const FK_CONSTRAINTS: Record<
     field: 'caseid',
     message: 'Referenced deceased record does not exist.',
   },
+  lifeplan_caseid_fkey: {
+    field: 'caseid',
+    message: 'Referenced deceased record does not exist.',
+  },
+  lifeplan_companyid_fkey: {
+    field: 'companyid',
+    message: 'Referenced lifeplan company does not exist.',
+  },
 };
 
-export const UNIQUE_CONSTRAINTS: Record<string, { field: string; message: string }> = {
+export const UNIQUE_CONSTRAINTS: Record<
+  string,
+  { field: string; message: string }
+> = {
   contract_caseid_key: {
     field: 'caseid',
     message: 'A contract for this case already exists.',
@@ -41,5 +52,9 @@ export const UNIQUE_CONSTRAINTS: Record<string, { field: string; message: string
   contract_packageid_key: {
     field: 'packageid',
     message: 'A contract with this package already exists.',
+  },
+  lifeplan_caseid_key: {
+    field: 'caseid',
+    message: 'A lifeplan for this case already exists.',
   },
 };

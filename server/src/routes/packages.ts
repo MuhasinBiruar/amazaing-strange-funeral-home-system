@@ -4,11 +4,11 @@ import {
   type Request,
   type Response,
 } from 'express';
-import pool from '@/db.ts';
-import validate from '@/middleware/validate.ts';
-import requireAuth from '@/middleware/require-auth.ts';
+import pool from '@/db';
+import validate from '@/middleware/validate';
+import requireAuth from '@/middleware/require-auth';
 import { NotFoundError } from '@/errors';
-import { packageSchema, type PackageSchema } from '@/schemas/package.ts';
+import { createPackageQuerySchema, type CreatePackageQuery } from 'shared';
 
 const router = Router();
 
@@ -42,9 +42,9 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 router.post(
   '/',
   requireAuth,
-  validate(packageSchema),
+  validate(createPackageQuerySchema),
   async (
-    req: Request<{}, {}, PackageSchema>,
+    req: Request<{}, {}, CreatePackageQuery>,
     res: Response,
     next: NextFunction,
   ) => {
@@ -72,7 +72,7 @@ router.post(
       res.status(201).json({
         data: result.rows[0],
       });
-    } catch (error: any) {
+    } catch (error) {
       next(error);
     }
   },

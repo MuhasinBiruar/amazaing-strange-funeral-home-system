@@ -2,16 +2,18 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { toNodeHandler } from 'better-auth/node';
-import { auth } from './lib/auth.ts';
-import deceasedRecordsRouter from './routes/deceasedrecords.ts';
-import staffRouter from './routes/staff.ts';
-import documentsRouter from './routes/documents.ts';
-import meRouter from './routes/me.ts';
-import representativesRouter from './routes/representatives.ts';
+import { auth } from './lib/auth';
+import deceasedRecordsRouter from './routes/deceasedrecords';
+import staffRouter from './routes/staff';
+import documentsRouter from './routes/documents';
+import meRouter from './routes/me';
+import representativesRouter from './routes/representatives';
 import errorHandler from './middleware/error-handler';
-import burialrecordsRouter from './routes/burialrecords.ts';
-import contractsRouter from './routes/contracts.ts';
-import packagesRouter from './routes/packages.ts';
+import burialrecordsRouter from './routes/burialrecords';
+import contractsRouter from './routes/contracts';
+import packagesRouter from './routes/packages';
+import casesRouter from './routes/cases';
+import lifeplansRouter from './routes/lifeplans';
 
 const app = express();
 
@@ -31,9 +33,11 @@ app.use('/burialrecords', burialrecordsRouter);
 app.use('/deceasedrecords', deceasedRecordsRouter);
 app.use('/staff', staffRouter);
 app.use('/documents', documentsRouter);
+app.use('/lifeplans', lifeplansRouter);
 app.use('/representatives', representativesRouter);
 app.use('/contracts', contractsRouter);
 app.use('/packages', packagesRouter);
+app.use('/cases', casesRouter);
 
 app.use('/api/me', meRouter);
 

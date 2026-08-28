@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { auth } from '@/lib/auth.ts';
+import { auth } from '@/lib/auth';
 import { fromNodeHeaders } from 'better-auth/node';
-import requireAuth from '@/middleware/require-auth.ts';
+import requireAuth from '@/middleware/require-auth';
 
 const router = Router();
 
