@@ -2,7 +2,7 @@ import z from 'zod';
 import {
   paginationQuerySchema,
   paginationResponseSchema,
-} from './util/pagination-schema';
+} from './util/pagination-schema.ts';
 
 export const caseSchema = z.object({
   caseid: z.int(),
