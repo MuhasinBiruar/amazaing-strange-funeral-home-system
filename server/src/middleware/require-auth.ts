@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import { auth } from '@/lib/auth.ts';
+import { auth } from '@/lib/auth';
 import { fromNodeHeaders } from 'better-auth/node';
 import { UnauthorizedError } from '@/errors';
 

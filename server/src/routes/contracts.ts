@@ -4,10 +4,10 @@ import {
   type Request,
   type Response,
 } from 'express';
-import pool from '@/db.ts';
-import requireAuth from '@/middleware/require-auth.ts';
-import { NotFoundError } from '@/errors/http-errors.ts';
-import validate from '@/middleware/validate.ts';
+import pool from '@/db';
+import requireAuth from '@/middleware/require-auth';
+import { NotFoundError } from '@/errors/http-errors';
+import validate from '@/middleware/validate';
 import { createContractQuerySchema, type CreateContractQuery } from 'shared';
 
 const router = Router();

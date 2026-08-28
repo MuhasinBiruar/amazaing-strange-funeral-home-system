@@ -1,7 +1,7 @@
-import pool from '@/db.ts';
+import pool from '@/db';
 import { NotFoundError } from '@/errors';
-import requireAuth from '@/middleware/require-auth.ts';
-import validate from '@/middleware/validate.ts';
+import requireAuth from '@/middleware/require-auth';
+import validate from '@/middleware/validate';
 import {
   createRepresentativeQuerySchema,
   type CreateRepresentativeQuery,
