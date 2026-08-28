@@ -22,9 +22,9 @@ const SORT_COLUMNS: Record<string, string> = {
   planholdername: 'l.planholdername',
   minimumthreshold: 'l.minimumthreshold',
   totalamount: 'l.totalamount',
-  case_id: 'l.caseid',
+  caseid: 'l.caseid',
   deceased_name: 'deceased_name',
-  company_id: 'l.companyid',
+  companyid: 'l.companyid',
   company_name: 'lc.companyname',
 };
 
@@ -49,9 +49,9 @@ router.get(
           l.planholdername,
           l.minimumthreshold,
           l.totalamount,
-          l.caseid AS case_id,
+          l.caseid AS caseid,
           CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
-          l.companyid AS company_id,
+          l.companyid AS companyid,
           lc.companyname AS company_name
       `;
 
