@@ -1,14 +1,14 @@
-import { User, Calendar } from "lucide-react";
-import { useRef } from "react";
+import { User, Calendar } from 'lucide-react';
+import { useRef } from 'react';
 
 interface VitalStatisticsProps {
-  locationOfDeath: string;
-  setLocationOfDeath: (location: string) => void;
+  data: any;
+  onChange: (field: string, value: any) => void;
 }
 
 export default function VitalStatistics({
-  locationOfDeath,
-  setLocationOfDeath,
+  data,
+  onChange,
 }: VitalStatisticsProps) {
   const dateInputRef = useRef<HTMLInputElement>(null);
 
@@ -26,6 +26,8 @@ export default function VitalStatistics({
           </label>
           <input
             type="text"
+            value={data.firstname || ''}
+            onChange={(e) => onChange('firstname', e.target.value)}
             className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="First Name"
           />
@@ -36,6 +38,8 @@ export default function VitalStatistics({
           </label>
           <input
             type="text"
+            value={data.middlename || ''}
+            onChange={(e) => onChange('middlename', e.target.value)}
             className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Middle Name"
           />
@@ -46,6 +50,8 @@ export default function VitalStatistics({
           </label>
           <input
             type="text"
+            value={data.lastname || ''}
+            onChange={(e) => onChange('lastname', e.target.value)}
             className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Last Name"
           />
@@ -67,6 +73,8 @@ export default function VitalStatistics({
               ref={dateInputRef}
               type="date"
               max="2099-12-31"
+              value={data.dateofdeath || ''}
+              onChange={(e) => onChange('dateofdeath', e.target.value)}
               onKeyDown={(e) => e.preventDefault()}
               className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 pl-10 text-sm focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden"
             />
@@ -78,14 +86,15 @@ export default function VitalStatistics({
             LOCATION OF DEATH
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {["House", "Hospital", "Police Case"].map((loc) => (
+            {['House', 'Hospital', 'Police Case'].map((loc) => (
               <button
                 key={loc}
-                onClick={() => setLocationOfDeath(loc)}
+                type="button"
+                onClick={() => onChange('locationOfDeath', loc)}
                 className={`py-2 px-1 text-xs sm:text-sm font-medium rounded-lg border transition ${
-                  locationOfDeath === loc
-                    ? "bg-indigo-900 text-white border-indigo-900"
-                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                  data.locationOfDeath === loc
+                    ? 'bg-indigo-900 text-white border-indigo-900'
+                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                 }`}
               >
                 {loc}
@@ -99,6 +108,8 @@ export default function VitalStatistics({
             IMMEDIATE CAUSE OF DEATH
           </label>
           <textarea
+            value={data.causeofdeath || ''}
+            onChange={(e) => onChange('causeofdeath', e.target.value)}
             className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm min-h-20"
             placeholder="As stated in the medical certificate or preliminary report..."
           />
