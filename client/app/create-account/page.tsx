@@ -15,9 +15,9 @@ import {
   SystemRoleInput,
   ConfirmCreateModal,
 } from './_components';
-import { Staff } from 'shared';
 import { createStaff } from '@/services/staffService';
 import { User } from 'lucide-react';
+import type { CreateStaffQuery } from 'shared';
 
 /**
  * Admin-only page for creating a new staff account.
@@ -44,7 +44,8 @@ export default function CreateAccountPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [role, setRole] = useState<'admin' | 'user'>('user');
   const [showConfirm, setShowConfirm] = useState(false);
-  const [pendingStaffData, setPendingStaffData] = useState<Staff | null>(null);
+  const [pendingStaffData, setPendingStaffData] =
+    useState<CreateStaffQuery | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const toastCenter = useRef<Toast>(null);
 

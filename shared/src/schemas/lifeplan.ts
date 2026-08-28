@@ -12,9 +12,7 @@ export const lifeplanSchema = z.object({
   minimumthreshold: withNullDefault(z.float64().min(0)),
   totalamount: withNullDefault(z.float64().min(1)),
   caseid: z.int32(),
-  deceased_name: z.string(),
   companyid: z.int32(),
-  company_name: z.string(),
 });
 
 export type Lifeplan = z.infer<typeof lifeplanSchema>;
@@ -27,16 +25,21 @@ export const getLifeplansQuerySchema = paginationQuerySchema.extend({
 
 export type GetLifeplansQuery = z.infer<typeof getLifeplansQuerySchema>;
 
+export const lifeplanResponseSchema = lifeplanSchema.extend({
+  deceased_name: z.string(),
+  company_name: z.string(),
+});
+
+export type LifeplanResponse = z.infer<typeof lifeplanResponseSchema>;
+
 export const getLifeplansResponseSchema = paginationResponseSchema.extend({
-  data: z.array(lifeplanSchema),
+  data: z.array(lifeplanResponseSchema),
 });
 
 export type GetLifeplansResponse = z.infer<typeof getLifeplansResponseSchema>;
 
 export const createLifeplanQuery = lifeplanSchema.omit({
   planid: true,
-  deceased_name: true,
-  company_name: true,
 });
 
 export type CreateLifeplanQuery = z.infer<typeof createLifeplanQuery>;
