@@ -59,9 +59,14 @@ export default function Header() {
               </button>
               <button
                 onClick={() => {
-                  authClient.signOut();
-                  setClickLogOut(false);
-                  router.push('/');
+                  authClient.signOut({
+                    fetchOptions: {
+                      onSuccess: () => {
+                        setClickLogOut(false);
+                        router.push('/');
+                      },
+                    },
+                  });
                 }}
                 className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-500 hover:cursor-pointer"
               >
