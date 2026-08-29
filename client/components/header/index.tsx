@@ -20,13 +20,22 @@ export default function Header() {
   }, []);
 
   return (
-    <div className="flex items-start sm:items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-700 gap-2 sticky top-0 bg-white/50 backdrop-blur-md z-50">
-      <div className="flex items-center gap-2">
-        <Building2 size={18} className="text-indigo-600 shrink-0" />
-        <span className="font-semibold text-indigo-600 leading-tight text-sm sm:text-base">
-          Villa Elisa Funeral Home
-        </span>
+    <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-700 gap-2 sticky top-0 bg-white/50 backdrop-blur-md z-50">
+      <div className="grid grid-rows-2 gap2">
+        <div className="flex gap-2 items-start sm:items-center">
+          <Building2 size={18} className="text-indigo-600 shrink-0" />
+          <span className="font-semibold text-indigo-600 leading-tight text-sm sm:text-base">
+            Villa Elisa Funeral Home
+          </span>
+        </div>
+        <button
+          onClick={() => router.back()}
+          className="relative flex items-center gap-1 text-xs font-bold sm:text-sm text-gray-500 hover:cursor-pointer hover:text-indigo-600 transition-colors duration-500 hover:underline "
+        >
+          Back
+        </button>
       </div>
+
       <div className="relative shrink-0 grip grid-row-2">
         <button
           onClick={() => setOpen(!open)}
