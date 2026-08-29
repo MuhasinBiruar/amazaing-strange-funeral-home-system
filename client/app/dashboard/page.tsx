@@ -1,15 +1,13 @@
 'use client';
 
-import Header from '@/components/header';
-import Footer from '@/components/footer';
 import { useRouter } from 'next/navigation';
-import PageGuard from '@/components/pageGuard';
 import {
   Wallet,
   AlertTriangle,
   FileSignature,
   UserPlus,
   ClipboardCheck,
+  UserStar,
 } from 'lucide-react';
 
 const modules = [
@@ -18,6 +16,7 @@ const modules = [
   { name: 'Financial Dashboard', icon: Wallet, routeTo: '/dashboard' },
   { name: 'Special Cases', icon: AlertTriangle, routeTo: '/dashboard' },
   { name: 'Inventory Audits', icon: ClipboardCheck, routeTo: '/dashboard' },
+  { name: 'Admin', icon: UserStar, routeTo: '/dashboard/admin' },
   // { name: "Daily Payments", icon: RefreshCcw },
   // { name: "Document Hub", icon: FolderOpen },
   // { name: "Basic Inventory", icon: Package },
