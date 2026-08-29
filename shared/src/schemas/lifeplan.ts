@@ -17,23 +17,23 @@ export const lifeplanSchema = z.object({
 
 export type Lifeplan = z.infer<typeof lifeplanSchema>;
 
+export const lifeplanRowSchema = lifeplanSchema.extend({
+  deceased_name: z.string(),
+  company_name: z.string(),
+});
+
+export type LifeplanRow = z.infer<typeof lifeplanRowSchema>;
+
 export const getLifeplansQuerySchema = paginationQuerySchema.extend({
   search: z.string().optional(),
-  sortBy: z.keyof(lifeplanSchema).default('planid'),
+  sortBy: z.keyof(lifeplanRowSchema).default('planid'),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
 });
 
 export type GetLifeplansQuery = z.infer<typeof getLifeplansQuerySchema>;
 
-export const lifeplanResponseSchema = lifeplanSchema.extend({
-  deceased_name: z.string(),
-  company_name: z.string(),
-});
-
-export type LifeplanResponse = z.infer<typeof lifeplanResponseSchema>;
-
 export const getLifeplansResponseSchema = paginationResponseSchema.extend({
-  data: z.array(lifeplanResponseSchema),
+  data: z.array(lifeplanRowSchema),
 });
 
 export type GetLifeplansResponse = z.infer<typeof getLifeplansResponseSchema>;
