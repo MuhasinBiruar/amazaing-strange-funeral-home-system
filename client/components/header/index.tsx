@@ -30,7 +30,7 @@ export default function Header() {
         </div>
         <button
           onClick={() => router.back()}
-          className="relative flex items-center gap-1 text-xs font-bold sm:text-sm text-gray-500 hover:cursor-pointer hover:text-indigo-600 transition-colors duration-500 hover:underline "
+          className="w-10 relative flex items-center gap-1 text-xs font-bold sm:text-sm text-gray-500 hover:cursor-pointer hover:text-indigo-600 transition-colors duration-500 hover:underline "
         >
           Back
         </button>
