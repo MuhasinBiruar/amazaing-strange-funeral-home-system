@@ -1,9 +1,6 @@
 'use client';
 
-import Header from '@/components/header';
-import Footer from '@/components/footer';
 import { useRouter } from 'next/navigation';
-import PageGuard from '@/components/pageGuard';
 import {
   Wallet,
   AlertTriangle,
@@ -14,7 +11,11 @@ import {
 
 const modules = [
   { name: 'Intake & Profiling', icon: UserPlus, routeTo: '/dashboard/intake' },
-  { name: 'Contracting', icon: FileSignature, routeTo: '/dashboard/contracts' },
+  {
+    name: 'Case Management',
+    icon: FileSignature,
+    routeTo: '/dashboard/case-management',
+  },
   { name: 'Financial Dashboard', icon: Wallet, routeTo: '/dashboard' },
   { name: 'Special Cases', icon: AlertTriangle, routeTo: '/dashboard' },
   { name: 'Inventory Audits', icon: ClipboardCheck, routeTo: '/dashboard' },
