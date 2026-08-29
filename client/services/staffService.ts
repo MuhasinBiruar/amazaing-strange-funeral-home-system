@@ -12,33 +12,11 @@ export const getStaff = async (username: string) => {
   }
 };
 
-export interface StaffMember {
-  id: string;
-  firstName: string;
-  middleName: string | null;
-  lastName: string;
-  name: string;
-  username: string;
-  displayUsername: string;
-  jobRole: string;
-  role: string;
-  isActive: boolean;
-  email: string;
-  contactNumber: string | null;
-  emailVerified: boolean;
-  image: string | null;
-  banned: boolean;
-  banReason: string | null;
-  banExpires: string | null;
-  dateCreated: string;
-  updatedAt: string;
-}
-
 interface StaffListResponse {
-  data: StaffMember[];
+  data: CreateStaffQuery[];
 }
 
-export const getAllStaff = async (): Promise<StaffMember[]> => {
+export const getAllStaff = async (): Promise<CreateStaffQuery[]> => {
   try {
     const res = await API.get<StaffListResponse>('/staff');
     return res.data.data ?? [];
