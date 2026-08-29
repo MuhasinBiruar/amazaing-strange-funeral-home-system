@@ -49,9 +49,9 @@ router.get(
           l.planholdername,
           l.minimumthreshold,
           l.totalamount,
-          l.caseid AS caseid,
+          l.caseid,
           CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
-          l.companyid AS companyid,
+          l.companyid,
           lc.companyname AS company_name
       `;
 
