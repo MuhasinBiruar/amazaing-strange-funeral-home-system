@@ -39,6 +39,10 @@ export const FK_CONSTRAINTS: Record<
     field: 'companyid',
     message: 'Referenced lifeplan company does not exist.',
   },
+  lgucase_caseid_fkey: {
+    field: 'caseid',
+    message: 'Referenced deceased record does not exist.',
+  },
 };
 
 export const UNIQUE_CONSTRAINTS: Record<
@@ -56,5 +60,9 @@ export const UNIQUE_CONSTRAINTS: Record<
   lifeplan_caseid_key: {
     field: 'caseid',
     message: 'A lifeplan for this case already exists.',
+  },
+  lgucase_caseid_key: {
+    field: 'caseid',
+    message: 'An LGU case for this case already exists.',
   },
 };

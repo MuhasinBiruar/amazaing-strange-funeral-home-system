@@ -32,3 +32,7 @@ export const getLguCasesResponseSchema = paginationResponseSchema.extend({
 });
 
 export type GetLguCasesResponse = z.infer<typeof getLguCasesResponseSchema>;
+
+export const createLguCaseQuery = lguCaseSchema.omit({ lgucaseid: true });
+
+export type CreateLguCaseQuery = z.infer<typeof createLguCaseQuery>;
