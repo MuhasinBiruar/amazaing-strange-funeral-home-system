@@ -5,9 +5,9 @@ import {
   type NextFunction,
 } from 'express';
 import {
-  createLifeplanQuery,
-  getLifeplansQuerySchema,
-  type CreateLifeplanQuery,
+  createLguCaseQuery,
+  getLguCasesQuerySchema,
+  type CreateLguCaseQuery,
 } from 'shared';
 import requireAuth from '@/middleware/require-auth';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
@@ -17,22 +17,18 @@ import pool from '@/db';
 const router = Router();
 
 const SORT_COLUMNS: Record<string, string> = {
-  planid: 'l.planid',
-  plannumber: 'l.plannumber',
-  planholdername: 'l.planholdername',
-  minimumthreshold: 'l.minimumthreshold',
-  totalamount: 'l.totalamount',
-  caseid: 'l.caseid',
+  lgucaseid: 'lc.lgucaseid',
+  reimbursementstatus: 'lc.reimbursementstatus',
+  reimbursementamount: 'lc.reimbursementamount',
+  caseid: 'lc.caseid',
   deceased_name: 'deceased_name',
-  companyid: 'l.companyid',
-  company_name: 'lc.companyname',
 };
 
 /**
  * Sample URLs
- * `http://localhost:4000/lifeplans`
- * `http://localhost:4000/lifeplans?search=Dela%20Cruz`
- * `http://localhost:4000/lifeplans?search=ABC%20Life&sortBy=totalamount&sortOrder=desc&page=1&limit=20`
+ * `http://localhost:6543/lgucases`
+ * `http://localhost:6543/lgucases?search=Juan`
+ * `http://localhost:6543/lgucases?search=Dela%20Cruz&sortBy=reimbursementamount&sortOrder=desc&page=1&limit=20`
  */
 router.get(
   '/',
@@ -40,25 +36,20 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { page, limit, search, sortBy, sortOrder } =
-        getLifeplansQuerySchema.parse(req.query);
+        getLguCasesQuerySchema.parse(req.query);
 
       const selectClause = `
         SELECT 
-          l.planid,
-          l.plannumber,
-          l.planholdername,
-          l.minimumthreshold,
-          l.totalamount,
-          l.caseid,
-          CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
-          l.companyid,
-          lc.companyname AS company_name
+          lc.lgucaseid,
+          lc.reimbursementstatus,
+          lc.reimbursementamount,
+          lc.caseid AS caseid,
+          CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name
       `;
 
       const fromAndJoins = `
-        FROM public.lifeplan l
-        LEFT JOIN public.deceasedrecord dr ON l.caseid = dr.caseid
-        LEFT JOIN public.lifeplancompany lc ON l.companyid = lc.companyid
+        FROM public.lgucase lc
+        LEFT JOIN public.deceasedrecord dr ON lc.caseid = dr.caseid
       `;
 
       // Start building `whereClause`
@@ -67,14 +58,12 @@ router.get(
       let paramIndex = 1;
 
       if (search) {
-        // Searches through: lifeplan.plannumber, lifeplan.planholdername,
-        // lifeplan.caseid, deceasedrecord.name, lifeplancompany.companyname
+        // Searches through: lgucase.caseid, lgucase.reimbursementstatus,
+        // deceasedrecord.name
         whereConditions.push(`(
-          l.plannumber ILIKE $${paramIndex} OR
-          l.planholdername ILIKE $${paramIndex} OR
-          l.caseid::text ILIKE $${paramIndex} OR
-          CONCAT_WS(' ', dr.firstname, dr.middlename, dr.lastname) ILIKE $${paramIndex} OR
-          lc.companyname ILIKE $${paramIndex}
+          lc.caseid::text ILIKE $${paramIndex} OR
+          lc.reimbursementstatus::text ILIKE $${paramIndex} OR
+          CONCAT_WS(' ', dr.firstname, dr.middlename, dr.lastname) ILIKE $${paramIndex}
         )`);
         queryParams.push(`%${search}%`);
         paramIndex++;
@@ -100,7 +89,7 @@ router.get(
           `;
 
           const countQuery = `
-            SELECT COUNT(l.planid) as total
+            SELECT COUNT(lc.lgucaseid) as total
             ${fromAndJoins}
             ${whereClause}
           `;
@@ -134,9 +123,9 @@ router.get(
 router.post(
   '/',
   requireAuth,
-  validate(createLifeplanQuery),
+  validate(createLguCaseQuery),
   async (
-    req: Request<{}, {}, CreateLifeplanQuery>,
+    req: Request<{}, {}, CreateLguCaseQuery>,
     res: Response,
     next: NextFunction,
   ) => {
@@ -144,22 +133,12 @@ router.post(
       const parsed = req.body;
       const result = await pool.query(
         `
-        INSERT INTO lifeplan (
-          plannumber,
-          planholdername,
-          minimumthreshold,
-          totalamount,
-          caseid,
-          companyid
-        ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING planid;`,
-        [
-          parsed.plannumber,
-          parsed.planholdername,
-          parsed.minimumthreshold,
-          parsed.totalamount,
-          parsed.caseid,
-          parsed.companyid,
-        ],
+        INSERT INTO lgucase (
+          reimbursementstatus,
+          reimbursementamount,
+          caseid
+        ) VALUES ($1, $2, $3) RETURNING lgucaseid;`,
+        [parsed.reimbursementstatus, parsed.reimbursementamount, parsed.caseid],
       );
 
       res.status(201).json({
