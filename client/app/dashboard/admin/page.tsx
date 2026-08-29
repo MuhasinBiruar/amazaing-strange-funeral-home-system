@@ -1,6 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { getAllStaff, type StaffMember } from '@/services/staffService';
+import { getAllStaff } from '@/services/staffService';
 import { useState, useEffect } from 'react';
 import type { CreateStaffQuery } from 'shared';
 /**
@@ -11,7 +11,7 @@ import type { CreateStaffQuery } from 'shared';
  */
 
 export default function AdminPage() {
-  const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [staff, setStaff] = useState<CreateStaffQuery[]>([]);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -60,7 +60,10 @@ export default function AdminPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {staff.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+                <tr
+                  key={user.lastName + user.firstName + user.role}
+                  className="hover:bg-gray-50"
+                >
                   <td className="px-4 py-3 font-medium text-gray-900">
                     {user.lastName}
                   </td>
