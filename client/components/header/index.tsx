@@ -20,7 +20,7 @@ export default function Header() {
   }, []);
 
   return (
-    <div className="flex items-start sm:items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-700 gap-2">
+    <div className="flex items-start sm:items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-700 gap-2 sticky top-0 bg-white/50 backdrop-blur-md z-50">
       <div className="flex items-center gap-2">
         <Building2 size={18} className="text-indigo-600 shrink-0" />
         <span className="font-semibold text-indigo-600 leading-tight text-sm sm:text-base">
