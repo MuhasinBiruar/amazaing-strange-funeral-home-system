@@ -4,9 +4,15 @@ import {
   type Response,
   type NextFunction,
 } from 'express';
-import { getLguCasesQuerySchema } from 'shared';
+import {
+  createLguCaseQuery,
+  getLguCasesQuerySchema,
+  type CreateLguCaseQuery,
+} from 'shared';
 import requireAuth from '@/middleware/require-auth';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
+import validate from '@/middleware/validate';
+import pool from '@/db';
 
 const router = Router();
 
@@ -107,6 +113,36 @@ router.get(
           limit,
           totalPages: Math.ceil(totalRecords / limit),
         },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.post(
+  '/',
+  requireAuth,
+  validate(createLguCaseQuery),
+  async (
+    req: Request<{}, {}, CreateLguCaseQuery>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const parsed = req.body;
+      const result = await pool.query(
+        `
+        INSERT INTO lgucase (
+          reimbursementstatus,
+          reimbursementamount,
+          caseid
+        ) VALUES ($1, $2, $3) RETURNING lgucaseid;`,
+        [parsed.reimbursementstatus, parsed.reimbursementamount, parsed.caseid],
+      );
+
+      res.status(201).json({
+        data: result.rows[0],
       });
     } catch (error) {
       next(error);
