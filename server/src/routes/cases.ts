@@ -52,7 +52,7 @@ router.get(
 
       const fromAndJoins = `
         FROM public.deceasedrecord dr
-        LEFT JOIN public.contract c ON dr.caseid = c.caseid
+        JOIN public.contract c ON dr.caseid = c.caseid
         LEFT JOIN public.representative r ON dr.representedby = r.representativeid
         LEFT JOIN public.staff s ON dr.managedby = s.id
         LEFT JOIN (
@@ -61,7 +61,7 @@ router.get(
           WHERE verificationstatus = 'pending'
           GROUP BY caseid
         ) d ON dr.caseid = d.caseid
-      `;
+`;
 
       // Start building `whereClause`
       const whereConditions: string[] = [];
