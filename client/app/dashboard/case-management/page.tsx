@@ -1,8 +1,13 @@
 'use client';
 
+import { Plus } from 'lucide-react';
 import CaseTable from './_components/caseTable';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function CasesPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -18,15 +23,15 @@ export default function CasesPage() {
               Review and manage case details, documents, and agreements.
             </p>
           </div>
-          {/* <button
-            className="hidden sm:flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition shrink-0"
+          <button
+            className="hidden sm:flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition shrink-0 hover:cursor-pointer"
             onClick={() => {
               router.push(`${pathname}/create`);
             }}
           >
             <Plus size={16} />
             New contract
-          </button> */}
+          </button>
         </div>
 
         <CaseTable />
