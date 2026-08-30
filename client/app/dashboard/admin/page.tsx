@@ -29,33 +29,54 @@ export default function AdminPage() {
     fetchData();
   }, []);
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-6 space-y-6 border border-gray-200">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        {/* Header block, matches Cases page */}
+        <div>
+          <span className="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-2.5 py-0.5 rounded mb-2">
+            ADMIN
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">
+            Staff Management
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Create and manage staff accounts and permissions.
+          </p>
+        </div>
+
+        {/* Admin Actions card */}
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-          <p className="text-lg font-medium">Admin Actions</p>
-          <div className="grid grid-cols-2 gap-4">
+          <p className="text-lg font-medium text-gray-900">Admin Actions</p>
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <button
               onClick={() => router.push('/dashboard/create-account')}
-              className="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition hover:cursor-pointer"
+              className="bg-indigo-600 text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-indigo-700 transition hover:cursor-pointer"
             >
               Create Account
             </button>
-            <button className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition hover:cursor-pointer">
+            <button className="bg-green-600 text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-green-700 transition hover:cursor-pointer">
               Edit Account
             </button>
           </div>
         </div>
-        {/* display staff here */}
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-          <p className="text-lg font-medium mb-4">Staff List</p>
+
+        {/* Staff List card, matches the "Log" card styling */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between px-5 pt-5 pb-4">
+            <div>
+              <p className="text-lg font-semibold text-gray-900">Staff List</p>
+              <p className="text-sm text-gray-400">{staff.length} members</p>
+            </div>
+          </div>
+
           <table className="w-full text-sm text-left">
-            <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
+            <thead className="text-gray-500 uppercase text-xs tracking-wide border-t border-b border-gray-100">
               <tr>
-                <th className="px-4 py-3">Last Name</th>
-                <th className="px-4 py-3">First Name</th>
-                <th className="px-4 py-3">Role</th>
-                <th className="px-4 py-3">Job Role</th>
-                <th className="px-4 py-3">Active</th>
+                <th className="px-5 py-3 font-medium">Last Name</th>
+                <th className="px-5 py-3 font-medium">First Name</th>
+                <th className="px-5 py-3 font-medium">Role</th>
+                <th className="px-5 py-3 font-medium">Job Role</th>
+                <th className="px-5 py-3 font-medium">Active</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -64,11 +85,11 @@ export default function AdminPage() {
                   key={user.lastName + user.firstName + user.role}
                   className="hover:bg-gray-50"
                 >
-                  <td className="px-4 py-3 font-medium text-gray-900">
+                  <td className="px-5 py-3 font-medium text-gray-900">
                     {user.lastName}
                   </td>
-                  <td className="px-4 py-3 text-gray-700">{user.firstName}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3 text-gray-700">{user.firstName}</td>
+                  <td className="px-5 py-3">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${
                         user.role === 'admin'
@@ -79,8 +100,8 @@ export default function AdminPage() {
                       {user.role}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-700">{user.jobRole}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3 text-gray-700">{user.jobRole}</td>
+                  <td className="px-5 py-3">
                     <span
                       className={`inline-block w-2 h-2 rounded-full ${
                         user.isActive ? 'bg-green-500' : 'bg-gray-300'
