@@ -7,6 +7,7 @@ import {
 import pool from '@/db.ts';
 import {
   createDeceasedRecordQuerySchema,
+  createDeceasedRecordBodySchema,
   deceasedrecordPatchSchema,
   type DeceasedRecordSchema,
 } from 'shared';
@@ -46,7 +47,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 router.post(
   '/',
   requireAuth,
-  validate(createDeceasedRecordQuerySchema),
+  validate(createDeceasedRecordBodySchema),
   async (
     req: Request<{}, {}, DeceasedRecordSchema>,
     res: Response,
@@ -54,6 +55,7 @@ router.post(
   ) => {
     try {
       const parsed = req.body;
+      const managedby = res.locals.session.user.id;
       const result = await pool.query(
         `
         INSERT INTO deceasedrecord (
@@ -67,9 +69,10 @@ router.post(
           hasmaturedlifeplan,
           plantype,
           datecreated,
+          dateofdeath,
           managedby,
           representedby
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
         RETURNING caseid;`,
         [
           parsed.firstname,
@@ -82,7 +85,8 @@ router.post(
           parsed.hasmaturedlifeplan,
           parsed.plantype,
           parsed.datecreated,
-          parsed.managedby,
+          parsed.dateofdeath,
+          managedby,
           parsed.representedby,
         ],
       );
