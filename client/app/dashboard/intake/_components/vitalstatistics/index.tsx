@@ -32,6 +32,7 @@ export default function VitalStatistics({
             placeholder="First Name"
           />
         </div>
+
         <div>
           <label className="block text-xs font-semibold text-gray-700 mb-1">
             MIDDLE NAME
@@ -113,6 +114,26 @@ export default function VitalStatistics({
             className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm min-h-20"
             placeholder="As stated in the medical certificate or preliminary report..."
           />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-700 mb-1">
+            TYPE OF DEATH
+          </label>
+          <select
+            value={data.typeofdeath || ''}
+            onChange={(e) => onChange('typeofdeath', e.target.value)}
+            className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+          >
+            <option value="" disabled>
+              Select type
+            </option>
+            <option value="Natural">Natural</option>
+            <option value="Accidental">Accidental</option>
+            <option value="Homicide">Homicide</option>
+            <option value="Suicide">Suicide</option>
+            <option value="Unknown">Unknown</option>
+          </select>
         </div>
       </div>
     </section>
