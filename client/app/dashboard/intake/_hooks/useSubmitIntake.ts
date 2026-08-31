@@ -49,7 +49,7 @@ export function useSubmitIntake(formData: any, clearDraft: () => void) {
         hasmaturedlifeplan: false,
         plantype: formData.planType === 'Life Plan' ? 'Life' : 'Direct',
         datecreated: new Date().toISOString().split('T')[0],
-        representedby: generatedRepId, // real ID from Step 1, not hardcoded
+        representedby: generatedRepId,
       };
 
       const recordResponse = await fetch(
