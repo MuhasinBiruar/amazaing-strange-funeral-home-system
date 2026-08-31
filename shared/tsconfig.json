@@ -5,7 +5,9 @@
     "module": "preserve",
     "moduleResolution": "bundler",
     "noEmit": true,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+
+    "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["./src/"]
+  "include": ["src/**/*"]
 }
