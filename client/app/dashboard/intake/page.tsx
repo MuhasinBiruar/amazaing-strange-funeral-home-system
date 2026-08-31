@@ -36,50 +36,46 @@ export default function IntakePage() {
   if (!isDraftLoaded) return null;
 
   return (
-    <PageGuard>
-      <div className="min-h-screen bg-gray-50 flex flex-col pb-24 relative">
-        <Header />
+    <div className="min-h-screen bg-gray-50 flex flex-col pb-24 relative">
+      <form onSubmit={handleSubmit} className="contents">
+        <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 space-y-6">
+          <div>
+            <span className="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-2.5 py-0.5 rounded mb-2">
+              NEW CASE ENTRY
+            </span>
+            <h1 className="text-3xl font-serif font-bold text-gray-900">
+              Deceased Profile
+            </h1>
+            <p className="text-sm text-gray-500 mt-2">
+              Create a record for the deceased. Ensure all identifiers and legal
+              requirements are complete.
+            </p>
+          </div>
 
-        <form onSubmit={handleSubmit} className="contents">
-          <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 space-y-6">
-            <div>
-              <span className="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-2.5 py-0.5 rounded mb-2">
-                NEW CASE ENTRY
-              </span>
-              <h1 className="text-3xl font-serif font-bold text-gray-900">
-                Deceased Profile
-              </h1>
-              <p className="text-sm text-gray-500 mt-2">
-                Create a record for the deceased. Ensure all identifiers and
-                legal requirements are complete.
-              </p>
-            </div>
+          <VitalStatistics data={formData} onChange={handleFormChange} />
+          <PhysicalDescription data={formData} onChange={handleFormChange} />
+          <ServiceArrangement data={formData} onChange={handleFormChange} />
 
-            <VitalStatistics data={formData} onChange={handleFormChange} />
-            <PhysicalDescription data={formData} onChange={handleFormChange} />
-            <ServiceArrangement data={formData} onChange={handleFormChange} />
-
-            <DocumentChecklist
-              documentProgress={documentProgress}
-              setIsDeleteModalOpen={setIsDeleteModalOpen}
-            />
-
-            <RepresentativeInformation
-              data={formData}
-              onChange={handleFormChange}
-            />
-          </main>
-
-          <Actionbar clearDraft={clearDraft} />
-        </form>
-
-        {isDeleteModalOpen && (
-          <DeleteModal
-            filesToDelete={filesToDelete}
+          <DocumentChecklist
+            documentProgress={documentProgress}
             setIsDeleteModalOpen={setIsDeleteModalOpen}
           />
-        )}
-      </div>
-    </PageGuard>
+
+          <RepresentativeInformation
+            data={formData}
+            onChange={handleFormChange}
+          />
+        </main>
+
+        <Actionbar clearDraft={clearDraft} />
+      </form>
+
+      {isDeleteModalOpen && (
+        <DeleteModal
+          filesToDelete={filesToDelete}
+          setIsDeleteModalOpen={setIsDeleteModalOpen}
+        />
+      )}
+    </div>
   );
 }
