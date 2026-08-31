@@ -1,8 +1,11 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { getAllStaff } from '@/services/staffService';
+import { getAllStaff, getStaff } from '@/services/staffService';
 import { useState, useEffect } from 'react';
-import type { CreateStaffQuery } from 'shared';
+import type { UpdateStaffQuery } from 'shared';
+import { RadioButton } from 'primereact/radiobutton';
+import 'primereact/resources/themes/lara-light-cyan/theme.css';
+import EditStaffModal from './_components/edit_modal';
 /**
  * @todo do not allow access to edit button if user has not selected a staff member to edit.
  * Do not allow regular staff to access this page, only admin users should be able to access this page.
@@ -11,8 +14,12 @@ import type { CreateStaffQuery } from 'shared';
  */
 
 export default function AdminPage() {
-  const [staff, setStaff] = useState<CreateStaffQuery[]>([]);
+  const [staff, setStaff] = useState<UpdateStaffQuery[]>([]);
   const router = useRouter();
+  const [selectedUsername, setSelectedUsername] = useState<
+    UpdateStaffQuery['username'] | null
+  >(null);
+  const [editClicked, setEditClicked] = useState(false);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetchData = async () => {
@@ -54,13 +61,19 @@ export default function AdminPage() {
             >
               Create Account
             </button>
-            <button className="bg-green-600 text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-green-700 transition hover:cursor-pointer">
+            <button
+              onClick={() => {
+                if (selectedUsername) {
+                  setEditClicked(true);
+                }
+              }}
+              className="bg-green-600 text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-green-700 transition hover:cursor-pointer"
+            >
               Edit Account
             </button>
           </div>
         </div>
 
-        {/* Staff List card, matches the "Log" card styling */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
           <div className="flex items-center justify-between px-5 pt-5 pb-4">
             <div>
@@ -68,51 +81,80 @@ export default function AdminPage() {
               <p className="text-sm text-gray-400">{staff.length} members</p>
             </div>
           </div>
-
           <table className="w-full text-sm text-left">
             <thead className="text-gray-500 uppercase text-xs tracking-wide border-t border-b border-gray-100">
               <tr>
+                <th className="px-4 py-3 font-medium w-10">Select Account</th>
                 <th className="px-5 py-3 font-medium">Last Name</th>
                 <th className="px-5 py-3 font-medium">First Name</th>
+                <th className="px-5 py-3 font-medium">Username</th>
                 <th className="px-5 py-3 font-medium">Role</th>
                 <th className="px-5 py-3 font-medium">Job Role</th>
                 <th className="px-5 py-3 font-medium">Active</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {staff.map((user) => (
-                <tr
-                  key={user.lastName + user.firstName + user.role}
-                  className="hover:bg-gray-50"
-                >
-                  <td className="px-5 py-3 font-medium text-gray-900">
-                    {user.lastName}
-                  </td>
-                  <td className="px-5 py-3 text-gray-700">{user.firstName}</td>
-                  <td className="px-5 py-3">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        user.role === 'admin'
-                          ? 'bg-indigo-100 text-indigo-700'
-                          : 'bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-gray-700">{user.jobRole}</td>
-                  <td className="px-5 py-3">
-                    <span
-                      className={`inline-block w-2 h-2 rounded-full ${
-                        user.isActive ? 'bg-green-500' : 'bg-gray-300'
-                      }`}
-                      title={user.isActive ? 'Active' : 'Inactive'}
-                    />
-                  </td>
-                </tr>
-              ))}
+              {staff.map((user) => {
+                const isSelected = selectedUsername === user.username;
+                console.log('Selected Username:', selectedUsername);
+
+                return (
+                  <tr
+                    onClick={() => setSelectedUsername(user.username)}
+                    key={user.username}
+                    className={`cursor-pointer transition-colors ${
+                      isSelected ? 'bg-indigo-50' : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <td className="px-4 py-3 text-center">
+                      <RadioButton
+                        inputId={`radio-${user.username}`}
+                        name="staff-selection"
+                        checked={isSelected}
+                        value={user.username}
+                      />
+                    </td>
+                    <td className="px-5 py-3 font-medium text-gray-900">
+                      {user.lastName}
+                    </td>
+                    <td className="px-5 py-3 text-gray-700">
+                      {user.firstName}
+                    </td>
+                    <td className="px-5 py-3 font-medium text-gray-900">
+                      {user.username}
+                    </td>
+                    <td className="px-5 py-3">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          user.role === 'admin'
+                            ? 'bg-indigo-100 text-indigo-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-gray-700">{user.jobRole}</td>
+                    <td className="px-5 py-3">
+                      <span
+                        className={`inline-block w-2 h-2 rounded-full ${
+                          user.isActive ? 'bg-green-500' : 'bg-gray-300'
+                        }`}
+                        title={user.isActive ? 'Active' : 'Inactive'}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+          {editClicked && selectedUsername && (
+            <EditStaffModal
+              isOpen={editClicked}
+              onClose={() => setEditClicked(false)}
+              username={selectedUsername || ''}
+            />
+          )}
         </div>
       </main>
     </div>
