@@ -8,6 +8,8 @@ import DocumentChecklist from './_components/documentchecklist';
 import RepresentativeInformation from './_components/representativeinfo';
 import Actionbar from './_components/actionbar';
 import DeleteModal from './_components/deletemodal';
+import { useDraft } from './_hooks/useDraft';
+import { useSubmitIntake } from './_hooks/useSubmitIntake';
 
 /**
  * Intake page for creating a new deceased profile and managing associated documents.
@@ -19,63 +21,66 @@ import DeleteModal from './_components/deletemodal';
  * the user clicks "Proceed" on the welcome modal.
  */
 export default function IntakePage() {
-  const [planType, setPlanType] = useState('');
-  const [locationOfDeath, setLocationOfDeath] = useState('Hospital');
+  const { formData, isDraftLoaded, handleFormChange, clearDraft } = useDraft(
+    'intake_draft',
+    {
+      planType: '',
+      locationOfDeath: 'Hospital',
+    },
+  );
+  const { handleSubmit } = useSubmitIntake(formData, clearDraft);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [filesToDelete] = useState(['Release Paper.pdf']);
-
-  // Mock progress for the progress bar
   const documentProgress = 25;
 
+  if (!isDraftLoaded) return null;
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pb-24 relative">
-      <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* Header Section */}
-        <div>
-          <span className="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-2.5 py-0.5 rounded mb-2">
-            NEW CASE ENTRY
-          </span>
-          <h1 className="text-3xl font-serif font-bold text-gray-900">
-            Deceased Profile
-          </h1>
-          <p className="text-sm text-gray-500 mt-2">
-            Create a record for the deceased. Ensure all identifiers and legal
-            requirements are complete.
-          </p>
-        </div>
+    <PageGuard>
+      <div className="min-h-screen bg-gray-50 flex flex-col pb-24 relative">
+        <Header />
 
-        {/* Vital Statistics */}
-        <VitalStatistics
-          locationOfDeath={locationOfDeath}
-          setLocationOfDeath={setLocationOfDeath}
-        />
+        <form onSubmit={handleSubmit} className="contents">
+          <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 space-y-6">
+            <div>
+              <span className="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-2.5 py-0.5 rounded mb-2">
+                NEW CASE ENTRY
+              </span>
+              <h1 className="text-3xl font-serif font-bold text-gray-900">
+                Deceased Profile
+              </h1>
+              <p className="text-sm text-gray-500 mt-2">
+                Create a record for the deceased. Ensure all identifiers and
+                legal requirements are complete.
+              </p>
+            </div>
 
-        {/* Physical Description */}
-        <PhysicalDescription />
+            <VitalStatistics data={formData} onChange={handleFormChange} />
+            <PhysicalDescription data={formData} onChange={handleFormChange} />
+            <ServiceArrangement data={formData} onChange={handleFormChange} />
 
-        {/* Service Arrangement */}
-        <ServiceArrangement planType={planType} setPlanType={setPlanType} />
+            <DocumentChecklist
+              documentProgress={documentProgress}
+              setIsDeleteModalOpen={setIsDeleteModalOpen}
+            />
 
-        {/* Document Checklist */}
-        <DocumentChecklist
-          documentProgress={documentProgress}
-          setIsDeleteModalOpen={setIsDeleteModalOpen}
-        />
+            <RepresentativeInformation
+              data={formData}
+              onChange={handleFormChange}
+            />
+          </main>
 
-        {/* Representative Information */}
-        <RepresentativeInformation />
-      </main>
+          <Actionbar clearDraft={clearDraft} />
+        </form>
 
-      {/* Sticky Action Bar */}
-      <Actionbar />
-
-      {/* Delete Confirmation Modal */}
-      {isDeleteModalOpen && (
-        <DeleteModal
-          filesToDelete={filesToDelete}
-          setIsDeleteModalOpen={setIsDeleteModalOpen}
-        />
-      )}
-    </div>
+        {isDeleteModalOpen && (
+          <DeleteModal
+            filesToDelete={filesToDelete}
+            setIsDeleteModalOpen={setIsDeleteModalOpen}
+          />
+        )}
+        <Footer />
+      </div>
+    </PageGuard>
   );
 }
