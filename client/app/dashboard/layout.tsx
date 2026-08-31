@@ -4,9 +4,7 @@ import Footer from '@/components/footer';
 import PageGuard from '@/components/pageGuard';
 import React from 'react';
 
-export default function DashboardLayout({
-  children,
-}: LayoutProps<'/dashboard'>) {
+export default function DashboardLayout({ children }: LayoutProps<'/'>) {
   return (
     <>
       <Header />
