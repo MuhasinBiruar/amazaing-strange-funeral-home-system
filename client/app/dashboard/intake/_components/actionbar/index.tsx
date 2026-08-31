@@ -6,7 +6,7 @@ interface ActionBarProps {
 
 export default function ActionBar({ clearDraft }: ActionBarProps) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50">
       <div className="max-w-2xl mx-auto flex items-center justify-between">
         <div className="flex flex-col">
           <span className="text-xs font-medium text-gray-500">Status</span>
