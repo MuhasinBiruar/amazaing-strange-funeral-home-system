@@ -79,7 +79,6 @@ export default function IntakePage() {
             setIsDeleteModalOpen={setIsDeleteModalOpen}
           />
         )}
-        <Footer />
       </div>
     </PageGuard>
   );
