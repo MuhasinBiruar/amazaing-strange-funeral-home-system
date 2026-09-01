@@ -4,7 +4,7 @@ import {
   FK_CONSTRAINTS,
   POSTGRES_ERROR_CODES,
   UNIQUE_CONSTRAINTS,
-} from './constants';
+} from '@/constants/error-messages';
 
 export function handleDatabaseError(error: DatabaseError, res: Response) {
   switch (error.code) {

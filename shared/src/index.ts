@@ -14,6 +14,7 @@ export * from './schemas/case';
 export * from './schemas/contract';
 export * from './schemas/deceasedrecord';
 export * from './schemas/document';
+export * from './schemas/lgucase';
 export * from './schemas/lifeplan';
 export * from './schemas/package';
 export * from './schemas/representative';
