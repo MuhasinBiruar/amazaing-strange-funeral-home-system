@@ -7,19 +7,30 @@ import {
 import pool from '@/db';
 import requireAuth from '@/middleware/require-auth';
 import { getFinancialSummaryQuerySchema } from 'shared';
-import foldPeriods from '@/util/fold-periods';
+import { foldPeriods, toExclusiveEndBound } from '@/util/financial';
 
 const router = Router();
 
 /**
  * Sample URLs
  * `http://localhost:4000/financial/summary` (defaults: by month)
+ *
  * `http://localhost:4000/financial/summary?unit=day`
- * `http://localhost:4000/financial/summary?unit=day&interval=3` (every 3 days)
+ *
+ * every 3 days
+ * `http://localhost:4000/financial/summary?unit=day&interval=3`
+ *
  * `http://localhost:4000/financial/summary?unit=week`
- * `http://localhost:4000/financial/summary?unit=month&interval=6` (every 6 months)
- * `http://localhost:4000/financial/summary?unit=year&interval=5` (every 5 years)
+ *
+ * every 6 months
+ * `http://localhost:4000/financial/summary?unit=month&interval=6`
+ *
+ * every 5 years
+ * `http://localhost:4000/financial/summary?unit=year&interval=5`
+ *
  * `http://localhost:4000/financial/summary?caseid=12`
+ *
+ * `endDate` is treated as inclusive of the whole day when given without a time
  * `http://localhost:4000/financial/summary?startDate=2026-01-01&endDate=2026-12-31`
  */
 router.get(
@@ -32,7 +43,7 @@ router.get(
 
       const whereConditions: string[] = [`transactionstatus = 'completed'`];
       const queryParams: unknown[] = [];
-      let paramIndex = whereConditions.length;
+      let paramIndex = 1;
 
       if (startDate) {
         whereConditions.push(`paymentdatetime >= $${paramIndex}`);
@@ -42,7 +53,7 @@ router.get(
 
       if (endDate) {
         whereConditions.push(`paymentdatetime < $${paramIndex}`);
-        queryParams.push(endDate);
+        queryParams.push(toExclusiveEndBound(endDate));
         paramIndex++;
       }
 
@@ -57,7 +68,7 @@ router.get(
       const result = await pool.query(
         `
         SELECT
-          date_trunc('${unit}', paymentdatetime) AS period,
+          date_trunc('${unit}', paymentdatetime AT TIME ZONE 'UTC') AS period,
           COALESCE(SUM(amount) FILTER (
             WHERE paymentcategory = 'Refund'
           ), 0) AS totalout,
@@ -78,6 +89,7 @@ router.get(
         unit,
         interval,
         startDate ?? null,
+        endDate ?? null,
       );
 
       res.json({

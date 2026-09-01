@@ -70,6 +70,22 @@ function calcUnitsBetween(from: Date, to: Date, unit: FinancialUnit) {
   }
 }
 
+/**
+ * Date-only end dates are moved to the next day so they include the entire
+ * final day.
+ */
+export function toExclusiveEndBound(date: Date): Date {
+  const isMidnight =
+    date.getUTCHours() === 0 &&
+    date.getUTCMinutes() === 0 &&
+    date.getUTCSeconds() === 0 &&
+    date.getUTCMilliseconds() === 0;
+
+  if (!isMidnight) return date;
+
+  return addDaysUTC(date, 1);
+}
+
 interface PeriodRow {
   period: Date | string;
   totalout: string | number | null;
@@ -77,57 +93,76 @@ interface PeriodRow {
   transactioncount: string | number;
 }
 
+function buildEmptyBuckets(
+  start: Date,
+  unit: FinancialUnit,
+  interval: number,
+  maxBucketIndex: number,
+): FinancialBucket[] {
+  const buckets: FinancialBucket[] = [];
+  for (let i = 0; i <= maxBucketIndex; i++) {
+    const periodStart = addUnits(start, unit, i * interval);
+    const periodEnd = addUnits(periodStart, unit, interval);
+    buckets.push({
+      periodStart,
+      periodEnd,
+      totalIn: 0,
+      totalOut: 0,
+      transactionCount: 0,
+    });
+  }
+  return buckets;
+}
+
 /**
  * Folds per-period aggregates (e.g. day, week, etc.) into buckets of
  * `interval` * `unit` (e.g. every 3 days, every 2 months, every 5
  * years).
  */
-export default function foldPeriods(
+export function foldPeriods(
   periods: PeriodRow[],
   unit: FinancialUnit,
   interval: number,
   startDate: Date | null,
+  endDate: Date | null,
 ) {
-  if (periods.length === 0)
-    return {
-      buckets: [],
-      totalIn: 0,
-      totalOut: 0,
-    };
-
   const periodDates = periods.map((p) => new Date(p.period));
+  const oldestPeriodDate = periodDates.length
+    ? periodDates.reduce((min, d) => (d < min ? d : min), periodDates[0])
+    : null;
+  const newestPeriodDate = periodDates.length
+    ? periodDates.reduce((max, d) => (d > max ? d : max), periodDates[0])
+    : null;
 
-  if (!startDate)
-    startDate = periodDates.reduce(
-      (min, d) => (d < min ? d : min),
-      periodDates[0],
-    );
-  startDate = truncToUnit(startDate, unit);
+  const startRaw = startDate ?? oldestPeriodDate ?? endDate;
+  if (!startRaw) return { buckets: [], totalIn: 0, totalOut: 0 };
+  const start = truncToUnit(startRaw, unit);
 
-  // Fold per-period aggregates into corresponding interval buckets
-  const bucketMap = new Map<number, FinancialBucket>();
+  const endCandidates = [
+    endDate ? truncToUnit(endDate, unit) : null,
+    newestPeriodDate ? truncToUnit(newestPeriodDate, unit) : null,
+  ].filter((d): d is Date => d !== null);
+  const end =
+    endCandidates.length !== 0
+      ? new Date(Math.max(...endCandidates.map((d) => d.getTime())))
+      : start;
+
+  const maxBucketIndex = Math.max(
+    0,
+    Math.floor(calcUnitsBetween(start, end, unit) / interval),
+  );
+
+  const buckets = buildEmptyBuckets(start, unit, interval, maxBucketIndex);
+
   let totalIn = 0;
   let totalOut = 0;
-
   for (let i = 0; i < periods.length; i++) {
     const period = periods[i];
-    const diff = calcUnitsBetween(startDate, periodDates[i], unit);
+    const diff = calcUnitsBetween(start, periodDates[i], unit);
     const bucketIndex = Math.floor(diff / interval);
 
-    let bucket = bucketMap.get(bucketIndex);
-    if (!bucket) {
-      const periodStart = addUnits(startDate, unit, bucketIndex * interval);
-      const periodEnd = addUnits(periodStart, unit, interval);
-      bucket = {
-        periodStart,
-        periodEnd,
-        totalIn: 0,
-        totalOut: 0,
-        transactionCount: 0,
-      };
-      bucketMap.set(bucketIndex, bucket);
-    }
-
+    console.log(start, periodDates[i], diff, bucketIndex);
+    const bucket = buckets[bucketIndex];
     const rowIn = Number(period.totalin ?? 0);
     const rowOut = Number(period.totalout ?? 0);
 
@@ -137,34 +172,6 @@ export default function foldPeriods(
 
     totalIn += rowIn;
     totalOut += rowOut;
-  }
-
-  // Fill in empty buckets with zeroes (for charting)
-  const maxBucketIndex = Math.floor(
-    calcUnitsBetween(
-      startDate,
-      periodDates.reduce((max, d) => (d > max ? d : max), periodDates[0]),
-      unit,
-    ) / interval,
-  );
-
-  const buckets: FinancialBucket[] = [];
-  for (let i = 0; i <= maxBucketIndex; i++) {
-    const existing = bucketMap.get(i);
-    if (existing) {
-      buckets.push(existing);
-      continue;
-    }
-
-    const periodStart = addUnits(startDate, unit, i * interval);
-    const periodEnd = addUnits(periodStart, unit, interval);
-    buckets.push({
-      periodStart,
-      periodEnd,
-      totalIn: 0,
-      totalOut: 0,
-      transactionCount: 0,
-    });
   }
 
   return { buckets, totalIn, totalOut };
