@@ -13,14 +13,9 @@ export const createDeceasedRecordQuerySchema = z.object({
   plantype: z.enum(['Direct', 'Life', 'LGU']),
   datecreated: z.coerce.date(),
   dateofdeath: withNullDefault(z.coerce.date()),
-  managedby: z.string().min(1),
+  managedby: withNullDefault(z.string().min(1)),
   representedby: withNullDefault(z.int32()),
 });
-
-export const createDeceasedRecordBodySchema =
-  createDeceasedRecordQuerySchema.omit({
-    managedby: true,
-  });
 
 export const deceasedrecordPatchSchema =
   createDeceasedRecordQuerySchema.partial();
