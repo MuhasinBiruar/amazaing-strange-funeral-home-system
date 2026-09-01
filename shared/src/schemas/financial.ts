@@ -8,12 +8,14 @@ export const getFinancialSummaryQuerySchema = z
     unit: financialUnitEnum.default('month'),
     interval: z.coerce.number().int().min(1).max(1000).default(1),
     startDate: z.coerce.date().optional(),
-    endDate: z.coerce.date().optional(),
+    endDate: z.iso.datetime().or(z.iso.date()).optional(),
     caseid: z.coerce.number().int().positive().optional(),
   })
   .refine(
     (data) =>
-      !data.startDate || !data.endDate || data.startDate <= data.endDate,
+      !data.startDate ||
+      !data.endDate ||
+      data.startDate <= new Date(data.endDate),
     {
       message: 'endDate must be on or after startDate.',
       path: ['endDate'],

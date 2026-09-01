@@ -40,6 +40,7 @@ router.get(
     try {
       const { unit, interval, startDate, endDate, caseid } =
         getFinancialSummaryQuerySchema.parse(req.query);
+      const parsedEndDate = endDate ? new Date(endDate) : null;
 
       const whereConditions: string[] = [`transactionstatus = 'completed'`];
       const queryParams: unknown[] = [];
@@ -89,7 +90,7 @@ router.get(
         unit,
         interval,
         startDate ?? null,
-        endDate ?? null,
+        parsedEndDate,
       );
 
       res.json({
@@ -98,7 +99,7 @@ router.get(
           unit,
           interval,
           startDate: startDate ?? null,
-          endDate: endDate ?? null,
+          endDate: parsedEndDate,
           totalIn,
           totalOut,
         },

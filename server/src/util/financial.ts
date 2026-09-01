@@ -74,16 +74,11 @@ function calcUnitsBetween(from: Date, to: Date, unit: FinancialUnit) {
  * Date-only end dates are moved to the next day so they include the entire
  * final day.
  */
-export function toExclusiveEndBound(date: Date): Date {
-  const isMidnight =
-    date.getUTCHours() === 0 &&
-    date.getUTCMinutes() === 0 &&
-    date.getUTCSeconds() === 0 &&
-    date.getUTCMilliseconds() === 0;
+export function toExclusiveEndBound(dateStr: string): Date {
+  const hasTime = dateStr.includes(':') || /T\d{2}/.test(dateStr);
+  if (!hasTime) return new Date(dateStr);
 
-  if (!isMidnight) return date;
-
-  return addDaysUTC(date, 1);
+  return addDaysUTC(new Date(dateStr), 1);
 }
 
 interface PeriodRow {
@@ -161,13 +156,15 @@ export function foldPeriods(
     const diff = calcUnitsBetween(start, periodDates[i], unit);
     const bucketIndex = Math.floor(diff / interval);
 
-    console.log(start, periodDates[i], diff, bucketIndex);
     const bucket = buckets[bucketIndex];
+    // TODO: Replace JS Number conversion for more precision w/ library
     const rowIn = Number(period.totalin ?? 0);
+    // TODO: Replace JS Number conversion for more precision w/ library
     const rowOut = Number(period.totalout ?? 0);
 
     bucket.totalIn += rowIn;
     bucket.totalOut += rowOut;
+    // TODO: Replace JS Number conversion for more precision w/ library
     bucket.transactionCount += Number(period.transactioncount);
 
     totalIn += rowIn;
