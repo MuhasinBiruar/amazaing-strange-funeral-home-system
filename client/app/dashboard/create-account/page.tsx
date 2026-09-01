@@ -1,9 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import Header from '@/components/header';
-import Footer from '@/components/footer';
-import PageGuard from '@/components/pageGuard';
 import { Toast } from 'primereact/toast';
 import 'primereact/resources/themes/lara-light-cyan/theme.css';
 import {
@@ -126,10 +123,9 @@ export default function CreateAccountPage() {
     }
   }
   return (
-    <PageGuard>
+    <>
       <Toast ref={toastCenter} position="center" />
       <div className="min-h-screen bg-white flex flex-col">
-        <Header />
         <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 space-y-6">
           <form
             onSubmit={handleFormSubmit}
@@ -167,8 +163,7 @@ export default function CreateAccountPage() {
             />
           )}
         </main>
-        <Footer />
       </div>
-    </PageGuard>
+    </>
   );
 }
