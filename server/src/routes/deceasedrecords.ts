@@ -7,7 +7,6 @@ import {
 import pool from '@/db.ts';
 import {
   createDeceasedRecordQuerySchema,
-  createDeceasedRecordBodySchema,
   deceasedrecordPatchSchema,
   type DeceasedRecordSchema,
 } from 'shared';
@@ -47,7 +46,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 router.post(
   '/',
   requireAuth,
-  validate(createDeceasedRecordBodySchema),
+  validate(createDeceasedRecordQuerySchema),
   async (
     req: Request<{}, {}, DeceasedRecordSchema>,
     res: Response,
