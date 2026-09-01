@@ -3,13 +3,22 @@ import { z } from 'zod';
 export const financialUnitEnum = z.enum(['day', 'week', 'month', 'year']);
 export type FinancialUnit = z.infer<typeof financialUnitEnum>;
 
-export const getFinancialSummaryQuerySchema = z.object({
-  unit: financialUnitEnum.default('month'),
-  interval: z.coerce.number().int().min(1).max(1000).default(1),
-  startDate: z.coerce.date().optional(),
-  endDate: z.coerce.date().optional(),
-  caseid: z.coerce.number().int().positive().optional(),
-});
+export const getFinancialSummaryQuerySchema = z
+  .object({
+    unit: financialUnitEnum.default('month'),
+    interval: z.coerce.number().int().min(1).max(1000).default(1),
+    startDate: z.coerce.date().optional(),
+    endDate: z.coerce.date().optional(),
+    caseid: z.coerce.number().int().positive().optional(),
+  })
+  .refine(
+    (data) =>
+      !data.startDate || !data.endDate || data.startDate <= data.endDate,
+    {
+      message: 'endDate must be on or after startDate.',
+      path: ['endDate'],
+    },
+  );
 
 export type GetFinancialSummaryQuery = z.infer<
   typeof getFinancialSummaryQuerySchema
