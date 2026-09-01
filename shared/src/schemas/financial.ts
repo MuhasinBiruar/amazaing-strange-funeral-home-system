@@ -7,7 +7,14 @@ export const getFinancialSummaryQuerySchema = z
   .object({
     unit: financialUnitEnum.default('month'),
     interval: z.coerce.number().int().min(1).max(1000).default(1),
-    startDate: z.coerce.date().optional(),
+    startDate: z.coerce
+      .date()
+      .optional()
+      .default(() => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() - 1);
+        return d;
+      }),
     endDate: z.iso.datetime().or(z.iso.date()).optional(),
     caseid: z.coerce.number().int().positive().optional(),
   })
