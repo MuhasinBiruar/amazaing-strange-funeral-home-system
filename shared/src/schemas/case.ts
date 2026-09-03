@@ -5,7 +5,6 @@ import {
 } from './util/pagination-schema';
 
 export const caseSchema = z.object({
-  caseid: z.int(),
   deceased_name: z.string(),
   representative_name: z.string(),
   burialdatedeadline: z.coerce.date(),
@@ -14,6 +13,10 @@ export const caseSchema = z.object({
   servicestatus: z.enum(['intake', 'active', 'pending', 'completed']),
   datecreated: z.coerce.date(),
   managed_by_name: z.string().optional(),
+  caseid: z.int(),
+  contractid: z.int(),
+  representativeid: z.int().nullable(),
+  staffid: z.string(),
 });
 
 export type Case = z.infer<typeof caseSchema>;
