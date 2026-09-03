@@ -39,20 +39,23 @@ router.get(
 
       const selectClause = `
         SELECT 
-          dr.caseid,
-          CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
-          CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
-          c.burialdatedeadline,
-          COALESCE(d.pending_docs, 0)::int AS total_pending_docs,
-          c.totalamount,
-          dr.servicestatus,
-          dr.datecreated,
-          CONCAT_WS(' ', NULLIF(s."firstName", ''), NULLIF(s."middleName", ''), NULLIF(s."lastName", '')) AS managed_by_name
+        CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
+        CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
+        c.burialdatedeadline,
+        COALESCE(d.pending_docs, 0)::int AS total_pending_docs,
+        c.totalamount,
+        dr.servicestatus,
+        dr.datecreated,
+        CONCAT_WS(' ', NULLIF(s."firstName", ''), NULLIF(s."middleName", ''), NULLIF(s."lastName", '')) AS managed_by_name,
+        dr.caseid,
+        c.contractid,
+        r.representativeid,
+        s.id AS staffid
       `;
 
       const fromAndJoins = `
         FROM public.deceasedrecord dr
-        LEFT JOIN public.contract c ON dr.caseid = c.caseid
+        JOIN public.contract c ON dr.caseid = c.caseid
         LEFT JOIN public.representative r ON dr.representedby = r.representativeid
         LEFT JOIN public.staff s ON dr.managedby = s.id
         LEFT JOIN (
