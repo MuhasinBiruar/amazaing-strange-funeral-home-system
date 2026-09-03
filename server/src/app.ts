@@ -15,6 +15,7 @@ import packagesRouter from './routes/packages';
 import casesRouter from './routes/cases';
 import lifeplansRouter from './routes/lifeplans';
 import lgucasesRouter from './routes/lgucases';
+import financialRouter from './routes/financial';
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/burialrecords', burialrecordsRouter);
 app.use('/deceasedrecords', deceasedRecordsRouter);
 app.use('/staff', staffRouter);
 app.use('/documents', documentsRouter);
+app.use('/financial', financialRouter);
 app.use('/lgucases', lgucasesRouter);
 app.use('/lifeplans', lifeplansRouter);
 app.use('/representatives', representativesRouter);
