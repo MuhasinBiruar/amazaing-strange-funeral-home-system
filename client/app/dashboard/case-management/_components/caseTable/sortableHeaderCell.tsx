@@ -15,10 +15,10 @@ export default function SortableHeaderCell({
   const isActive = sortBy === column.key;
 
   return (
-    <th className="px-5 py-2.5 font-medium text-left">
+    <th className="px-5 py-2.5 font-medium text-center h-2">
       <button
         onClick={() => onSort(column.key)}
-        className={`flex items-center gap-1 cursor-pointer select-none hover:text-indigo-700 ${
+        className={`w-full h-full flex items-center justify-center gap-1 cursor-pointer select-none hover:text-indigo-700 ${
           isActive ? 'text-indigo-700' : 'text-gray-400'
         } uppercase`}
       >
