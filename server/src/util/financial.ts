@@ -1,4 +1,6 @@
-import type { FinancialUnit, FinancialBucket } from 'shared';
+import BigNumber from 'bignumber.js';
+import type { FinancialUnit } from 'shared';
+import { z } from 'zod';
 
 /**
  * Returns a representation of the start of the given day.
@@ -81,33 +83,35 @@ export function toExclusiveEndBound(dateStr: string): Date {
   return addDaysUTC(new Date(dateStr), 1);
 }
 
-interface PeriodRow {
-  period: Date | string;
-  totalout: string | number | null;
-  totalin: string | number | null;
-  transactioncount: string | number;
-}
-
 function buildEmptyBuckets(
   start: Date,
   unit: FinancialUnit,
   interval: number,
   maxBucketIndex: number,
-): FinancialBucket[] {
-  const buckets: FinancialBucket[] = [];
+) {
+  const buckets = [];
   for (let i = 0; i <= maxBucketIndex; i++) {
-    const periodStart = addUnits(start, unit, i * interval);
-    const periodEnd = addUnits(periodStart, unit, interval);
+    const startDate = addUnits(start, unit, i * interval);
+    const endDate = addUnits(startDate, unit, interval);
     buckets.push({
-      periodStart,
-      periodEnd,
-      totalIn: 0,
-      totalOut: 0,
+      startDate,
+      endDate,
+      totalIn: BigNumber(0),
+      totalOut: BigNumber(0),
       transactionCount: 0,
     });
   }
   return buckets;
 }
+
+const InternalGetBucketsQuerySchema = z.array(
+  z.object({
+    period: z.coerce.date(),
+    totalout: z.string().transform((s) => new BigNumber(s)),
+    totalin: z.string().transform((s) => new BigNumber(s)),
+    transactioncount: z.coerce.bigint(),
+  }),
+);
 
 /**
  * Folds per-period aggregates (e.g. day, week, etc.) into buckets of
@@ -115,12 +119,14 @@ function buildEmptyBuckets(
  * years).
  */
 export function foldPeriods(
-  periods: PeriodRow[],
+  rows: unknown[],
   unit: FinancialUnit,
   interval: number,
   startDate: Date | null,
   endDate: Date | null,
 ) {
+  const periods = InternalGetBucketsQuerySchema.parse(rows);
+
   const periodDates = periods.map((p) => new Date(p.period));
   const oldestPeriodDate = periodDates.length
     ? periodDates.reduce((min, d) => (d < min ? d : min), periodDates[0])
@@ -149,26 +155,24 @@ export function foldPeriods(
 
   const buckets = buildEmptyBuckets(start, unit, interval, maxBucketIndex);
 
-  let totalIn = 0;
-  let totalOut = 0;
+  let totalIn = new BigNumber(0);
+  let totalOut = new BigNumber(0);
   for (let i = 0; i < periods.length; i++) {
     const period = periods[i];
     const diff = calcUnitsBetween(start, periodDates[i], unit);
     const bucketIndex = Math.floor(diff / interval);
 
     const bucket = buckets[bucketIndex];
-    // TODO: Replace JS Number conversion for more precision w/ library
-    const rowIn = Number(period.totalin ?? 0);
-    // TODO: Replace JS Number conversion for more precision w/ library
-    const rowOut = Number(period.totalout ?? 0);
 
-    bucket.totalIn += rowIn;
-    bucket.totalOut += rowOut;
-    // TODO: Replace JS Number conversion for more precision w/ library
+    const rowIn = BigNumber(period.totalin ?? 0);
+    const rowOut = BigNumber(period.totalout ?? 0);
+
+    bucket.totalIn = bucket.totalIn.plus(rowIn);
+    bucket.totalOut = bucket.totalOut.plus(rowOut);
     bucket.transactionCount += Number(period.transactioncount);
 
-    totalIn += rowIn;
-    totalOut += rowOut;
+    totalIn = totalIn.plus(rowIn);
+    totalOut = totalOut.plus(rowOut);
   }
 
   return { buckets, totalIn, totalOut };

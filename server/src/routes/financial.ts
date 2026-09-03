@@ -72,10 +72,10 @@ router.get(
           date_trunc('${unit}', paymentdatetime AT TIME ZONE 'UTC') AS period,
           COALESCE(SUM(amount) FILTER (
             WHERE paymentcategory = 'Refund'
-          ), 0) AS totalout,
+          ), 0)::text AS totalout,
           COALESCE(SUM(amount) FILTER (
             WHERE NOT (paymentcategory = 'Refund')
-          ), 0) AS totalin,
+          ), 0)::text AS totalin,
           COUNT(*) AS transactioncount
         FROM public.transaction
         ${whereClause}

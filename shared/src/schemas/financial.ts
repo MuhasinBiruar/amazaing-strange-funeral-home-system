@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import bigNumberSchema from './util/big-number-schema';
 
 export const financialUnitEnum = z.enum(['day', 'week', 'month', 'year']);
 export type FinancialUnit = z.infer<typeof financialUnitEnum>;
@@ -34,10 +35,10 @@ export type GetFinancialSummaryQuery = z.infer<
 >;
 
 export const financialBucketSchema = z.object({
-  periodStart: z.coerce.date(),
-  periodEnd: z.coerce.date(),
-  totalIn: z.number(),
-  totalOut: z.number(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  totalIn: bigNumberSchema,
+  totalOut: bigNumberSchema,
   transactionCount: z.int(),
 });
 
@@ -50,8 +51,8 @@ export const getFinancialSummaryResponseSchema = z.object({
     interval: z.int(),
     startDate: z.coerce.date().nullable(),
     endDate: z.coerce.date().nullable(),
-    totalIn: z.number(),
-    totalOut: z.number(),
+    totalIn: bigNumberSchema,
+    totalOut: bigNumberSchema,
   }),
 });
 
