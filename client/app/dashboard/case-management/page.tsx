@@ -5,7 +5,7 @@ import CaseTable from './_components/caseTable';
 export default function CasesPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <main className="flex-1 w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <span className="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-2.5 py-0.5 rounded mb-2">
