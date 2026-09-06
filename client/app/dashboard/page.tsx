@@ -20,8 +20,8 @@ const modules = [
   },
   {
     section: 'Daily Work',
-    name: 'Contracting',
-    description: 'Create or manage contracts',
+    name: 'Case Management',
+    description: 'Create or manage cases',
     icon: FileSignature,
     routeTo: '/dashboard/case-management',
   },
