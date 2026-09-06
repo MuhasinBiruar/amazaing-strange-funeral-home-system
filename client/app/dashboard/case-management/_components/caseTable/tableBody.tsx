@@ -42,7 +42,6 @@ export default function TableBody({
   isLoading,
   errorMsg,
   theadRef,
-  firstRowRef,
 }: {
   sortBy: ColumnKey;
   setSortBy: Dispatch<SetStateAction<ColumnKey>>;
@@ -53,7 +52,6 @@ export default function TableBody({
   errorMsg: string | null;
   isLoading: boolean;
   theadRef?: (node: HTMLTableSectionElement | null) => void;
-  firstRowRef?: (node: HTMLTableRowElement | null) => void;
 }) {
   return (
     <div className="overflow-x-auto relative">
@@ -115,11 +113,10 @@ export default function TableBody({
           )}
 
           {!errorMsg &&
-            cases.map((c, i) => (
+            cases.map((c) => (
               <tr
                 key={c.caseid}
-                ref={i === 0 ? firstRowRef : undefined}
-                className="border-b border-gray-100 last:border-0 hover:bg-gray-50"
+                className="h-11.25 border-b border-gray-100 last:border-0 hover:bg-gray-50"
               >
                 <td className="px-5 py-3 text-gray-500 wrap-break-word">
                   {c.deceased_name}
