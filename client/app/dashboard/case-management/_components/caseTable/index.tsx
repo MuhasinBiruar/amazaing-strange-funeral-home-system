@@ -10,8 +10,7 @@ import type { Case } from 'shared';
 import { getCases } from '@/services/caseService';
 
 const SEARCH_DEBOUNCE_MS = 500 as const;
-// Used only until a real row has rendered and been measured.
-const ROW_HEIGHT_FALLBACK_PX = 45 as const;
+const ROW_HEIGHT_PX = 45 as const;
 
 export default function CaseTable() {
   const [search, setSearch] = useState('');
@@ -24,19 +23,6 @@ export default function CaseTable() {
   const [headerWrapRef, headerHeight] = useElementSize<HTMLDivElement>();
   const [theadRef, theadHeight] = useElementSize<HTMLTableSectionElement>();
   const [footerWrapRef, footerHeight] = useElementSize<HTMLDivElement>();
-  const [firstRowRef, measuredRowHeight] =
-    useElementSize<HTMLTableRowElement>();
-
-  const rowHeight = measuredRowHeight || ROW_HEIGHT_FALLBACK_PX;
-  const chromeHeight = headerHeight + theadHeight + footerHeight;
-
-  const [containerRef, limit] = useDynamicLimit<HTMLDivElement>({
-    rowHeight,
-    chromeHeight,
-    outsideChromeSelector: 'footer',
-    minLimit: 4,
-    maxLimit: 50,
-  });
 
   const [cases, setCases] = useState<Case[]>([]);
   const [total, setTotal] = useState(0);
@@ -47,6 +33,16 @@ export default function CaseTable() {
     search,
     SEARCH_DEBOUNCE_MS,
   );
+
+  const chromeHeight = headerHeight + theadHeight + footerHeight;
+
+  const [containerRef, limit] = useDynamicLimit<HTMLDivElement>({
+    rowHeight: ROW_HEIGHT_PX,
+    chromeHeight,
+    outsideChromeSelector: 'footer',
+    minLimit: 2,
+    maxLimit: 50,
+  });
 
   {
     // Reset page if search or limit changes.
@@ -125,7 +121,6 @@ export default function CaseTable() {
         errorMsg={errorMsg}
         isLoading={isLoading}
         theadRef={theadRef}
-        firstRowRef={firstRowRef}
       />
 
       <div ref={footerWrapRef}>
