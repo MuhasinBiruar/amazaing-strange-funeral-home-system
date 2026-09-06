@@ -4,13 +4,13 @@ import {
   type Response,
   type NextFunction,
 } from 'express';
-import { getCasesQuerySchema } from 'shared';
+import { getCasesQuerySchema, type Case } from 'shared';
 import requireAuth from '@/middleware/require-auth';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 
 const router = Router();
 
-const SORT_COLUMNS: Record<string, string> = {
+const SORT_COLUMNS: Record<keyof Case, string> = {
   caseid: 'dr.caseid',
   deceased_name: 'deceased_name',
   representative_name: 'representative_name',
@@ -20,6 +20,9 @@ const SORT_COLUMNS: Record<string, string> = {
   servicestatus: 'dr.servicestatus',
   datecreated: 'dr.datecreated',
   managed_by_name: 'managed_by_name',
+  contractid: 'c.contractid',
+  representativeid: 'r.representativeid',
+  staffid: 's.id',
 };
 
 /**
