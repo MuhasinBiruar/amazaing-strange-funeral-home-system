@@ -48,17 +48,19 @@ export default function CaseTable() {
     SEARCH_DEBOUNCE_MS,
   );
 
-  const [prevDboSearch, setPrevDboSearch] = useState(dboSearch);
-  if (dboSearch !== prevDboSearch) {
-    setPrevDboSearch(dboSearch);
-    setPage(1);
-  }
+  {
+    // Reset page if search or limit changes.
+    const [prevDboSearch, setPrevDboSearch] = useState(dboSearch);
+    if (dboSearch !== prevDboSearch) {
+      setPrevDboSearch(dboSearch);
+      setPage(1);
+    }
 
-  // Keep page valid if a resize (or the initial row-height refinement) changes the limit.
-  const [prevLimit, setPrevLimit] = useState(limit);
-  if (limit !== prevLimit) {
-    setPrevLimit(limit);
-    setPage(1);
+    const [prevLimit, setPrevLimit] = useState(limit);
+    if (limit !== prevLimit) {
+      setPrevLimit(limit);
+      setPage(1);
+    }
   }
 
   useEffect(() => {
