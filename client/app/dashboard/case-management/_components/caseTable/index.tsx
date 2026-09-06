@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import type { ColumnKey, NullableDeceasedStatus, SortOrder } from './types';
 import useDebouncedState from '@/utils/useDebouncedValue';
 import useDynamicLimit from '@/utils/useDynamicLimit';
-import useElementSize from '@/utils/useElementSize';
+import useElementHeight from '@/utils/useElementHeight';
 import TableHeader from './tableHeader';
 import TableFooter from './tableFooter';
 import TableBody from './tableBody';
@@ -20,9 +20,9 @@ export default function CaseTable() {
     useState<NullableDeceasedStatus>(null);
   const [page, setPage] = useState(1);
 
-  const [headerWrapRef, headerHeight] = useElementSize<HTMLDivElement>();
-  const [theadRef, theadHeight] = useElementSize<HTMLTableSectionElement>();
-  const [footerWrapRef, footerHeight] = useElementSize<HTMLDivElement>();
+  const [headerWrapRef, headerHeight] = useElementHeight<HTMLDivElement>();
+  const [theadRef, theadHeight] = useElementHeight<HTMLTableSectionElement>();
+  const [footerWrapRef, footerHeight] = useElementHeight<HTMLDivElement>();
 
   const [cases, setCases] = useState<Case[]>([]);
   const [total, setTotal] = useState(0);
