@@ -16,7 +16,9 @@ const router = Router();
 
 router.get('/', requireAuth, async (_req, res, next) => {
   try {
-    const result = await pool.query('SELECT * from Staff');
+    const result = await pool.query(
+      'SELECT * FROM Staff  ORDER BY CASE WHEN role = \'admin\' THEN 0 ELSE 1 END, "lastName"',
+    );
 
     res.json({
       data: result.rows,

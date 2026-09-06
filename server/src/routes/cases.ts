@@ -67,7 +67,7 @@ router.get(
           WHERE verificationstatus = 'pending'
           GROUP BY caseid
         ) d ON dr.caseid = d.caseid
-      `;
+`;
 
       // Start building `whereClause`
       const whereConditions: string[] = [];
