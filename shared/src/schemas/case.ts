@@ -12,7 +12,7 @@ export const caseSchema = z.object({
   totalamount: z.number(),
   servicestatus: z.enum(['intake', 'active', 'pending', 'completed']),
   datecreated: z.coerce.date(),
-  managed_by_name: z.string().optional(),
+  managed_by_name: z.string(),
   caseid: z.int(),
   contractid: z.int(),
   representativeid: z.int().nullable(),
