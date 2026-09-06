@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "better-auth": "^1.6.27",
+    "bignumber.js": "^11.1.5",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

@@ -43,16 +43,24 @@ export default function PageGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let loggedOut = false;
 
-    authClient.getSession().then(({ data, error }) => {
-      if (loggedOut) return;
+    authClient
+      .getSession()
+      .then(({ data, error }) => {
+        if (loggedOut) return;
 
-      if (!data || error) {
+        if (!data || error) {
+          router.push('/');
+        } else {
+          setAuthorized(true);
+        }
+        setChecking(false);
+      })
+      .catch(() => {
+        if (loggedOut) return;
+
         router.push('/');
-      } else {
-        setAuthorized(true);
-      }
-      setChecking(false);
-    });
+        setChecking(false);
+      });
 
     return () => {
       loggedOut = true;
