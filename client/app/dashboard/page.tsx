@@ -30,21 +30,21 @@ const modules = [
     name: 'Special Cases',
     description: 'Review flagged cases',
     icon: AlertTriangle,
-    routeTo: '/dashboard/case-management',
+    routeTo: null,
   },
   {
     section: 'Operations',
     name: 'Inventory Audits',
     description: 'Check inventory records',
     icon: ClipboardCheck,
-    routeTo: '/dashboard/case-management',
+    routeTo: null,
   },
   {
     section: 'Finance',
     name: 'Financial Dashboard',
     description: 'View payments and balances',
     icon: Wallet,
-    routeTo: '/dashboard/case-management',
+    routeTo: null,
   },
 ];
 
@@ -87,12 +87,19 @@ export default function DashboardPage() {
                       <button
                         key={name}
                         type="button"
-                        className={`group flex w-full cursor-pointer items-center gap-3 px-4 py-4 text-left transition hover:bg-gray-50 focus-visible:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 sm:px-5 ${
+                        disabled={!routeTo}
+                        className={`group flex w-full items-center gap-3 px-4 py-4 text-left transition sm:px-5 ${
+                          routeTo
+                            ? 'cursor-pointer hover:bg-gray-50 focus-visible:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500'
+                            : 'cursor-not-allowed opacity-60'
+                        } ${
                           index < sectionModules.length - 1
                             ? 'border-b border-gray-200'
                             : ''
                         }`}
-                        onClick={() => router.push(routeTo)}
+                        onClick={() => {
+                          if (routeTo) router.push(routeTo);
+                        }}
                       >
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-indigo-600">
                           <Icon size={18} aria-hidden="true" />
@@ -105,16 +112,17 @@ export default function DashboardPage() {
                             {description}
                           </span>
                         </span>
-                        {name === 'Special Cases' && (
-                          <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-800">
-                            3
+                        {routeTo ? (
+                          <ChevronRight
+                            size={18}
+                            className="shrink-0 text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-indigo-500"
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                            Coming soon
                           </span>
                         )}
-                        <ChevronRight
-                          size={18}
-                          className="shrink-0 text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-indigo-500"
-                          aria-hidden="true"
-                        />
                       </button>
                     ),
                   )}
