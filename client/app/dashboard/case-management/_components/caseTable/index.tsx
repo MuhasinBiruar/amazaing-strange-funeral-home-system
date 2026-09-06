@@ -21,11 +21,11 @@ export default function CaseTable() {
     useState<NullableDeceasedStatus>(null);
   const [page, setPage] = useState(1);
 
-  const [firstRowRef, measuredRowHeight] =
-    useElementSize<HTMLTableRowElement>();
   const [headerWrapRef, headerHeight] = useElementSize<HTMLDivElement>();
   const [theadRef, theadHeight] = useElementSize<HTMLTableSectionElement>();
   const [footerWrapRef, footerHeight] = useElementSize<HTMLDivElement>();
+  const [firstRowRef, measuredRowHeight] =
+    useElementSize<HTMLTableRowElement>();
 
   const rowHeight = measuredRowHeight || ROW_HEIGHT_FALLBACK_PX;
   const chromeHeight = headerHeight + theadHeight + footerHeight;
@@ -34,7 +34,7 @@ export default function CaseTable() {
     rowHeight,
     chromeHeight,
     outsideChromeSelector: 'footer',
-    minLimit: 5,
+    minLimit: 4,
     maxLimit: 50,
   });
 

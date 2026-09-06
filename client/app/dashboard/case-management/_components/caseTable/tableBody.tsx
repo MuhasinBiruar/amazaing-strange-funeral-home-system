@@ -1,7 +1,7 @@
 import { Loader2 } from 'lucide-react';
 import SortableHeaderCell from './sortableHeaderCell';
 import type { Column, ColumnKey, SortOrder } from './types';
-import type { Dispatch, RefObject, SetStateAction } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import type { Case } from 'shared';
 
 const COLUMNS: Column[] = [
@@ -52,8 +52,8 @@ export default function TableBody({
   cases: Case[];
   errorMsg: string | null;
   isLoading: boolean;
-  theadRef?: RefObject<HTMLTableSectionElement | null>;
-  firstRowRef?: RefObject<HTMLTableRowElement | null>;
+  theadRef?: (node: HTMLTableSectionElement | null) => void;
+  firstRowRef?: (node: HTMLTableRowElement | null) => void;
 }) {
   return (
     <div className="overflow-x-auto relative">
