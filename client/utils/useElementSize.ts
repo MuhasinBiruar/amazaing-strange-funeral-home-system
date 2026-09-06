@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type RefObject } from 'react';
 
 /**
  * Tracks an element's rendered height via ResizeObserver.
- * Returns a ref to attach and the live height (0 until mounted/measured).
+ *
+ * @returns A ref to attach and the live height (0 until mounted/measured).
  */
 export default function useElementSize<T extends HTMLElement>(): [
   RefObject<T | null>,
