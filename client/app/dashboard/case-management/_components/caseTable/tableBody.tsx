@@ -1,7 +1,7 @@
 import { Loader2 } from 'lucide-react';
 import SortableHeaderCell from './sortableHeaderCell';
 import type { Column, ColumnKey, SortOrder } from './types';
-import type { Dispatch, SetStateAction } from 'react';
+import type { Dispatch, RefObject, SetStateAction } from 'react';
 import type { Case } from 'shared';
 
 const COLUMNS: Column[] = [
@@ -41,6 +41,8 @@ export default function TableBody({
   cases,
   isLoading,
   errorMsg,
+  theadRef,
+  firstRowRef,
 }: {
   sortBy: ColumnKey;
   setSortBy: Dispatch<SetStateAction<ColumnKey>>;
@@ -50,6 +52,8 @@ export default function TableBody({
   cases: Case[];
   errorMsg: string | null;
   isLoading: boolean;
+  theadRef?: RefObject<HTMLTableSectionElement | null>;
+  firstRowRef?: RefObject<HTMLTableRowElement | null>;
 }) {
   return (
     <div className="overflow-x-auto relative">
@@ -65,7 +69,7 @@ export default function TableBody({
           <col className="w-40" />
         </colgroup>
 
-        <thead>
+        <thead ref={theadRef}>
           <tr className="text-xs text-gray-400 tracking-wide border-b border-gray-100">
             {COLUMNS.map((col) => (
               <SortableHeaderCell
@@ -111,9 +115,10 @@ export default function TableBody({
           )}
 
           {!errorMsg &&
-            cases.map((c) => (
+            cases.map((c, i) => (
               <tr
                 key={c.caseid}
+                ref={i === 0 ? firstRowRef : undefined}
                 className="border-b border-gray-100 last:border-0 hover:bg-gray-50"
               >
                 <td className="px-5 py-3 text-gray-500 wrap-break-word">
