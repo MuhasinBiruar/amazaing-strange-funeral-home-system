@@ -12,11 +12,16 @@ export default function Header() {
   const router = useRouter();
 
   useEffect(() => {
-    authClient.getSession().then(({ data }) => {
-      console.log('Session data:', data); //remove later
-      const user = data?.user as unknown as { jobRole?: string } | undefined;
-      setRole(user?.jobRole ?? 'Unknown Role');
-    });
+    authClient
+      .getSession()
+      .then(({ data }) => {
+        console.log('Session data:', data); //remove later
+        const user = data?.user as unknown as { jobRole?: string } | undefined;
+        setRole(user?.jobRole ?? 'Unknown Role');
+      })
+      .catch(() => {
+        setRole('Unknown Role');
+      });
   }, []);
 
   return (
