@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import type { ColumnKey, NullableDeceasedStatus, SortOrder } from './types';
 import useDebouncedState from '@/utils/useDebouncedValue';
+import useDynamicLimit from '@/utils/useDynamicLimit';
+import useElementSize from '@/utils/useElementSize';
 import TableHeader from './tableHeader';
 import TableFooter from './tableFooter';
 import TableBody from './tableBody';
@@ -8,6 +10,8 @@ import type { Case } from 'shared';
 import { getCases } from '@/services/caseService';
 
 const SEARCH_DEBOUNCE_MS = 500 as const;
+// Used only until a real row has rendered and been measured.
+const ROW_HEIGHT_FALLBACK_PX = 45 as const;
 
 export default function CaseTable() {
   const [search, setSearch] = useState('');
@@ -16,7 +20,23 @@ export default function CaseTable() {
   const [deceasedStatus, setDeceasedStatus] =
     useState<NullableDeceasedStatus>(null);
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+
+  const [firstRowRef, measuredRowHeight] =
+    useElementSize<HTMLTableRowElement>();
+  const [headerWrapRef, headerHeight] = useElementSize<HTMLDivElement>();
+  const [theadRef, theadHeight] = useElementSize<HTMLTableSectionElement>();
+  const [footerWrapRef, footerHeight] = useElementSize<HTMLDivElement>();
+
+  const rowHeight = measuredRowHeight || ROW_HEIGHT_FALLBACK_PX;
+  const chromeHeight = headerHeight + theadHeight + footerHeight;
+
+  const [containerRef, limit] = useDynamicLimit<HTMLDivElement>({
+    rowHeight,
+    chromeHeight,
+    outsideChromeSelector: 'footer',
+    minLimit: 5,
+    maxLimit: 50,
+  });
 
   const [cases, setCases] = useState<Case[]>([]);
   const [total, setTotal] = useState(0);
@@ -31,6 +51,13 @@ export default function CaseTable() {
   const [prevDboSearch, setPrevDboSearch] = useState(dboSearch);
   if (dboSearch !== prevDboSearch) {
     setPrevDboSearch(dboSearch);
+    setPage(1);
+  }
+
+  // Keep page valid if a resize (or the initial row-height refinement) changes the limit.
+  const [prevLimit, setPrevLimit] = useState(limit);
+  if (limit !== prevLimit) {
+    setPrevLimit(limit);
     setPage(1);
   }
 
@@ -70,16 +97,21 @@ export default function CaseTable() {
   }, [dboSearch, sortBy, sortOrder, page, limit, deceasedStatus]);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
-      <TableHeader
-        total={total}
-        search={search}
-        setSearch={setSearch}
-        deceasedStatus={deceasedStatus}
-        setDeceasedStatus={setDeceasedStatus}
-        setPage={setPage}
-        commitDboSearch={commitDboSearch}
-      />
+    <div
+      ref={containerRef}
+      className="rounded-lg border border-gray-200 bg-white overflow-hidden"
+    >
+      <div ref={headerWrapRef}>
+        <TableHeader
+          total={total}
+          search={search}
+          setSearch={setSearch}
+          deceasedStatus={deceasedStatus}
+          setDeceasedStatus={setDeceasedStatus}
+          setPage={setPage}
+          commitDboSearch={commitDboSearch}
+        />
+      </div>
 
       <TableBody
         sortBy={sortBy}
@@ -90,9 +122,18 @@ export default function CaseTable() {
         cases={cases}
         errorMsg={errorMsg}
         isLoading={isLoading}
+        theadRef={theadRef}
+        firstRowRef={firstRowRef}
       />
 
-      <TableFooter page={page} setPage={setPage} total={total} limit={limit} />
+      <div ref={footerWrapRef}>
+        <TableFooter
+          page={page}
+          setPage={setPage}
+          total={total}
+          limit={limit}
+        />
+      </div>
     </div>
   );
 }
