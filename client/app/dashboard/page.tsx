@@ -7,6 +7,7 @@ import {
   ClipboardCheck,
   FileSignature,
   UserPlus,
+  UserStar,
   Wallet,
 } from 'lucide-react';
 
@@ -45,6 +46,13 @@ const modules = [
     description: 'View payments and balances',
     icon: Wallet,
     routeTo: null,
+  },
+  {
+    section: 'Admin',
+    name: 'Administrator Dashboard',
+    description: 'Manage accounts and view logs',
+    icon: UserStar,
+    routeTo: '/dashboard/admin',
   },
 ];
 
