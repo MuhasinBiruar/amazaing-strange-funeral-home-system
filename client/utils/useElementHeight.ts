@@ -8,7 +8,7 @@ import { useCallback, useRef, useState } from 'react';
  * the component itself (e.g. a table row that only exists once data has
  * loaded).
  */
-export default function useElementSize<T extends HTMLElement>(): [
+export default function useElementHeight<T extends HTMLElement>(): [
   (node: T | null) => void,
   number,
 ] {
