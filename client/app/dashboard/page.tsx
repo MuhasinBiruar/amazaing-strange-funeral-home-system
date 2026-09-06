@@ -2,79 +2,143 @@
 
 import { useRouter } from 'next/navigation';
 import {
-  Wallet,
   AlertTriangle,
+  ChevronRight,
+  ClipboardCheck,
   FileSignature,
   UserPlus,
-  ClipboardCheck,
   UserStar,
+  Wallet,
 } from 'lucide-react';
 
 const modules = [
-  { name: 'Intake & Profiling', icon: UserPlus, routeTo: '/dashboard/intake' },
   {
+    section: 'Daily Work',
+    name: 'Intake & Profiling',
+    description: 'Start a new client profile',
+    icon: UserPlus,
+    routeTo: '/dashboard/intake',
+  },
+  {
+    section: 'Daily Work',
     name: 'Case Management',
+    description: 'Create or manage cases',
     icon: FileSignature,
     routeTo: '/dashboard/case-management',
   },
-  { name: 'Financial Dashboard', icon: Wallet, routeTo: '/dashboard' },
-  { name: 'Special Cases', icon: AlertTriangle, routeTo: '/dashboard' },
-  { name: 'Inventory Audits', icon: ClipboardCheck, routeTo: '/dashboard' },
-  { name: 'Admin', icon: UserStar, routeTo: '/dashboard/admin' },
-  // { name: "Daily Payments", icon: RefreshCcw },
-  // { name: "Document Hub", icon: FolderOpen },
-  // { name: "Basic Inventory", icon: Package },
+  {
+    section: 'Operations',
+    name: 'Special Cases',
+    description: 'Review flagged cases',
+    icon: AlertTriangle,
+    routeTo: null,
+  },
+  {
+    section: 'Operations',
+    name: 'Inventory Audits',
+    description: 'Check inventory records',
+    icon: ClipboardCheck,
+    routeTo: null,
+  },
+  {
+    section: 'Finance',
+    name: 'Financial Dashboard',
+    description: 'View payments and balances',
+    icon: Wallet,
+    routeTo: null,
+  },
+  {
+    section: 'Admin',
+    name: 'Administrator Dashboard',
+    description: 'Manage accounts and view logs',
+    icon: UserStar,
+    routeTo: '/dashboard/admin',
+  },
 ];
 
-/**
- * Login page for staff/admin sign-in via username and password.
- *
- * Renders a login form, then on successful authentication shows a
- * welcome modal (name + job role) before the user proceeds to the
- * dashboard. Canceling the modal signs the user back out rather than
- * just dismissing it.
- *
- * @remarks
- * the login form itself performs no client-side redirect until
- * the user clicks "Proceed" on the welcome modal.
- */
 export default function DashboardPage() {
   const router = useRouter();
+
   return (
-    // <PageGuard>
-    <div className="min-h-dvh bg-white flex flex-col">
-      {/* <Header /> */}
-      <main className="flex-1 flex flex-col w-[92vw] lg:w-[80vw] mx-auto px-[2vw] pt-[5vh] pb-[4vh] min-h-0">
-        <div className="text-left sm:text-center pb-6 shrink-0">
-          <h1 className="text-[clamp(1.25rem,1.8vw,2rem)] font-bold text-indigo-900">
+    <main className="min-h-screen bg-gray-50">
+      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+        <header className="mb-7 sm:mb-9">
+          <span className="mb-2 inline-block rounded bg-orange-100 px-2.5 py-0.5 text-xs font-semibold text-orange-800">
+            STAFF WORKSPACE
+          </span>
+          <h1 className="font-serif text-3xl font-bold text-gray-900">
             Dashboard
           </h1>
-          <p className="text-[clamp(0.75rem,1vw,0.95rem)] text-gray-500 mt-1">
+          <p className="mt-1 text-sm text-gray-500">
             Choose a service to get started.
           </p>
-        </div>
-        <div className="flex-1 flex flex-wrap content-stretch justify-center gap-4 w-full">
-          {modules.map(({ name, icon: Icon, routeTo }) => (
-            <button
-              key={name}
-              className="grow basis-[45%] sm:basis-[30%] max-w-105 flex flex-col items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 hover:border-indigo-400 hover:shadow-md transition cursor-pointer"
-              onClick={() => router.push(routeTo)}
-            >
-              <span className="flex items-center justify-center rounded-full bg-indigo-50 text-indigo-600 w-[clamp(2.25rem,3.5vw,3rem)] h-[clamp(2.25rem,3.5vw,3rem)]">
-                <Icon
-                  size={18}
-                  className="w-[clamp(1.1rem,1.6vw,1.5rem)] h-[clamp(1.1rem,1.6vw,1.5rem)]"
-                />
-              </span>
-              <span className="text-[clamp(0.8rem,1.1vw,1rem)] font-medium text-gray-700 text-center leading-tight">
-                {name}
-              </span>
-            </button>
+        </header>
+
+        <div className="space-y-7">
+          {['Daily Work', 'Operations', 'Finance'].map((section) => (
+            <section key={section} aria-labelledby={`${section}-heading`}>
+              <h2
+                id={`${section}-heading`}
+                className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400"
+              >
+                {section}
+              </h2>
+              <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+                {modules
+                  .filter((module) => module.section === section)
+                  .map(
+                    (
+                      { name, description, icon: Icon, routeTo },
+                      index,
+                      sectionModules,
+                    ) => (
+                      <button
+                        key={name}
+                        type="button"
+                        disabled={!routeTo}
+                        className={`group flex w-full items-center gap-3 px-4 py-4 text-left transition sm:px-5 ${
+                          routeTo
+                            ? 'cursor-pointer hover:bg-gray-50 focus-visible:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500'
+                            : 'cursor-not-allowed opacity-60'
+                        } ${
+                          index < sectionModules.length - 1
+                            ? 'border-b border-gray-200'
+                            : ''
+                        }`}
+                        onClick={() => {
+                          if (routeTo) router.push(routeTo);
+                        }}
+                      >
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-indigo-600">
+                          <Icon size={18} aria-hidden="true" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-semibold text-gray-800">
+                            {name}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-gray-500">
+                            {description}
+                          </span>
+                        </span>
+                        {routeTo ? (
+                          <ChevronRight
+                            size={18}
+                            className="shrink-0 text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-indigo-500"
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                            Coming soon
+                          </span>
+                        )}
+                      </button>
+                    ),
+                  )}
+              </div>
+            </section>
           ))}
         </div>
-      </main>
-      {/* <Footer /> */}
-    </div>
-    // </PageGuard>
+      </div>
+    </main>
   );
 }

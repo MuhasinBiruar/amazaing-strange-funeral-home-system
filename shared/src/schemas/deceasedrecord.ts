@@ -12,8 +12,8 @@ export const createDeceasedRecordQuerySchema = z.object({
   hasmaturedlifeplan: z.boolean(),
   plantype: z.enum(['Direct', 'Life', 'LGU']),
   datecreated: z.coerce.date(),
-  managedby: withNullDefault(z.string().min(1)),
-  representedby: z.int32(),
+  managedby: z.string().min(1),
+  representedby: withNullDefault(z.int32()),
 });
 
 export type CreateDeceasedRecordQuery = z.infer<
