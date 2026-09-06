@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import useDebouncedValue from './useDebouncedValue';
 
 export default function useDynamicLimit<T extends HTMLElement>({
   rowHeight,
@@ -18,7 +17,6 @@ export default function useDynamicLimit<T extends HTMLElement>({
 }): [RefObject<T | null>, number] {
   const containerRef = useRef<T>(null);
   const [limit, setLimit] = useState(minLimit);
-  const [dboLimit] = useDebouncedValue(limit, debounceDelay);
 
   useEffect(() => {
     function computeLimit() {
@@ -40,9 +38,21 @@ export default function useDynamicLimit<T extends HTMLElement>({
     computeLimit();
 
     let frame: number | null = null;
+    let lastResizeTime = 0;
+
+    function checkDebounce(time: DOMHighResTimeStamp) {
+      if (time - lastResizeTime >= debounceDelay) {
+        computeLimit();
+        frame = null;
+      } else {
+        frame = requestAnimationFrame(checkDebounce);
+      }
+    }
+
     function onResize() {
-      if (frame !== null) cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(computeLimit);
+      lastResizeTime = performance.now();
+
+      if (frame === null) frame = requestAnimationFrame(checkDebounce);
     }
 
     window.addEventListener('resize', onResize);
@@ -50,7 +60,14 @@ export default function useDynamicLimit<T extends HTMLElement>({
       window.removeEventListener('resize', onResize);
       if (frame !== null) cancelAnimationFrame(frame);
     };
-  }, [rowHeight, chromeHeight, outsideChromeSelector, minLimit, maxLimit]);
+  }, [
+    rowHeight,
+    chromeHeight,
+    outsideChromeSelector,
+    minLimit,
+    maxLimit,
+    debounceDelay,
+  ]);
 
-  return [containerRef, dboLimit];
+  return [containerRef, limit];
 }
