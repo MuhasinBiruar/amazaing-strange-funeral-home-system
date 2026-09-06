@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg';
-import pool from '@/db.ts';
+import pool from '@/db';
 
 export async function withRepeatableRead<T>(
   callback: (client: PoolClient) => Promise<T>,

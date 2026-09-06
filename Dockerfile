@@ -1,9 +1,8 @@
 # syntax=docker/dockerfile:1
-
 ARG NODE_VERSION=22.21.1
-
 FROM node:${NODE_VERSION}-slim AS base
 WORKDIR /usr/src/app
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 FROM base AS deps
 RUN --mount=type=bind,source=package.json,target=package.json \
@@ -11,16 +10,9 @@ RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=client/package.json,target=client/package.json \
     --mount=type=bind,source=server/package.json,target=server/package.json \
     --mount=type=cache,target=/root/.npm \
-    npm install --omit=dev --package-lock=false
+    npm ci
 
 FROM deps AS build
-RUN --mount=type=bind,source=package.json,target=package.json \
-    --mount=type=bind,source=package-lock.json,target=package-lock.json \
-    --mount=type=bind,source=client/package.json,target=client/package.json \
-    --mount=type=bind,source=server/package.json,target=server/package.json \
-    --mount=type=cache,target=/root/.npm \
-    npm install --package-lock=false
-
 COPY . .
 RUN npm run build
 

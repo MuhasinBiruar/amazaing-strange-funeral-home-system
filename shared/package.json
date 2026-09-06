@@ -1,0 +1,27 @@
+{
+  "name": "shared",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "build": "tsc --noEmit && tsdown",
+    "dev": "tsc --watch",
+    "lint": "eslint . --fix"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "tsdown": "^0.22.14",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  }
+}

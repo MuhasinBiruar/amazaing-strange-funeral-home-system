@@ -4,81 +4,25 @@ import {
   type Request,
   type Response,
 } from 'express';
-import pool from '@/db.ts';
-import requireAuth from '@/middleware/require-auth.ts';
-import {
-  contractQuerySchema,
-  contractSchema,
-  type ContractSchema,
-} from '@/schemas/contract.ts';
-import type { PostgresValue } from '@/types/db.ts';
-import { NotFoundError } from '@/errors/http-errors.ts';
-import validate from '@/middleware/validate.ts';
-import { withRepeatableRead } from '@/util/with-repeatable-read.ts';
+import pool from '@/db';
+import requireAuth from '@/middleware/require-auth';
+import { NotFoundError } from '@/errors/http-errors';
+import validate from '@/middleware/validate';
+import { createContractQuerySchema, type CreateContractQuery } from 'shared';
 
 const router = Router();
 
-/**
- * `GET /contracts?search=casket&sortBy=signeddate&sortDir=asc&page=1&limit=50`
- *
- * `search=...` searches through `inclusions` & `contractid`
- */
-router.get(
-  '/',
-  requireAuth,
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const parsed = contractQuerySchema.parse(req.query);
-      const result = await withRepeatableRead(async (client) => {
-        const conditions: string[] = [];
-        const queryParams: PostgresValue[] = [];
+router.get('/', requireAuth, async (_req, res, next) => {
+  try {
+    const result = await pool.query('SELECT * from contract');
 
-        if (parsed.search) {
-          conditions.push(
-            `(inclusions ILIKE $${queryParams.length + 1} OR contractid::text ILIKE $${queryParams.length + 1})`,
-          );
-          queryParams.push(`%${parsed.search}%`);
-        }
-
-        const whereClause =
-          conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-
-        const dataQuery = `
-          SELECT * FROM contract
-          ${whereClause}
-          ORDER BY ${parsed.sortBy} ${parsed.sortDir}, contractid ASC
-          LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
-        const dataResult = await client.query(dataQuery, [
-          ...queryParams,
-          parsed.limit,
-          (parsed.page - 1) * parsed.limit,
-        ]);
-
-        const countQuery = `SELECT COUNT(*) FROM contract ${whereClause}`;
-        const countResult = await client.query(countQuery, queryParams);
-
-        const totalItems = parseInt(countResult.rows[0].count, 10);
-        const totalPages = Math.ceil(totalItems / parsed.limit);
-
-        return {
-          data: dataResult.rows,
-          meta: {
-            page: parsed.page,
-            limit: parsed.limit,
-            totalItems,
-            totalPages,
-            hasNextPage: parsed.page < totalPages,
-            hasPreviousPage: parsed.page > 1,
-          },
-        };
-      });
-
-      res.json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
-);
+    res.json({
+      data: result.rows,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.get('/:id', requireAuth, async (req, res, next) => {
   const { id } = req.params;
@@ -102,9 +46,9 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 router.post(
   '/',
   requireAuth,
-  validate(contractSchema),
+  validate(createContractQuerySchema),
   async (
-    req: Request<{}, {}, ContractSchema>,
+    req: Request<{}, {}, CreateContractQuery>,
     res: Response,
     next: NextFunction,
   ) => {

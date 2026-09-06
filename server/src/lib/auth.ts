@@ -21,7 +21,7 @@ import { admin } from 'better-auth/plugins';
 export const auth = betterAuth({
   database: new Pool({
     host: process.env.HOST,
-    port: parseInt(process.env.PORT || '5432'),
+    port: parseInt(process.env.DB_PORT || '5432'),
     database: process.env.DATABASE,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -45,10 +45,16 @@ export const auth = betterAuth({
     enabled: true,
     disableSignUp: true,
   },
+  advanced: {
+    defaultCookieAttributes: {
+      sameSite: 'none',
+      secure: true, // Must be true when sameSite is "none"
+    },
+  },
   plugins: [
     username({ minUsernameLength: 3, maxUsernameLength: 50 }),
     admin({
-      adminUserIds: ['<staffId-of-your-first-admin>'],
+      adminUserIds: ['O3sFnqtpALcn9WC2aUXXWQXwN87wrKeJ'],
     }),
   ],
   trustedOrigins: [process.env.CLIENT_URL || 'http://localhost:3000'],
