@@ -7,9 +7,9 @@ import {
 export const caseSchema = z.object({
   deceased_name: z.string(),
   representative_name: z.string(),
-  burialdatedeadline: z.coerce.date(),
+  burialdatedeadline: z.coerce.date().nullable(),
   total_pending_docs: z.int(),
-  totalamount: z.number(),
+  totalamount: z.number().nullable(),
   servicestatus: z.enum(['intake', 'active', 'pending', 'completed']),
   datecreated: z.coerce.date(),
   managed_by_name: z.string(),
