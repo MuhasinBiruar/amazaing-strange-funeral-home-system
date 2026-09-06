@@ -1,12 +1,6 @@
-"use client";
+'use client';
 
-import Header from "../components/header/header";
-import Footer from "../components/footer/footer";
-// import { useEffect, useState } from "react";
-// import { useRouter } from "next/navigation";
-// import { authClient } from "../lib/auth-client";
-import PageGuard from "../components/pageguard/page";
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
 import {
   Wallet,
   AlertTriangle,
@@ -65,7 +59,7 @@ const modules = [
  * just dismissing it.
  *
  * @remarks
- * the login form itself performs no client-side redirect until 
+ * the login form itself performs no client-side redirect until
  * the user clicks "Proceed" on the welcome modal.
  */
 export default function DashboardPage() {
