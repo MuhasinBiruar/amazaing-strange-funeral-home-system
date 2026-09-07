@@ -1,17 +1,16 @@
 import { Loader2 } from 'lucide-react';
-import SortableHeaderCell from '../table/sortableHeaderCell';
-import { formatCurrency, formatDate, titleCase } from '../table/format';
+import SortableHeaderCell from '../../table/sortableHeaderCell';
+import { formatDate, titleCase } from '../../table/format';
 import type { Column, ColumnKey, SortOrder } from './types';
 import type { Dispatch, SetStateAction } from 'react';
-import type { Case } from 'shared';
+import type { UncontractedDeceased } from 'shared';
 
 const COLUMNS: Column[] = [
+  { key: 'caseid', label: 'Case #' },
   { key: 'deceased_name', label: 'Deceased name' },
   { key: 'representative_name', label: 'Representative name' },
-  { key: 'burialdatedeadline', label: 'Burial deadline' },
-  { key: 'total_pending_docs', label: 'Total pending docs.' },
-  { key: 'totalamount', label: 'Total amount' },
   { key: 'servicestatus', label: 'Service status' },
+  { key: 'plantype', label: 'Plan type' },
   { key: 'datecreated', label: 'Date created' },
   { key: 'managed_by_name', label: 'Manager name' },
 ];
@@ -22,31 +21,34 @@ export default function TableBody({
   sortDir,
   setSortDir,
   setPage,
-  cases,
+  records,
   isLoading,
   errorMsg,
   theadRef,
+  selectedCaseId,
+  onSelect,
 }: {
   sortBy: ColumnKey;
   setSortBy: Dispatch<SetStateAction<ColumnKey>>;
   sortDir: SortOrder;
   setSortDir: Dispatch<SetStateAction<SortOrder>>;
   setPage: Dispatch<SetStateAction<number>>;
-  cases: Case[];
+  records: UncontractedDeceased[];
   errorMsg: string | null;
   isLoading: boolean;
   theadRef?: (node: HTMLTableSectionElement | null) => void;
+  selectedCaseId: number | null;
+  onSelect: (record: UncontractedDeceased) => void;
 }) {
   return (
     <div className="overflow-x-auto relative">
       <table className="w-full table-auto text-sm text-center">
         <colgroup>
+          <col className="w-20" />
           <col className="w-45" />
           <col className="w-45" />
-          <col className="w-35" />
-          <col className="w-30" />
-          <col className="w-35" />
           <col className="w-32.5" />
+          <col className="w-27.5" />
           <col className="w-32.5" />
           <col className="w-40" />
         </colgroup>
@@ -85,49 +87,54 @@ export default function TableBody({
             </tr>
           )}
 
-          {!errorMsg && cases.length === 0 && (
+          {!errorMsg && !isLoading && records.length === 0 && (
             <tr>
               <td
                 colSpan={COLUMNS.length}
                 className="px-5 py-10 text-center text-sm text-gray-400"
               >
-                No contracts match your search.
+                No deceased records are waiting for a contract.
               </td>
             </tr>
           )}
 
           {!errorMsg &&
-            cases.map((c) => (
-              <tr
-                key={c.caseid}
-                className="h-11.25 border-b border-gray-100 last:border-0 hover:bg-gray-50"
-              >
-                <td className="px-5 py-3 text-gray-500 wrap-break-word">
-                  {c.deceased_name}
-                </td>
-                <td className="px-5 py-3 text-gray-500 wrap-break-word">
-                  {c.representative_name}
-                </td>
-                <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
-                  {formatDate(c.burialdatedeadline)}
-                </td>
-                <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
-                  {c.total_pending_docs}
-                </td>
-                <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
-                  {formatCurrency(c.totalamount)}
-                </td>
-                <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
-                  {titleCase(c.servicestatus)}
-                </td>
-                <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
-                  {formatDate(c.datecreated)}
-                </td>
-                <td className="px-5 py-3 text-gray-500 wrap-break-word">
-                  {c.managed_by_name}
-                </td>
-              </tr>
-            ))}
+            records.map((r) => {
+              const isSelected = selectedCaseId === r.caseid;
+
+              return (
+                <tr
+                  key={r.caseid}
+                  onClick={() => onSelect(r)}
+                  aria-selected={isSelected}
+                  className={`h-11.25 border-b border-gray-100 last:border-0 cursor-pointer transition-colors ${
+                    isSelected ? 'bg-indigo-50' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
+                    {r.caseid}
+                  </td>
+                  <td className="px-5 py-3 text-gray-500 wrap-break-word">
+                    {r.deceased_name}
+                  </td>
+                  <td className="px-5 py-3 text-gray-500 wrap-break-word">
+                    {r.representative_name || '—'}
+                  </td>
+                  <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
+                    {titleCase(r.servicestatus)}
+                  </td>
+                  <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
+                    {r.plantype}
+                  </td>
+                  <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
+                    {formatDate(r.datecreated)}
+                  </td>
+                  <td className="px-5 py-3 text-gray-500 wrap-break-word">
+                    {r.managed_by_name || '—'}
+                  </td>
+                </tr>
+              );
+            })}
         </tbody>
       </table>
 
