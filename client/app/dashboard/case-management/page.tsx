@@ -20,7 +20,7 @@ export default function CasesPage() {
   const [caseTableKey, setCaseTableKey] = useState(0);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="flex-1 bg-gray-50 flex flex-col">
       <main className="flex-1 w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>
