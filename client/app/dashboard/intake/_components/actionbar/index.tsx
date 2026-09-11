@@ -1,4 +1,10 @@
+import { useState } from 'react';
 import { Save } from 'lucide-react';
+import ConfirmModal from '../confirmmodal';
+
+interface ActionBarProps {
+  clearDraft: () => void;
+}
 
 export default function ActionBar({ clearDraft }: ActionBarProps) {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
