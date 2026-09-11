@@ -22,11 +22,19 @@ export default function useDynamicLimit<T extends HTMLElement>({
     function computeLimit() {
       const top = containerRef.current?.getBoundingClientRect().top ?? 0;
 
+      // Reserve only the portion of the outside-chrome element that actually
+      // overlaps the viewport, not its full height. A page shorter than the
+      // viewport can leave it scrolled below the fold entirely, in which case
+      // it isn't competing for space and nothing should be reserved for it.
       const outsideChromeEl = outsideChromeSelector
         ? document.querySelector<HTMLElement>(outsideChromeSelector)
         : null;
-      const outsideChromeHeight =
-        outsideChromeEl?.getBoundingClientRect().height ?? 0;
+      const outsideChromeTop =
+        outsideChromeEl?.getBoundingClientRect().top ?? window.innerHeight;
+      const outsideChromeHeight = Math.max(
+        0,
+        window.innerHeight - outsideChromeTop,
+      );
 
       const available =
         window.innerHeight - top - chromeHeight - outsideChromeHeight;

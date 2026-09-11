@@ -10,3 +10,15 @@ export const createPackageQuerySchema = z.object({
 });
 
 export type CreatePackageQuery = z.infer<typeof createPackageQuerySchema>;
+
+export const packageSchema = createPackageQuerySchema.extend({
+  packageid: z.int32(),
+});
+
+export type Package = z.infer<typeof packageSchema>;
+
+export const getPackagesResponseSchema = z.object({
+  data: z.array(packageSchema),
+});
+
+export type GetPackagesResponse = z.infer<typeof getPackagesResponseSchema>;
