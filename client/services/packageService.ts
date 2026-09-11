@@ -1,15 +1,30 @@
 import axios from 'axios';
-import type { CreatePackageQuery } from 'shared';
+import { getPackagesResponseSchema, type CreatePackageQuery } from 'shared';
 import { API } from './api';
 import { extractErrorMessage } from './staffService';
+
+/**
+ * Fetches every service package.
+ *
+ * @remarks
+ * Used by the new-contract panel's guided package picker, which narrows this
+ * list down to a chosen package type before showing it.
+ */
+export async function getPackages(signal?: AbortSignal) {
+  const result = await API.get('/packages', {
+    withCredentials: true,
+    signal,
+  });
+
+  return getPackagesResponseSchema.parse(result.data).data;
+}
 
 /**
  * Creates a new service package.
  *
  * @remarks
- * Used by the new-contract panel's package builder — every contract gets a
- * package created for it there (quick form or guided wizard), rather than
- * picking one from a shared catalog.
+ * Used by the new-contract panel's "Create package" mode — the package is
+ * created only once the contract itself is submitted.
  */
 export async function createPackage(
   payload: CreatePackageQuery,

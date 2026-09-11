@@ -8,11 +8,7 @@ import { formatDate, titleCase } from '../../table/format';
 import { fieldClass, labelClass } from './fieldStyles';
 import DetailRow from './detailRow';
 import PackageSection from './packageSection';
-import {
-  initialPackageDraft,
-  toCreatePackageQuery,
-  type PackageDraft,
-} from './packageSection/types';
+import type { ConfirmedPackage } from './packageSection/types';
 
 const PANEL_TRANSITION_MS = 300 as const;
 
@@ -48,10 +44,10 @@ function initialForm(): ContractForm {
  * Every field the panel displays already arrived with the picker row, so
  * selecting a record needs no follow-up request.
  *
- * There is no catalog of packages to pick from — a contract's package is
- * always built fresh in {@link PackageSection}, either via a flat form or a
- * guided wizard. Submitting creates that package first (`POST /packages`),
- * then the contract with the returned `packageid`.
+ * {@link PackageSection} either builds a brand new package or guides staff to
+ * an existing one by type. Submitting creates the package first if it's new
+ * (`POST /packages`) — an existing pick already has a `packageid` — then the
+ * contract with that id.
  *
  * The parent keys this component by `caseid`, so picking a different record
  * remounts it and the form state re-initialises on its own. No reset effect.
@@ -66,9 +62,8 @@ export default function ContractPanel({
   onCreated: () => void;
 }) {
   const [shown, setShown] = useState(false);
-  const [packageDraft, setPackageDraft] =
-    useState<PackageDraft>(initialPackageDraft);
-  const [packageConfirmed, setPackageConfirmed] = useState(false);
+  const [confirmedPackage, setConfirmedPackage] =
+    useState<ConfirmedPackage | null>(null);
   const [form, setForm] = useState<ContractForm>(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -87,25 +82,24 @@ export default function ContractPanel({
   }
 
   /**
-   * Confirming the package prefills the contract's own amount, embalming
-   * period and inclusions from it. All three stay editable — the package is a
-   * starting point, not a lock.
+   * Confirming a package (new or existing) prefills the contract's own
+   * amount, embalming period and inclusions from it. All three stay
+   * editable — the package is a starting point, not a lock.
    */
-  function handlePackageConfirmed() {
-    setPackageConfirmed(true);
+  function handlePackageConfirmed(pkg: ConfirmedPackage) {
+    setConfirmedPackage(pkg);
     setForm((prev) => ({
       ...prev,
-      totalamount: packageDraft.price,
-      embalmingperiod: packageDraft.embalmingperiod,
-      inclusions: packageDraft.inclusions,
+      totalamount: String(pkg.price),
+      embalmingperiod: String(pkg.embalmingperiod),
+      inclusions: pkg.inclusions ?? '',
     }));
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const packageQuery = toCreatePackageQuery(packageDraft);
-    if (!packageQuery) {
+    if (!confirmedPackage) {
       setErrorMsg('Finish setting up the package first.');
       return;
     }
@@ -114,7 +108,19 @@ export default function ContractPanel({
     setErrorMsg(null);
 
     try {
-      const { packageid } = await createPackage(packageQuery);
+      // A newly built package doesn't have an id yet — create it first. One
+      // picked via the guided flow already has one; nothing to create.
+      let packageid = confirmedPackage.packageid;
+      if (packageid === null) {
+        const created = await createPackage({
+          packagename: confirmedPackage.packagename,
+          packagetype: confirmedPackage.packagetype,
+          price: confirmedPackage.price,
+          embalmingperiod: confirmedPackage.embalmingperiod,
+          inclusions: confirmedPackage.inclusions,
+        });
+        packageid = created.packageid;
+      }
 
       await createContract({
         caseid: deceased.caseid,
@@ -229,13 +235,11 @@ export default function ContractPanel({
               <div>
                 <label className={labelClass}>Package</label>
                 <PackageSection
-                  draft={packageDraft}
-                  setDraft={setPackageDraft}
-                  confirmed={packageConfirmed}
+                  confirmed={confirmedPackage}
                   onConfirm={handlePackageConfirmed}
-                  onEdit={() => setPackageConfirmed(false)}
+                  onEdit={() => setConfirmedPackage(null)}
                 />
-                {packageConfirmed && (
+                {confirmedPackage && (
                   <p className="text-[11px] text-gray-400 mt-1">
                     Amount, embalming period and inclusions below were
                     prefilled from it — feel free to adjust for this contract.
@@ -360,7 +364,7 @@ export default function ContractPanel({
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || !packageConfirmed}
+                disabled={isSubmitting || !confirmedPackage}
                 className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isSubmitting && <Loader2 size={14} className="animate-spin" />}
