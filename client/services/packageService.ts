@@ -1,16 +1,27 @@
-import { getPackagesResponseSchema } from 'shared';
+import axios from 'axios';
+import type { CreatePackageQuery } from 'shared';
 import { API } from './api';
+import { extractErrorMessage } from './staffService';
 
 /**
- * Fetches every service package. Used to populate the package dropdown in the
- * new-contract panel, which prefills the contract amount, embalming period and
- * inclusions from the chosen package.
+ * Creates a new service package.
+ *
+ * @remarks
+ * Used by the new-contract panel's package builder — every contract gets a
+ * package created for it there (quick form or guided wizard), rather than
+ * picking one from a shared catalog.
  */
-export async function getPackages(signal?: AbortSignal) {
-  const result = await API.get('/packages', {
-    withCredentials: true,
-    signal,
-  });
+export async function createPackage(
+  payload: CreatePackageQuery,
+): Promise<{ packageid: number }> {
+  try {
+    const res = await API.post('/packages', payload);
+    return res.data.data as { packageid: number };
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.error?.message)
+      throw new Error(extractErrorMessage(error.response.data));
 
-  return getPackagesResponseSchema.parse(result.data).data;
+    console.error('Error creating package:', error);
+    throw error;
+  }
 }

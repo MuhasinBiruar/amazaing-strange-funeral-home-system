@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
-import type { Package, UncontractedDeceased } from 'shared';
-import { getPackages } from '@/services/packageService';
+import type { UncontractedDeceased } from 'shared';
+import { createPackage } from '@/services/packageService';
 import { createContract } from '@/services/contractService';
 import emptyToNull from '@/utils/emptyToNull';
-import { formatCurrency, formatDate, titleCase } from '../../table/format';
+import { formatDate, titleCase } from '../../table/format';
+import { fieldClass, labelClass } from './fieldStyles';
 import DetailRow from './detailRow';
+import PackageSection from './packageSection';
+import {
+  initialPackageDraft,
+  toCreatePackageQuery,
+  type PackageDraft,
+} from './packageSection/types';
 
 const PANEL_TRANSITION_MS = 300 as const;
 
@@ -16,7 +23,6 @@ function toDateInputValue(date: Date) {
 }
 
 interface ContractForm {
-  packageid: string;
   signeddate: string;
   burialdatedeadline: string;
   totalamount: string;
@@ -26,7 +32,6 @@ interface ContractForm {
 
 function initialForm(): ContractForm {
   return {
-    packageid: '',
     signeddate: toDateInputValue(new Date()),
     burialdatedeadline: '',
     totalamount: '',
@@ -41,8 +46,12 @@ function initialForm(): ContractForm {
  *
  * @remarks
  * Every field the panel displays already arrived with the picker row, so
- * selecting a record needs no follow-up request — only the package list is
- * fetched, and only once.
+ * selecting a record needs no follow-up request.
+ *
+ * There is no catalog of packages to pick from — a contract's package is
+ * always built fresh in {@link PackageSection}, either via a flat form or a
+ * guided wizard. Submitting creates that package first (`POST /packages`),
+ * then the contract with the returned `packageid`.
  *
  * The parent keys this component by `caseid`, so picking a different record
  * remounts it and the form state re-initialises on its own. No reset effect.
@@ -57,8 +66,9 @@ export default function ContractPanel({
   onCreated: () => void;
 }) {
   const [shown, setShown] = useState(false);
-  const [packages, setPackages] = useState<Package[]>([]);
-  const [packagesError, setPackagesError] = useState<string | null>(null);
+  const [packageDraft, setPackageDraft] =
+    useState<PackageDraft>(initialPackageDraft);
+  const [packageConfirmed, setPackageConfirmed] = useState(false);
   const [form, setForm] = useState<ContractForm>(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -70,24 +80,6 @@ export default function ContractPanel({
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function fetchPackages() {
-      try {
-        setPackages(await getPackages(controller.signal));
-      } catch (error) {
-        if (controller.signal.aborted) return;
-
-        console.error('Failed to load packages:', error);
-        setPackagesError('Could not load packages.');
-      }
-    }
-    fetchPackages();
-
-    return () => controller.abort();
-  }, []);
-
   /** Plays the close transition before unmounting. */
   function handleClose() {
     setShown(false);
@@ -95,32 +87,38 @@ export default function ContractPanel({
   }
 
   /**
-   * Selecting a package prefills the fields it already defines. All three stay
-   * editable — the package is a starting point, not a lock.
+   * Confirming the package prefills the contract's own amount, embalming
+   * period and inclusions from it. All three stay editable — the package is a
+   * starting point, not a lock.
    */
-  function handlePackageChange(packageid: string) {
-    const selected = packages.find((p) => String(p.packageid) === packageid);
-
+  function handlePackageConfirmed() {
+    setPackageConfirmed(true);
     setForm((prev) => ({
       ...prev,
-      packageid,
-      ...(selected && {
-        totalamount: String(selected.price),
-        embalmingperiod: String(selected.embalmingperiod),
-        inclusions: selected.inclusions ?? '',
-      }),
+      totalamount: packageDraft.price,
+      embalmingperiod: packageDraft.embalmingperiod,
+      inclusions: packageDraft.inclusions,
     }));
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const packageQuery = toCreatePackageQuery(packageDraft);
+    if (!packageQuery) {
+      setErrorMsg('Finish setting up the package first.');
+      return;
+    }
+
     setIsSubmitting(true);
     setErrorMsg(null);
 
     try {
+      const { packageid } = await createPackage(packageQuery);
+
       await createContract({
         caseid: deceased.caseid,
-        packageid: Number(form.packageid),
+        packageid,
         signeddate: new Date(form.signeddate),
         burialdatedeadline: new Date(form.burialdatedeadline),
         totalamount: Number(form.totalamount),
@@ -138,10 +136,6 @@ export default function ContractPanel({
       setIsSubmitting(false);
     }
   }
-
-  const fieldClass =
-    'w-full text-sm border border-gray-200 rounded-md px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400';
-  const labelClass = 'block text-xs font-medium text-gray-500 mb-1';
 
   return (
     <>
@@ -233,30 +227,20 @@ export default function ContractPanel({
               </h3>
 
               <div>
-                <label htmlFor="packageid" className={labelClass}>
-                  Package
-                </label>
-                <select
-                  id="packageid"
-                  required
-                  value={form.packageid}
-                  onChange={(e) => handlePackageChange(e.target.value)}
-                  className={`${fieldClass} cursor-pointer`}
-                >
-                  <option value="" disabled>
-                    {packagesError ?? 'Select a package...'}
-                  </option>
-                  {packages.map((p) => (
-                    <option key={p.packageid} value={p.packageid}>
-                      {p.packagename} — {p.packagetype} (
-                      {formatCurrency(p.price)})
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[11px] text-gray-400 mt-1">
-                  Sets the amount, embalming period and inclusions below. All
-                  stay editable.
-                </p>
+                <label className={labelClass}>Package</label>
+                <PackageSection
+                  draft={packageDraft}
+                  setDraft={setPackageDraft}
+                  confirmed={packageConfirmed}
+                  onConfirm={handlePackageConfirmed}
+                  onEdit={() => setPackageConfirmed(false)}
+                />
+                {packageConfirmed && (
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    Amount, embalming period and inclusions below were
+                    prefilled from it — feel free to adjust for this contract.
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -376,7 +360,7 @@ export default function ContractPanel({
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !packageConfirmed}
                 className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isSubmitting && <Loader2 size={14} className="animate-spin" />}
