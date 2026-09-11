@@ -1,21 +1,34 @@
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
-import type { Column, ColumnKey, SortOrder } from './types';
 
-export default function SortableHeaderCell({
+export type SortOrder = 'asc' | 'desc';
+
+export interface SortableColumn<K extends string> {
+  key: K;
+  label: string;
+}
+
+/**
+ * A `<th>` that toggles sorting for its column.
+ *
+ * Generic over the column key so it can back any table whose sortable keys are
+ * derived from a shared zod schema (`keyof Case`, `keyof UncontractedDeceased`,
+ * and so on).
+ */
+export default function SortableHeaderCell<K extends string>({
   column,
   sortBy,
   sortOrder,
   onSort,
 }: {
-  column: Column;
-  sortBy: ColumnKey;
+  column: SortableColumn<K>;
+  sortBy: K;
   sortOrder: SortOrder;
-  onSort: (columnKey: ColumnKey) => void;
+  onSort: (columnKey: K) => void;
 }) {
   const isActive = sortBy === column.key;
 
   return (
-    <th className="px-5 py-2.5 font-medium text-center h-2">
+    <th className="px-5 py-2.5 font-medium text-center h-12">
       <button
         onClick={() => onSort(column.key)}
         className={`w-full h-full flex items-center justify-center gap-1 cursor-pointer select-none hover:text-indigo-700 ${
