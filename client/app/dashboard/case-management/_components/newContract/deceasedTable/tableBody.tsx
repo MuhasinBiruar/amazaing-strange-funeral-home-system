@@ -1,6 +1,6 @@
 import { Loader2 } from 'lucide-react';
-import SortableHeaderCell from '../../table/sortableHeaderCell';
-import { formatDate, titleCase } from '../../table/format';
+import SortableHeaderCell from '@/components/table/sortableHeaderCell';
+import { formatDate, titleCase } from '@/components/table/format';
 import type { Column, ColumnKey, SortOrder } from './types';
 import type { Dispatch, SetStateAction } from 'react';
 import type { UncontractedDeceased } from 'shared';
