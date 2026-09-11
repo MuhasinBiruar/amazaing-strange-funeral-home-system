@@ -4,7 +4,7 @@ import type { UncontractedDeceased } from 'shared';
 import { createPackage } from '@/services/packageService';
 import { createContract } from '@/services/contractService';
 import emptyToNull from '@/utils/emptyToNull';
-import { formatDate, titleCase } from '../../table/format';
+import { formatDate, titleCase } from '@/components/table/format';
 import { fieldClass, labelClass } from './fieldStyles';
 import DetailRow from './detailRow';
 import PackageSection from './packageSection';

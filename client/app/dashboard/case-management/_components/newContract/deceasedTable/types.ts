@@ -2,7 +2,7 @@ import type {
   GetUncontractedDeceasedQuery,
   UncontractedDeceased,
 } from 'shared';
-import type { SortableColumn } from '../../table/sortableHeaderCell';
+import type { SortableColumn } from '@/components/table/sortableHeaderCell';
 
 export type ColumnKey = keyof UncontractedDeceased;
 export type Column = SortableColumn<ColumnKey>;

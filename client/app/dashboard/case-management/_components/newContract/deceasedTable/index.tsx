@@ -4,7 +4,7 @@ import useDebouncedState from '@/utils/useDebouncedValue';
 import useDynamicLimit from '@/utils/useDynamicLimit';
 import useElementHeight from '@/utils/useElementHeight';
 import TableHeader from './tableHeader';
-import TableFooter from '../../table/tableFooter';
+import TableFooter from '@/components/table/tableFooter';
 import TableBody from './tableBody';
 import type { UncontractedDeceased } from 'shared';
 import { getUncontractedDeceased } from '@/services/deceasedRecordService';
