@@ -22,7 +22,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="en" className={`${workSans.variable} antialiased bg-white`}>
-      <body className="min-h-dvh flex flex-col bg-white">{children}</body>
+      <body
+        className="min-h-dvh flex flex-col bg-white"
+        suppressHydrationWarning
+      >
+        {children}
+      </body>
     </html>
   );
 }
