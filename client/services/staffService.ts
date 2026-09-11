@@ -12,6 +12,20 @@ export const getStaff = async (username: string) => {
   }
 };
 
+interface StaffListResponse {
+  data: CreateStaffQuery[];
+}
+
+export const getAllStaff = async (): Promise<CreateStaffQuery[]> => {
+  try {
+    const res = await API.get<StaffListResponse>('/staff');
+    return res.data.data ?? [];
+  } catch (error) {
+    console.error('Error fetching all staff:', error);
+    throw error;
+  }
+};
+
 export function extractErrorMessage(data: AppErrorResponse): string {
   const details = data.error.details;
 

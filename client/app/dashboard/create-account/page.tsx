@@ -13,6 +13,7 @@ import {
   ConfirmCreateModal,
 } from './_components';
 import { createStaff } from '@/services/staffService';
+import emptyToNull from '@/utils/emptyToNull';
 import { User } from 'lucide-react';
 import type { CreateStaffQuery } from 'shared';
 
@@ -45,9 +46,6 @@ export default function CreateAccountPage() {
     useState<CreateStaffQuery | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const toastCenter = useRef<Toast>(null);
-
-  const emptyToNull = (v: FormDataEntryValue | null) =>
-    v ? (v as string) : null;
 
   /**
    * Handles the form submission event.

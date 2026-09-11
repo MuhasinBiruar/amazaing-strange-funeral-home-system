@@ -6,13 +6,28 @@ import useElementHeight from '@/utils/useElementHeight';
 import TableHeader from './tableHeader';
 import TableFooter from '@/components/table/tableFooter';
 import TableBody from './tableBody';
-import type { Case } from 'shared';
-import { getCases } from '@/services/caseService';
+import type { UncontractedDeceased } from 'shared';
+import { getUncontractedDeceased } from '@/services/deceasedRecordService';
 
 const SEARCH_DEBOUNCE_MS = 500 as const;
 const ROW_HEIGHT_PX = 45 as const;
 
-export default function CaseTable() {
+/**
+ * Paginated, searchable table of deceased records that have no contract yet.
+ *
+ * @remarks
+ * `refreshKey` is bumped by the parent after a contract is created so the newly
+ * contracted record drops out of the list.
+ */
+export default function DeceasedTable({
+  selectedCaseId,
+  onSelect,
+  refreshKey,
+}: {
+  selectedCaseId: number | null;
+  onSelect: (record: UncontractedDeceased) => void;
+  refreshKey: number;
+}) {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<ColumnKey>('caseid');
   const [sortOrder, setSortDir] = useState<SortOrder>('desc');
@@ -24,7 +39,7 @@ export default function CaseTable() {
   const [theadRef, theadHeight] = useElementHeight<HTMLTableSectionElement>();
   const [footerWrapRef, footerHeight] = useElementHeight<HTMLDivElement>();
 
-  const [cases, setCases] = useState<Case[]>([]);
+  const [records, setRecords] = useState<UncontractedDeceased[]>([]);
   const [total, setTotal] = useState(0);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -60,12 +75,12 @@ export default function CaseTable() {
   useEffect(() => {
     const controller = new AbortController();
 
-    async function fetchPaginatedContracts() {
+    async function fetchUncontractedDeceased() {
       setIsLoading(true);
       setErrorMsg(null);
 
       try {
-        const res = await getCases({
+        const res = await getUncontractedDeceased({
           page,
           limit,
           sortBy,
@@ -75,22 +90,22 @@ export default function CaseTable() {
           signal: controller.signal,
         });
 
-        setCases(res.data);
+        setRecords(res.data);
         setTotal(res.meta.total);
       } catch (error) {
         if (controller.signal.aborted) return;
 
-        console.error('Failed to load contracts:', error);
-        setErrorMsg('Could not load contracts. Try   again.');
-        setCases([]);
+        console.error('Failed to load deceased records:', error);
+        setErrorMsg('Could not load deceased records. Try again.');
+        setRecords([]);
       } finally {
         if (!controller.signal.aborted) setIsLoading(false);
       }
     }
-    fetchPaginatedContracts();
+    fetchUncontractedDeceased();
 
     return () => controller.abort();
-  }, [dboSearch, sortBy, sortOrder, page, limit, deceasedStatus]);
+  }, [dboSearch, sortBy, sortOrder, page, limit, deceasedStatus, refreshKey]);
 
   return (
     <div
@@ -115,10 +130,12 @@ export default function CaseTable() {
         sortDir={sortOrder}
         setSortDir={setSortDir}
         setPage={setPage}
-        cases={cases}
+        records={records}
         errorMsg={errorMsg}
         isLoading={isLoading}
         theadRef={theadRef}
+        selectedCaseId={selectedCaseId}
+        onSelect={onSelect}
       />
 
       <div ref={footerWrapRef}>

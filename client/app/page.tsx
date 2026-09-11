@@ -19,12 +19,17 @@ export default function LoginPage() {
   const [isAlreadyLoggedIn, setIsAlreadyLoggedIn] = useState(false);
 
   useEffect(() => {
-    authClient.getSession().then(({ data }) => {
-      if (data) {
-        setUsername(data.user?.username ?? '');
-        setIsAlreadyLoggedIn(true);
-      }
-    });
+    authClient
+      .getSession()
+      .then(({ data }) => {
+        if (data) {
+          setUsername(data.user?.username ?? '');
+          setIsAlreadyLoggedIn(true);
+        }
+      })
+      .catch(() => {
+        setIsAlreadyLoggedIn(false);
+      });
   }, []);
 
   /**
