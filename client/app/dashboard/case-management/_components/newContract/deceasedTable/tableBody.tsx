@@ -6,7 +6,6 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { UncontractedDeceased } from 'shared';
 
 const COLUMNS: Column[] = [
-  { key: 'caseid', label: 'Case #' },
   { key: 'deceased_name', label: 'Deceased name' },
   { key: 'representative_name', label: 'Representative name' },
   { key: 'servicestatus', label: 'Service status' },
@@ -44,7 +43,6 @@ export default function TableBody({
     <div className="overflow-x-auto relative">
       <table className="w-full table-auto text-sm text-center">
         <colgroup>
-          <col className="w-20" />
           <col className="w-45" />
           <col className="w-45" />
           <col className="w-32.5" />
@@ -111,9 +109,6 @@ export default function TableBody({
                     isSelected ? 'bg-indigo-50' : 'hover:bg-gray-50'
                   }`}
                 >
-                  <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
-                    {r.caseid}
-                  </td>
                   <td className="px-5 py-3 text-gray-500 wrap-break-word">
                     {r.deceased_name}
                   </td>
