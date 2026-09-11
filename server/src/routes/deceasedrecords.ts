@@ -12,12 +12,11 @@ import { withRepeatableRead } from '@/util/with-repeatable-read';
 import {
   createDeceasedRecordQuerySchema,
   getUncontractedDeceasedQuerySchema,
+  deceasedrecordPatchSchema,
   type CreateDeceasedRecordQuery,
   type UncontractedDeceased,
+  type DeceasedRecordSchema,
 } from 'shared';
-import validate from '@/middleware/validate.ts';
-import requireAuth from '@/middleware/require-auth.ts';
-import { NotFoundError } from '@/errors';
 
 const router = Router();
 
