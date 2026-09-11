@@ -45,8 +45,9 @@ export function useSubmitIntake(formData: any, clearDraft: () => void) {
       console.log('Success! Both records saved.');
       clearDraft();
       alert('Record saved successfully!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Submission failed:', error);
+      console.error('Backend error details:', error.response?.data); // This exposes the exact 400 error
       alert('Failed to save the record. Check the console.');
     }
   };
