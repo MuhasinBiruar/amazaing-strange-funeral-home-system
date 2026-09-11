@@ -1,4 +1,4 @@
-import type { CreatePackageQuery } from 'shared';
+import type { CreatePackageQuery, Package } from 'shared';
 import emptyToNull from '@/utils/emptyToNull';
 
 export const PACKAGE_TYPES = [
@@ -40,13 +40,7 @@ export function isPackageDraftComplete(draft: PackageDraft): boolean {
   );
 }
 
-/**
- * Converts a complete draft into the `POST /packages` payload, or `null` if
- * it isn't complete yet.
- */
-export function toCreatePackageQuery(
-  draft: PackageDraft,
-): CreatePackageQuery | null {
+function toCreatePackageQuery(draft: PackageDraft): CreatePackageQuery | null {
   if (!isPackageDraftComplete(draft)) return null;
 
   return {
@@ -56,4 +50,22 @@ export function toCreatePackageQuery(
     embalmingperiod: Number(draft.embalmingperiod),
     inclusions: emptyToNull(draft.inclusions),
   };
+}
+
+/**
+ * A package ready to attach to the contract — either brand new
+ * (`packageid: null`, created at submit time via `POST /packages`) or picked
+ * from the existing catalog through the guided flow (`packageid` already
+ * known, nothing to create).
+ */
+export type ConfirmedPackage = Omit<Package, 'packageid'> & {
+  packageid: number | null;
+};
+
+/** Converts a complete draft into a to-be-created `ConfirmedPackage`, or `null` if it isn't complete yet. */
+export function toConfirmedPackage(draft: PackageDraft): ConfirmedPackage | null {
+  const query = toCreatePackageQuery(draft);
+  if (!query) return null;
+
+  return { ...query, packageid: null };
 }

@@ -1,46 +1,49 @@
 import { useState } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
 import { Pencil } from 'lucide-react';
 import { formatCurrency } from '../../../table/format';
 import QuickForm from './quickForm';
-import PackageWizard from './wizard';
-import { isPackageDraftComplete, type PackageDraft } from './types';
+import GuidedPicker from './guidedPicker';
+import {
+  initialPackageDraft,
+  isPackageDraftComplete,
+  toConfirmedPackage,
+  type ConfirmedPackage,
+  type PackageDraft,
+} from './types';
 
-type Mode = 'quick' | 'guided';
+type Mode = 'create' | 'guided';
 
 /**
- * Builds the package for this contract — every contract gets one created for
- * it here, rather than picking an existing one from a catalog. Staff choose
- * between filling a flat form directly or being walked through it step by
- * step; both write into the same `draft`, so switching modes mid-way never
- * loses progress. Once confirmed, collapses into a summary card with an Edit
- * action.
+ * Attaches a package to this contract. Staff either build a brand new one
+ * (flat form) or are guided to an existing one — pick a package type, then
+ * choose from the (usually short) list of packages of that type. Once
+ * confirmed, collapses into a summary card with an Edit action.
  */
 export default function PackageSection({
-  draft,
-  setDraft,
   confirmed,
   onConfirm,
   onEdit,
 }: {
-  draft: PackageDraft;
-  setDraft: Dispatch<SetStateAction<PackageDraft>>;
-  confirmed: boolean;
-  onConfirm: () => void;
+  confirmed: ConfirmedPackage | null;
+  onConfirm: (pkg: ConfirmedPackage) => void;
   onEdit: () => void;
 }) {
-  const [mode, setMode] = useState<Mode>('quick');
+  const [mode, setMode] = useState<Mode>('create');
+  const [draft, setDraft] = useState<PackageDraft>(initialPackageDraft);
 
   if (confirmed) {
     return (
       <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 flex items-start justify-between gap-3">
         <div className="text-sm min-w-0">
-          <p className="font-medium text-gray-900 wrap-break-word">
-            {draft.packagename}
+          <p className="font-medium text-gray-900 wrap-break-word flex items-center gap-1.5">
+            {confirmed.packagename}
+            <span className="inline-block bg-emerald-100 text-emerald-700 text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0">
+              {confirmed.packageid === null ? 'New' : 'Existing'}
+            </span>
           </p>
           <p className="text-xs text-gray-500">
-            {draft.packagetype} · {formatCurrency(Number(draft.price))} ·{' '}
-            {draft.embalmingperiod}-day embalming
+            {confirmed.packagetype} · {formatCurrency(confirmed.price)} ·{' '}
+            {confirmed.embalmingperiod}-day embalming
           </p>
         </div>
         <button
@@ -59,9 +62,9 @@ export default function PackageSection({
       <div className="inline-flex rounded-md border border-gray-200 bg-gray-50 p-0.5 text-xs font-medium">
         <button
           type="button"
-          onClick={() => setMode('quick')}
+          onClick={() => setMode('create')}
           className={`rounded px-3 py-1.5 cursor-pointer transition ${
-            mode === 'quick'
+            mode === 'create'
               ? 'bg-white shadow-sm text-gray-900'
               : 'text-gray-500 hover:text-gray-700'
           }`}
@@ -81,23 +84,28 @@ export default function PackageSection({
         </button>
       </div>
 
-      {mode === 'quick' ? (
+      {mode === 'create' ? (
         <div className="space-y-2">
           <QuickForm draft={draft} setDraft={setDraft} />
           <button
             type="button"
             disabled={!isPackageDraftComplete(draft)}
-            onClick={onConfirm}
+            onClick={() => {
+              const pkg = toConfirmedPackage(draft);
+              if (pkg) onConfirm(pkg);
+            }}
             className="w-full text-sm bg-indigo-600 text-white rounded-md px-3 py-1.5 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             Use this package
           </button>
         </div>
       ) : (
-        <PackageWizard
-          draft={draft}
-          setDraft={setDraft}
+        <GuidedPicker
           onConfirm={onConfirm}
+          onCreateInstead={(packagetype) => {
+            setDraft((prev) => ({ ...prev, packagetype }));
+            setMode('create');
+          }}
         />
       )}
     </div>
