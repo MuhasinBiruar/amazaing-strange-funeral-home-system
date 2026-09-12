@@ -13,7 +13,7 @@ import {
   createDeceasedRecordQuerySchema,
   getUncontractedDeceasedQuerySchema,
   deceasedrecordPatchSchema,
-  type CreateDeceasedRecordQuery,
+  // type CreateDeceasedRecordQuery,
   type UncontractedDeceased,
   type DeceasedRecordSchema,
 } from 'shared';
@@ -231,7 +231,8 @@ router.post(
       res.status(201).json({
         data: result.rows[0],
       });
-    } catch (error: any) {
+    } catch (error) {
+      // Fixed: Removed `: any`
       next(error);
     }
   },
@@ -250,15 +251,48 @@ router.patch(
       const { id } = req.params;
       const parsed = req.body;
 
-      // Build the SET clause dynamically based on the provided fields
-      const setClause = Object.keys(parsed)
+      // 1. Prevent server crash if an empty object {} is sent
+      if (Object.keys(parsed).length === 0) {
+        return res
+          .status(400)
+          .json({ error: 'No fields provided for update.' });
+      }
+
+      // 2. Prevent SQL Injection & Auth Bypass by strictly controlling allowed keys.
+      // Notice 'managedby' is explicitly excluded so nobody can steal cases.
+      const allowedFields: Array<keyof DeceasedRecordSchema> = [
+        'firstname',
+        'middlename',
+        'lastname',
+        'causeofdeath',
+        'typeofdeath',
+        'physicaldescription',
+        'servicestatus',
+        'hasmaturedlifeplan',
+        'plantype',
+        'datecreated',
+        'dateofdeath',
+        'representedby',
+      ];
+
+      const safeKeys = Object.keys(parsed).filter(
+        (key): key is keyof DeceasedRecordSchema =>
+          allowedFields.includes(key as keyof DeceasedRecordSchema),
+      );
+
+      if (safeKeys.length === 0) {
+        return res
+          .status(400)
+          .json({ error: 'Invalid or unauthorized fields provided.' });
+      }
+
+      // 3. Safely build the SET clause using ONLY our allowed keys
+      const setClause = safeKeys
         .map((key, index) => `${key} = $${index + 1}`)
         .join(', ');
 
-      // Build the VALUES array for the query
-      const values = Object.values(parsed);
-
-      // Add the caseid to the end of the values array
+      // 4. Safely build the VALUES array mapping directly to those keys
+      const values = safeKeys.map((key) => parsed[key]);
       values.push(id);
 
       const result = await pool.query(
@@ -269,7 +303,8 @@ router.patch(
       if (result.rows.length === 0) throw new NotFoundError();
 
       res.json({ data: result.rows[0] });
-    } catch (error: any) {
+    } catch (error) {
+      // Fixed: Removed `: any`
       next(error);
     }
   },
