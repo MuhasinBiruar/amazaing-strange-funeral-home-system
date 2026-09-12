@@ -295,10 +295,16 @@ router.patch(
       values.push(userId);
 
       // Row-level auth: only update if caseid matches AND managedby matches the current user
-      const result = await pool.query(
-        `UPDATE DeceasedRecord SET ${setClause} WHERE caseid = $${values.length - 1} AND managedby = $${values.length} RETURNING *`,
-        values,
-      );
+      const queryText =
+        'UPDATE DeceasedRecord SET ' +
+        setClause +
+        ' WHERE caseid = $' +
+        (values.length - 1) +
+        ' AND managedby = $' +
+        values.length +
+        ' RETURNING *';
+
+      const result = await pool.query(queryText, values);
 
       if (result.rows.length === 0) throw new NotFoundError();
 

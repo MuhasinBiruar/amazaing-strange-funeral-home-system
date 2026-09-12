@@ -1,7 +1,13 @@
 import { FormEvent } from 'react';
+import axios from 'axios';
 import { API } from '@/services/api';
+import type {
+  CreateDeceasedRecordQuery,
+  CreateRepresentativeQuery,
+} from 'shared';
 
-// convert empty form strings into proper null values
+// Convert empty form strings into proper null values, so Zod's
+// .min(1) checks don't reject fields the user simply left blank.
 const cleanEmptyStrings = (data: Record<string, unknown>) => {
   return Object.fromEntries(
     Object.entries(data).map(([key, value]) => [
@@ -12,29 +18,30 @@ const cleanEmptyStrings = (data: Record<string, unknown>) => {
 };
 
 export function useSubmitIntake(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  formData: Record<string, any>,
+  formData: Record<string, unknown>,
   clearDraft: () => void,
 ) {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    // 1. Clean the incoming form data to prevent Zod .min(1) empty string errors
-    const cleanedFormData = cleanEmptyStrings(formData);
-    let generatedRepId = null;
+    const cleanedFormData = cleanEmptyStrings(formData) as Record<
+      string,
+      unknown
+    >;
+    let generatedRepId: number | null = null;
 
     try {
       // ==========================================
       // STEP 1: CREATE THE REPRESENTATIVE FIRST
       // ==========================================
-      const repPayload = {
-        firstname: cleanedFormData.rep_firstname,
-        middlename: cleanedFormData.rep_middlename,
-        lastname: cleanedFormData.rep_lastname,
-        relationship: cleanedFormData.rep_relationship,
-        contactnumber: cleanedFormData.rep_contactnumber,
-        address: cleanedFormData.rep_address,
-        datecreated: new Date().toISOString().split('T')[0],
+      const repPayload: CreateRepresentativeQuery = {
+        firstname: cleanedFormData.rep_firstname as string,
+        middlename: cleanedFormData.rep_middlename as string,
+        lastname: cleanedFormData.rep_lastname as string,
+        relationship: cleanedFormData.rep_relationship as string,
+        contactnumber: cleanedFormData.rep_contactnumber as string,
+        address: cleanedFormData.rep_address as string,
+        datecreated: new Date(),
       };
 
       const repResponse = await API.post('/representatives', repPayload);
@@ -49,12 +56,22 @@ export function useSubmitIntake(
       // ==========================================
       // STEP 2: CREATE THE DECEASED RECORD
       // ==========================================
-      const recordPayload = {
-        ...cleanedFormData,
+      const recordPayload: CreateDeceasedRecordQuery = {
+        firstname: cleanedFormData.firstname as string,
+        middlename: cleanedFormData.middlename as string | null,
+        lastname: cleanedFormData.lastname as string,
+        causeofdeath: cleanedFormData.causeofdeath as string | null,
+        typeofdeath: cleanedFormData.typeofdeath as string | null,
+        physicaldescription: cleanedFormData.physicaldescription as
+          string | null,
         servicestatus: 'intake',
         hasmaturedlifeplan: false,
         plantype: cleanedFormData.planType === 'Life Plan' ? 'Life' : 'Direct',
-        datecreated: new Date().toISOString().split('T')[0],
+        datecreated: new Date(),
+        dateofdeath: cleanedFormData.dateofdeath
+          ? new Date(cleanedFormData.dateofdeath as string)
+          : null,
+        managedby: null,
         representedby: generatedRepId,
       };
 
@@ -67,22 +84,36 @@ export function useSubmitIntake(
       // ==========================================
       // ROLLBACK: DELETE ORPHANED REP IF STEP 2 FAILS
       // ==========================================
+      let rollbackFailed = false;
+
       if (generatedRepId) {
-        console.warn('Rolling back: Deleting orphaned representative...');
-        await API.delete(`/representatives/${generatedRepId}`).catch(
-          (deleteErr) => {
-            console.error(
-              'Failed to clean up orphaned representative:',
-              deleteErr,
-            );
-          },
-        );
+        console.warn('Rolling back: deleting orphaned representative...');
+        try {
+          await API.delete(`/representatives/${generatedRepId}`);
+        } catch (deleteErr) {
+          rollbackFailed = true;
+          console.error(
+            'Failed to clean up orphaned representative:',
+            deleteErr,
+          );
+        }
       }
 
-      console.error('Submission failed:', error);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      console.error('Backend error details:', (error as any).response?.data);
-      alert('Failed to save the record. Check the console.');
+      if (axios.isAxiosError(error)) {
+        console.error('Backend error details:', error.response?.data);
+      } else {
+        console.error('Submission failed:', error);
+      }
+
+      if (rollbackFailed) {
+        alert(
+          `Failed to save the record, and automatic cleanup also failed. ` +
+            `A representative record (ID ${generatedRepId}) may be orphaned — ` +
+            `please report this to an admin.`,
+        );
+      } else {
+        alert('Failed to save the record. Check the console.');
+      }
     }
   };
 
