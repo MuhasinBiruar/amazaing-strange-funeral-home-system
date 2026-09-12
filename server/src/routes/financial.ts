@@ -6,10 +6,16 @@ import {
 } from 'express';
 import pool from '@/db';
 import requireAuth from '@/middleware/require-auth';
-import { getFinancialSummaryQuerySchema } from 'shared';
+import { createLguCaseQuery, getFinancialSummaryQuerySchema } from 'shared';
 import { foldPeriods, toExclusiveEndBound } from '@/util/financial';
+import validate from '@/middleware/validate';
+import { createLguCase, getLguCases } from '@/controllers/financial/lgucase';
 
 const router = Router();
+
+// TODO: Move lifeplan & create direct under financial endpoint
+router.post('/lgu', requireAuth, validate(createLguCaseQuery), createLguCase);
+router.get('/lgu', requireAuth, getLguCases);
 
 /**
  * Sample URLs
