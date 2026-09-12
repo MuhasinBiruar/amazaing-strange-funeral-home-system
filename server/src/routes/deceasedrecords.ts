@@ -250,7 +250,7 @@ router.patch(
     try {
       const { id } = req.params;
       const parsed = req.body;
-      const userId = res.locals.session.user.id; // Grab the logged-in user's ID
+      const userId = res.locals.session.user.id;
 
       if (Object.keys(parsed).length === 0) {
         return res
@@ -258,53 +258,39 @@ router.patch(
           .json({ error: 'No fields provided for update.' });
       }
 
-      const allowedFields: Array<keyof DeceasedRecordSchema> = [
-        'firstname',
-        'middlename',
-        'lastname',
-        'causeofdeath',
-        'typeofdeath',
-        'physicaldescription',
-        'servicestatus',
-        'hasmaturedlifeplan',
-        'plantype',
-        'datecreated',
-        'dateofdeath',
-        'representedby',
-      ];
-
-      const safeKeys = Object.keys(parsed).filter(
-        (key): key is keyof DeceasedRecordSchema =>
-          allowedFields.includes(key as keyof DeceasedRecordSchema),
+      const result = await pool.query(
+        `UPDATE DeceasedRecord SET
+          firstname = COALESCE($1, firstname),
+          middlename = COALESCE($2, middlename),
+          lastname = COALESCE($3, lastname),
+          causeofdeath = COALESCE($4, causeofdeath),
+          typeofdeath = COALESCE($5, typeofdeath),
+          physicaldescription = COALESCE($6, physicaldescription),
+          servicestatus = COALESCE($7, servicestatus),
+          hasmaturedlifeplan = COALESCE($8, hasmaturedlifeplan),
+          plantype = COALESCE($9, plantype),
+          datecreated = COALESCE($10, datecreated),
+          dateofdeath = COALESCE($11, dateofdeath),
+          representedby = COALESCE($12, representedby)
+        WHERE caseid = $13 AND managedby = $14
+        RETURNING *`,
+        [
+          parsed.firstname ?? null,
+          parsed.middlename ?? null,
+          parsed.lastname ?? null,
+          parsed.causeofdeath ?? null,
+          parsed.typeofdeath ?? null,
+          parsed.physicaldescription ?? null,
+          parsed.servicestatus ?? null,
+          parsed.hasmaturedlifeplan ?? null,
+          parsed.plantype ?? null,
+          parsed.datecreated ?? null,
+          parsed.dateofdeath ?? null,
+          parsed.representedby ?? null,
+          id,
+          userId,
+        ],
       );
-
-      if (safeKeys.length === 0) {
-        return res
-          .status(400)
-          .json({ error: 'Invalid or unauthorized fields provided.' });
-      }
-
-      const setClause = safeKeys
-        .map((key, index) => `${key} = $${index + 1}`)
-        .join(', ');
-
-      const values = safeKeys.map((key) => parsed[key]);
-
-      // Push ID and User ID for the WHERE clause
-      values.push(id);
-      values.push(userId);
-
-      // Row-level auth: only update if caseid matches AND managedby matches the current user
-      const queryText =
-        'UPDATE DeceasedRecord SET ' +
-        setClause +
-        ' WHERE caseid = $' +
-        (values.length - 1) +
-        ' AND managedby = $' +
-        values.length +
-        ' RETURNING *';
-
-      const result = await pool.query(queryText, values);
 
       if (result.rows.length === 0) throw new NotFoundError();
 
