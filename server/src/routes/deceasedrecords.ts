@@ -12,8 +12,10 @@ import { withRepeatableRead } from '@/util/with-repeatable-read';
 import {
   createDeceasedRecordQuerySchema,
   getUncontractedDeceasedQuerySchema,
-  type CreateDeceasedRecordQuery,
+  deceasedrecordPatchSchema,
+  // type CreateDeceasedRecordQuery,
   type UncontractedDeceased,
+  type DeceasedRecordSchema,
 } from 'shared';
 
 const router = Router();
@@ -184,12 +186,13 @@ router.post(
   requireAuth,
   validate(createDeceasedRecordQuerySchema),
   async (
-    req: Request<{}, {}, CreateDeceasedRecordQuery>,
+    req: Request<{}, {}, DeceasedRecordSchema>,
     res: Response,
     next: NextFunction,
   ) => {
     try {
       const parsed = req.body;
+      const managedby = res.locals.session.user.id;
       const result = await pool.query(
         `
         INSERT INTO deceasedrecord (
@@ -203,9 +206,10 @@ router.post(
           hasmaturedlifeplan,
           plantype,
           datecreated,
+          dateofdeath,
           managedby,
           representedby
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
         RETURNING caseid;`,
         [
           parsed.firstname,
@@ -218,7 +222,8 @@ router.post(
           parsed.hasmaturedlifeplan,
           parsed.plantype,
           parsed.datecreated,
-          parsed.managedby,
+          parsed.dateofdeath,
+          managedby,
           parsed.representedby,
         ],
       );
@@ -226,6 +231,70 @@ router.post(
       res.status(201).json({
         data: result.rows[0],
       });
+    } catch (error) {
+      // Fixed: Removed `: any`
+      next(error);
+    }
+  },
+);
+
+router.patch(
+  '/:id',
+  requireAuth,
+  validate(deceasedrecordPatchSchema),
+  async (
+    req: Request<{ id: string }, {}, Partial<DeceasedRecordSchema>>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const { id } = req.params;
+      const parsed = req.body;
+      const userId = res.locals.session.user.id;
+
+      if (Object.keys(parsed).length === 0) {
+        return res
+          .status(400)
+          .json({ error: 'No fields provided for update.' });
+      }
+
+      const result = await pool.query(
+        `UPDATE DeceasedRecord SET
+          firstname = COALESCE($1, firstname),
+          middlename = COALESCE($2, middlename),
+          lastname = COALESCE($3, lastname),
+          causeofdeath = COALESCE($4, causeofdeath),
+          typeofdeath = COALESCE($5, typeofdeath),
+          physicaldescription = COALESCE($6, physicaldescription),
+          servicestatus = COALESCE($7, servicestatus),
+          hasmaturedlifeplan = COALESCE($8, hasmaturedlifeplan),
+          plantype = COALESCE($9, plantype),
+          datecreated = COALESCE($10, datecreated),
+          dateofdeath = COALESCE($11, dateofdeath),
+          representedby = COALESCE($12, representedby)
+        WHERE caseid = $13 AND managedby = $14
+        RETURNING *`,
+        [
+          parsed.firstname ?? null,
+          parsed.middlename ?? null,
+          parsed.lastname ?? null,
+          parsed.causeofdeath ?? null,
+          parsed.typeofdeath ?? null,
+          parsed.physicaldescription ?? null,
+          parsed.servicestatus ?? null,
+          parsed.hasmaturedlifeplan ?? null,
+          parsed.plantype ?? null,
+          parsed.datecreated ?? null,
+          parsed.dateofdeath ?? null,
+          parsed.representedby ?? null,
+          id,
+          userId,
+        ],
+      );
+
+      if (result.rows.length === 0) throw new NotFoundError();
+
+      res.json({ data: result.rows[0] });
     } catch (error) {
       next(error);
     }

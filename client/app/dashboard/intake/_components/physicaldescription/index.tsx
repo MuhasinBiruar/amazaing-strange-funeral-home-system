@@ -1,6 +1,15 @@
 import { FileText } from 'lucide-react';
 
-export default function PhysicalDescription() {
+interface PhysicalDescriptionProps {
+  data: Record<string, string | undefined>;
+  onChange: (field: string, value: string) => void;
+  errors?: Record<string, string>;
+}
+
+export default function PhysicalDescription({
+  data,
+  onChange,
+}: PhysicalDescriptionProps) {
   return (
     <section className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
       <div className="flex items-center gap-2 mb-4 text-gray-900">
@@ -12,7 +21,9 @@ export default function PhysicalDescription() {
           DETAILED DESCRIPTION
         </label>
         <textarea
-          className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm min-h-30"
+          value={data.physicaldescription || ''}
+          onChange={(e) => onChange('physicaldescription', e.target.value)}
+          className="w-full bg-gray-50 text-gray-900 border placeholder:text-gray-400 border-gray-200 rounded-lg p-2.5 text-sm min-h-30"
           placeholder="Include estimated height/weight, identifying marks (tattoos, scars), and clothing worn at intake..."
         />
       </div>
