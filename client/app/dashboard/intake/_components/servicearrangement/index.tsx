@@ -22,7 +22,7 @@ export default function ServiceArrangement({
         </label>
         <select
           id="planType"
-          value={data.someField || ''}
+          value={data.planType || ''}
           onChange={(e) => onChange('planType', e.target.value)}
           className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
         >
