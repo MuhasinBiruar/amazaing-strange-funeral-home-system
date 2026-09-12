@@ -26,6 +26,7 @@ export default function ConfirmModal({
             <h3 className="text-lg font-bold text-gray-900">{title}</h3>
           </div>
           <button
+            type="button"
             onClick={onCancel}
             className="text-gray-400 hover:text-gray-600"
           >
@@ -47,12 +48,14 @@ export default function ConfirmModal({
 
         <div className="flex gap-3 mt-6">
           <button
+            type="button"
             onClick={onCancel}
             className="flex-1 py-2 text-sm font-bold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
           >
             Cancel
           </button>
           <button
+            type="button"
             onClick={onConfirm}
             className="flex-1 py-2 text-sm font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 transition"
           >
