@@ -8,6 +8,7 @@ export const caseSchema = z.object({
   deceased_name: z.string(),
   representative_name: z.string(),
   burialdatedeadline: z.coerce.date().nullable(),
+  dateofdeath: z.coerce.date().nullable(),
   total_pending_docs: z.int(),
   totalamount: z.number().nullable(),
   servicestatus: z.enum(['intake', 'active', 'pending', 'completed']),

@@ -1,6 +1,10 @@
 import { Loader2 } from 'lucide-react';
 import SortableHeaderCell from '@/components/table/sortableHeaderCell';
-import { formatCurrency, formatDate, titleCase } from '@/components/table/format';
+import {
+  formatCurrency,
+  formatDate,
+  titleCase,
+} from '@/components/table/format';
 import type { Column, ColumnKey, SortOrder } from './types';
 import type { Dispatch, SetStateAction } from 'react';
 import type { Case } from 'shared';
@@ -9,6 +13,7 @@ const COLUMNS: Column[] = [
   { key: 'deceased_name', label: 'Deceased name' },
   { key: 'representative_name', label: 'Representative name' },
   { key: 'burialdatedeadline', label: 'Burial deadline' },
+  { key: 'dateofdeath', label: 'Date of death' },
   { key: 'total_pending_docs', label: 'Total pending docs.' },
   { key: 'totalamount', label: 'Total amount' },
   { key: 'servicestatus', label: 'Service status' },
@@ -44,6 +49,7 @@ export default function TableBody({
           <col className="w-45" />
           <col className="w-45" />
           <col className="w-35" />
+          <col className="w-32.5" />
           <col className="w-30" />
           <col className="w-35" />
           <col className="w-32.5" />
@@ -110,6 +116,9 @@ export default function TableBody({
                 </td>
                 <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
                   {formatDate(c.burialdatedeadline)}
+                </td>
+                <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
+                  {formatDate(c.dateofdeath)}
                 </td>
                 <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
                   {c.total_pending_docs}

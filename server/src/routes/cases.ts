@@ -15,6 +15,7 @@ const SORT_COLUMNS: Record<keyof Case, string> = {
   deceased_name: 'deceased_name',
   representative_name: 'representative_name',
   burialdatedeadline: 'c.burialdatedeadline',
+  dateofdeath: 'dr.dateofdeath',
   total_pending_docs: 'total_pending_docs',
   totalamount: 'c.totalamount',
   servicestatus: 'dr.servicestatus',
@@ -45,6 +46,7 @@ router.get(
         CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
         CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
         c.burialdatedeadline,
+        dr.dateofdeath,
         COALESCE(d.pending_docs, 0)::int AS total_pending_docs,
         c.totalamount,
         dr.servicestatus,
@@ -67,7 +69,7 @@ router.get(
           WHERE verificationstatus = 'pending'
           GROUP BY caseid
         ) d ON dr.caseid = d.caseid
-`;
+      `;
 
       // Start building `whereClause`
       const whereConditions: string[] = [];
