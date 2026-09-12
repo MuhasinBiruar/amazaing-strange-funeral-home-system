@@ -2,13 +2,15 @@ import { User, Calendar } from 'lucide-react';
 import { useRef } from 'react';
 
 interface VitalStatisticsProps {
-  data: any;
-  onChange: (field: string, value: any) => void;
+  data: Record<string, string | undefined>;
+  onChange: (field: string, value: string) => void;
+  errors?: Record<string, string>;
 }
 
 export default function VitalStatistics({
   data,
   onChange,
+  errors = {},
 }: VitalStatisticsProps) {
   const dateInputRef = useRef<HTMLInputElement>(null);
 
@@ -25,12 +27,18 @@ export default function VitalStatistics({
             FIRST NAME
           </label>
           <input
+            id="firstname"
             type="text"
             value={data.firstname || ''}
             onChange={(e) => onChange('firstname', e.target.value)}
             className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="First Name"
           />
+          {errors.firstname && (
+            <p className="text-red-700 text-xs font-bold mt-1">
+              {errors.firstname}
+            </p>
+          )}
         </div>
 
         <div>
@@ -45,17 +53,24 @@ export default function VitalStatistics({
             placeholder="Middle Name"
           />
         </div>
+
         <div>
           <label className="block text-xs font-semibold text-gray-700 mb-1">
             LAST NAME
           </label>
           <input
+            id="lastname"
             type="text"
             value={data.lastname || ''}
             onChange={(e) => onChange('lastname', e.target.value)}
             className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Last Name"
           />
+          {errors.lastname && (
+            <p className="text-red-700 text-xs font-bold mt-1">
+              {errors.lastname}
+            </p>
+          )}
         </div>
 
         <div>
@@ -71,6 +86,7 @@ export default function VitalStatistics({
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
             />
             <input
+              id="dateofdeath"
               ref={dateInputRef}
               type="date"
               max="2099-12-31"
@@ -80,6 +96,11 @@ export default function VitalStatistics({
               className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 pl-10 text-sm focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden"
             />
           </div>
+          {errors.dateofdeath && (
+            <p className="text-red-700 text-xs font-bold mt-1">
+              {errors.dateofdeath}
+            </p>
+          )}
         </div>
 
         <div>
@@ -106,21 +127,10 @@ export default function VitalStatistics({
 
         <div>
           <label className="block text-xs font-semibold text-gray-700 mb-1">
-            IMMEDIATE CAUSE OF DEATH
-          </label>
-          <textarea
-            value={data.causeofdeath || ''}
-            onChange={(e) => onChange('causeofdeath', e.target.value)}
-            className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm min-h-20"
-            placeholder="As stated in the medical certificate or preliminary report..."
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">
             TYPE OF DEATH
           </label>
           <select
+            id="typeofdeath"
             value={data.typeofdeath || ''}
             onChange={(e) => onChange('typeofdeath', e.target.value)}
             className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
@@ -129,11 +139,34 @@ export default function VitalStatistics({
               Select type
             </option>
             <option value="Natural">Natural</option>
-            <option value="Accidental">Accidental</option>
+            <option value="Accident">Accident</option>
             <option value="Homicide">Homicide</option>
             <option value="Suicide">Suicide</option>
             <option value="Unknown">Unknown</option>
           </select>
+          {errors.typeofdeath && (
+            <p className="text-red-700 text-xs font-bold mt-1">
+              {errors.typeofdeath}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-700 mb-1">
+            IMMEDIATE CAUSE OF DEATH
+          </label>
+          <textarea
+            id="causeofdeath"
+            value={data.causeofdeath || ''}
+            onChange={(e) => onChange('causeofdeath', e.target.value)}
+            className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm min-h-20"
+            placeholder="As stated in the medical certificate or preliminary report..."
+          />
+          {errors.causeofdeath && (
+            <p className="text-red-700 text-xs font-bold mt-1">
+              {errors.causeofdeath}
+            </p>
+          )}
         </div>
       </div>
     </section>
