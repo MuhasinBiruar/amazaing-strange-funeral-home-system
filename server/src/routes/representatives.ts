@@ -2,6 +2,7 @@ import pool from '@/db';
 import { NotFoundError } from '@/errors';
 import requireAuth from '@/middleware/require-auth';
 import validate from '@/middleware/validate';
+import { joinName } from '@/util/audit-log';
 import {
   createRepresentativeQuerySchema,
   type CreateRepresentativeQuery,
@@ -79,6 +80,13 @@ router.post(
         ],
       );
 
+      const repName = joinName(
+        parsed.firstname,
+        parsed.middlename,
+        parsed.lastname,
+      );
+      res.locals.auditAction = `${res.locals.session.user.name} added a new representative: ${repName}`;
+
       res.status(201).json({
         data: result.rows[0],
       });
@@ -104,8 +112,16 @@ router.delete(
         throw new NotFoundError();
       }
 
+      const deleted = result.rows[0];
+      const repName = joinName(
+        deleted.firstname,
+        deleted.middlename,
+        deleted.lastname,
+      );
+      res.locals.auditAction = `${res.locals.session.user.name} deleted representative ${repName}`;
+
       res.json({
-        data: result.rows[0],
+        data: deleted,
         message: 'Rollback successful: Representative deleted.',
       });
     } catch (error) {

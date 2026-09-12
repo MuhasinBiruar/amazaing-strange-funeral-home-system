@@ -9,6 +9,7 @@ import validate from '@/middleware/validate';
 import requireAuth from '@/middleware/require-auth';
 import { NotFoundError } from '@/errors';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
+import { getRepresentativeName, joinName } from '@/util/audit-log';
 import {
   createDeceasedRecordQuerySchema,
   getUncontractedDeceasedQuerySchema,
@@ -228,6 +229,18 @@ router.post(
         ],
       );
 
+      const deceasedName = joinName(
+        parsed.firstname,
+        parsed.middlename,
+        parsed.lastname,
+      );
+      const repName = parsed.representedby
+        ? await getRepresentativeName(parsed.representedby)
+        : null;
+      res.locals.auditAction = `${res.locals.session.user.name} created a new record in deceased record for ${
+        repName ? `${deceasedName} & ${repName}` : deceasedName
+      }`;
+
       res.status(201).json({
         data: result.rows[0],
       });
@@ -294,7 +307,20 @@ router.patch(
 
       if (result.rows.length === 0) throw new NotFoundError();
 
-      res.json({ data: result.rows[0] });
+      const updated = result.rows[0];
+      const deceasedName = joinName(
+        updated.firstname,
+        updated.middlename,
+        updated.lastname,
+      );
+      const repName = updated.representedby
+        ? await getRepresentativeName(updated.representedby)
+        : null;
+      res.locals.auditAction = `${res.locals.session.user.name} updated the deceased record for ${
+        repName ? `${deceasedName} & ${repName}` : deceasedName
+      }`;
+
+      res.json({ data: updated });
     } catch (error) {
       next(error);
     }

@@ -69,6 +69,8 @@ router.post(
         ],
       );
 
+      res.locals.auditAction = `${res.locals.session.user.name} created a new package: ${parsed.packagename} (${parsed.packagetype})`;
+
       res.status(201).json({
         data: result.rows[0],
       });

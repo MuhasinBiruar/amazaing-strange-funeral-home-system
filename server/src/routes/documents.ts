@@ -8,6 +8,7 @@ import pool from '@/db';
 import validate from '@/middleware/validate';
 import requireAuth from '@/middleware/require-auth';
 import { NotFoundError } from '@/errors';
+import { getDeceasedName } from '@/util/audit-log';
 import { createDocumentQuerySchema, type CreateDocumentQuery } from 'shared';
 
 const router = Router();
@@ -68,6 +69,9 @@ router.post(
           parsed.caseid,
         ],
       );
+
+      const deceasedName = await getDeceasedName(parsed.caseid);
+      res.locals.auditAction = `${res.locals.session.user.name} uploaded a ${parsed.documenttype} document for ${deceasedName}`;
 
       res.status(201).json({
         data: result.rows[0],
