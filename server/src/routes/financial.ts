@@ -6,16 +6,47 @@ import {
 } from 'express';
 import pool from '@/db';
 import requireAuth from '@/middleware/require-auth';
-import { createLguCaseQuery, getFinancialSummaryQuerySchema } from 'shared';
+import {
+  createLguCaseQuery,
+  createLifeplanQuery,
+  getFinancialSummaryQuerySchema,
+} from 'shared';
 import { foldPeriods, toExclusiveEndBound } from '@/util/financial';
 import validate from '@/middleware/validate';
 import { createLguCase, getLguCases } from '@/controllers/financial/lgucase';
+import { createLifeplan, getLifeplan } from '@/controllers/financial/lifeplan';
 
 const router = Router();
 
-// TODO: Move lifeplan & create direct under financial endpoint
-router.post('/lgu', requireAuth, validate(createLguCaseQuery), createLguCase);
-router.get('/lgu', requireAuth, getLguCases);
+router.post(
+  '/lgucases',
+  requireAuth,
+  validate(createLguCaseQuery),
+  createLguCase,
+);
+/**
+ * Sample URLs
+ * `http://localhost:6543/lgucases`
+ * `http://localhost:6543/lgucases?search=Juan`
+ * `http://localhost:6543/lgucases?search=Dela%20Cruz&sortBy=reimbursementamount&sortOrder=desc&page=1&limit=20`
+ */
+router.get('/lgucases', requireAuth, getLguCases);
+
+router.post(
+  '/lifeplans',
+  requireAuth,
+  validate(createLifeplanQuery),
+  createLifeplan,
+);
+/**
+ * Sample URLs
+ * `http://localhost:4000/lifeplans`
+ * `http://localhost:4000/lifeplans?search=Dela%20Cruz`
+ * `http://localhost:4000/lifeplans?search=ABC%20Life&sortBy=totalamount&sortOrder=desc&page=1&limit=20`
+ */
+router.get('/lifeplans', requireAuth, getLifeplan);
+
+// TODO: Create direct under financial endpoint
 
 /**
  * Sample URLs
