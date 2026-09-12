@@ -88,4 +88,30 @@ router.post(
   },
 );
 
+router.delete(
+  '/:id',
+  requireAuth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+
+      const result = await pool.query(
+        'DELETE FROM representative WHERE representativeid = $1 RETURNING *',
+        [id],
+      );
+
+      if (result.rows.length === 0) {
+        throw new NotFoundError();
+      }
+
+      res.json({
+        data: result.rows[0],
+        message: 'Rollback successful: Representative deleted.',
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 export default router;
