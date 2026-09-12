@@ -31,9 +31,9 @@ router.post(
 );
 /**
  * Sample URLs
- * `http://localhost:6543/lgucases`
- * `http://localhost:6543/lgucases?search=Juan`
- * `http://localhost:6543/lgucases?search=Dela%20Cruz&sortBy=reimbursementamount&sortOrder=desc&page=1&limit=20`
+ * `http://localhost:6543/financial/lgucases`
+ * `http://localhost:6543/financial/lgucases?search=Juan`
+ * `http://localhost:6543/financial/lgucases?search=Dela%20Cruz&sortBy=reimbursementamount&sortOrder=desc&page=1&limit=20`
  */
 router.get('/lgucases', requireAuth, getLguCases);
 
@@ -45,9 +45,9 @@ router.post(
 );
 /**
  * Sample URLs
- * `http://localhost:4000/lifeplans`
- * `http://localhost:4000/lifeplans?search=Dela%20Cruz`
- * `http://localhost:4000/lifeplans?search=ABC%20Life&sortBy=totalamount&sortOrder=desc&page=1&limit=20`
+ * `http://localhost:4000/financial/lifeplans`
+ * `http://localhost:4000/financial/lifeplans?search=Dela%20Cruz`
+ * `http://localhost:4000/financial/lifeplans?search=ABC%20Life&sortBy=totalamount&sortOrder=desc&page=1&limit=20`
  */
 router.get('/lifeplans', requireAuth, getLifeplan);
 
