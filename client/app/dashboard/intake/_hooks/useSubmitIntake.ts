@@ -1,6 +1,16 @@
 import { FormEvent } from 'react';
 import { API } from '@/services/api';
 
+// convert empty form strings into proper null values
+const cleanEmptyStrings = (data: Record<string, unknown>) => {
+  return Object.fromEntries(
+    Object.entries(data).map(([key, value]) => [
+      key,
+      typeof value === 'string' && value.trim() === '' ? null : value,
+    ]),
+  );
+};
+
 export function useSubmitIntake(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formData: Record<string, any>,
@@ -9,6 +19,8 @@ export function useSubmitIntake(
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
+    // 1. Clean the incoming form data to prevent Zod .min(1) empty string errors
+    const cleanedFormData = cleanEmptyStrings(formData);
     let generatedRepId = null;
 
     try {
@@ -16,12 +28,12 @@ export function useSubmitIntake(
       // STEP 1: CREATE THE REPRESENTATIVE FIRST
       // ==========================================
       const repPayload = {
-        firstname: formData.rep_firstname,
-        middlename: formData.rep_middlename,
-        lastname: formData.rep_lastname,
-        relationship: formData.rep_relationship,
-        contactnumber: formData.rep_contactnumber,
-        address: formData.rep_address,
+        firstname: cleanedFormData.rep_firstname,
+        middlename: cleanedFormData.rep_middlename,
+        lastname: cleanedFormData.rep_lastname,
+        relationship: cleanedFormData.rep_relationship,
+        contactnumber: cleanedFormData.rep_contactnumber,
+        address: cleanedFormData.rep_address,
         datecreated: new Date().toISOString().split('T')[0],
       };
 
@@ -38,10 +50,10 @@ export function useSubmitIntake(
       // STEP 2: CREATE THE DECEASED RECORD
       // ==========================================
       const recordPayload = {
-        ...formData,
+        ...cleanedFormData,
         servicestatus: 'intake',
         hasmaturedlifeplan: false,
-        plantype: formData.planType === 'Life Plan' ? 'Life' : 'Direct',
+        plantype: cleanedFormData.planType === 'Life Plan' ? 'Life' : 'Direct',
         datecreated: new Date().toISOString().split('T')[0],
         representedby: generatedRepId,
       };
