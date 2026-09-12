@@ -250,16 +250,14 @@ router.patch(
     try {
       const { id } = req.params;
       const parsed = req.body;
+      const userId = res.locals.session.user.id; // Grab the logged-in user's ID
 
-      // 1. Prevent server crash if an empty object {} is sent
       if (Object.keys(parsed).length === 0) {
         return res
           .status(400)
           .json({ error: 'No fields provided for update.' });
       }
 
-      // 2. Prevent SQL Injection & Auth Bypass by strictly controlling allowed keys.
-      // Notice 'managedby' is explicitly excluded so nobody can steal cases.
       const allowedFields: Array<keyof DeceasedRecordSchema> = [
         'firstname',
         'middlename',
@@ -286,17 +284,19 @@ router.patch(
           .json({ error: 'Invalid or unauthorized fields provided.' });
       }
 
-      // 3. Safely build the SET clause using ONLY our allowed keys
       const setClause = safeKeys
         .map((key, index) => `${key} = $${index + 1}`)
         .join(', ');
 
-      // 4. Safely build the VALUES array mapping directly to those keys
       const values = safeKeys.map((key) => parsed[key]);
-      values.push(id);
 
+      // Push ID and User ID for the WHERE clause
+      values.push(id);
+      values.push(userId);
+
+      // Row-level auth: only update if caseid matches AND managedby matches the current user
       const result = await pool.query(
-        `UPDATE DeceasedRecord SET ${setClause} WHERE caseid = $${values.length} RETURNING *`,
+        `UPDATE DeceasedRecord SET ${setClause} WHERE caseid = $${values.length - 1} AND managedby = $${values.length} RETURNING *`,
         values,
       );
 
@@ -304,7 +304,6 @@ router.patch(
 
       res.json({ data: result.rows[0] });
     } catch (error) {
-      // Fixed: Removed `: any`
       next(error);
     }
   },
