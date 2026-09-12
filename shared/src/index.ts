@@ -13,6 +13,7 @@ export * from './schemas/burialrecord';
 export * from './schemas/case';
 export * from './schemas/contract';
 export * from './schemas/deceasedrecord';
+export * from './schemas/direct';
 export * from './schemas/document';
 export * from './schemas/financial';
 export * from './schemas/lgucase';
