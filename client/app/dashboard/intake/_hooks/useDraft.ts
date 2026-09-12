@@ -1,32 +1,50 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-export function useDraft(storageKey: string, initialState: any) {
-  const [formData, setFormData] = useState(initialState);
+export function useDraft<T extends Record<string, unknown>>(
+  storageKey: string,
+  initialState: T,
+) {
+  const [formData, setFormData] = useState<T>(initialState);
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
+  const isClearingRef = useRef(false);
 
-  // Loads from local storage on mount
   useEffect(() => {
     const savedDraft = localStorage.getItem(storageKey);
     if (savedDraft) {
-      setFormData(JSON.parse(savedDraft));
+      try {
+        // eslint-disable-next-line
+        setFormData(JSON.parse(savedDraft));
+      } catch {
+        localStorage.removeItem(storageKey);
+
+        setFormData(initialState);
+      }
     }
     setIsDraftLoaded(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
 
-  // Autosave on keystroke
   useEffect(() => {
+    if (isClearingRef.current) {
+      isClearingRef.current = false;
+      return;
+    }
+
     if (isDraftLoaded) {
       localStorage.setItem(storageKey, JSON.stringify(formData));
     }
   }, [formData, isDraftLoaded, storageKey]);
 
-  // Universal change handler
-  const handleFormChange = (field: string, value: any) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+  // Accepts any string so page.tsx doesn't throw a type error
+  const handleFormChange = (field: string, value: unknown) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field as keyof T]: value as T[keyof T],
+    }));
   };
 
-  // Wipe the draft helper
   const clearDraft = () => {
+    isClearingRef.current = true;
     localStorage.removeItem(storageKey);
     setFormData(initialState);
   };
