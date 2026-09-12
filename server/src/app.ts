@@ -14,6 +14,7 @@ import contractsRouter from './routes/contracts';
 import packagesRouter from './routes/packages';
 import casesRouter from './routes/cases';
 import financialRouter from './routes/financial';
+import auditLog from './middleware/audit-log';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(
 // Better Auth's own routes — must come BEFORE express.json()
 app.all('/api/auth/*splat', toNodeHandler(auth));
 app.use(express.json());
+app.use(auditLog);
 
 app.use('/burialrecords', burialrecordsRouter);
 app.use('/deceasedrecords', deceasedRecordsRouter);
