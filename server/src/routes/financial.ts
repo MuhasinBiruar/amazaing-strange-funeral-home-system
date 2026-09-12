@@ -6,10 +6,66 @@ import {
 } from 'express';
 import pool from '@/db';
 import requireAuth from '@/middleware/require-auth';
-import { getFinancialSummaryQuerySchema } from 'shared';
+import {
+  createLguCaseQuery,
+  createLifeplanQuery,
+  getFinancialSummaryQuerySchema,
+} from 'shared';
 import { foldPeriods, toExclusiveEndBound } from '@/util/financial';
+import validate from '@/middleware/validate';
+import {
+  createLguCase,
+  getLguCases,
+  createLifeplan,
+  getLifeplan,
+  getDirect,
+} from '@/controllers/financial';
 
 const router = Router();
+
+router.post(
+  '/lgucases',
+  requireAuth,
+  validate(createLguCaseQuery),
+  createLguCase,
+);
+/**
+ * Sample URLs
+ * `http://localhost:6543/financial/lgucases`
+ * `http://localhost:6543/financial/lgucases?search=Juan`
+ * `http://localhost:6543/financial/lgucases?search=Dela%20Cruz&sortBy=reimbursementamount&sortOrder=desc&page=1&limit=20`
+ */
+router.get('/lgucases', requireAuth, getLguCases);
+
+router.post(
+  '/lifeplans',
+  requireAuth,
+  validate(createLifeplanQuery),
+  createLifeplan,
+);
+/**
+ * Sample URLs
+ * `http://localhost:4000/financial/lifeplans`
+ * `http://localhost:4000/financial/lifeplans?search=Dela%20Cruz`
+ * `http://localhost:4000/financial/lifeplans?search=ABC%20Life&sortBy=totalamount&sortOrder=desc&page=1&limit=20`
+ */
+router.get('/lifeplans', requireAuth, getLifeplan);
+
+/**
+ * Sample URLs
+ * `http://localhost:4000/financial/direct`
+ *
+ * `http://localhost:4000/financial/direct?search=Dela%20Cruz`
+ *
+ * `http://localhost:4000/financial/direct?search=Reyes&sortBy=totalamountpaid&sortOrder=desc`
+ *
+ * `http://localhost:4000/financial/direct?sortBy=totalamount&sortOrder=asc&page=1&limit=20`
+ *
+ * `http://localhost:4000/financial/direct?sortBy=representative_name&sortOrder=asc`
+ *
+ * `http://localhost:4000/financial/direct?sortBy=caseid&sortOrder=desc&page=2&limit=10`
+ */
+router.get('/direct', requireAuth, getDirect);
 
 /**
  * Sample URLs
