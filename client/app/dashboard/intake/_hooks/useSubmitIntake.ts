@@ -1,9 +1,15 @@
 import { FormEvent } from 'react';
 import { API } from '@/services/api';
 
-export function useSubmitIntake(formData: any, clearDraft: () => void) {
+export function useSubmitIntake(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  formData: Record<string, any>,
+  clearDraft: () => void,
+) {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    let generatedRepId = null;
 
     try {
       // ==========================================
@@ -20,7 +26,7 @@ export function useSubmitIntake(formData: any, clearDraft: () => void) {
       };
 
       const repResponse = await API.post('/representatives', repPayload);
-      const generatedRepId = repResponse.data.data.representativeid;
+      generatedRepId = repResponse.data.data.representativeid;
 
       if (!generatedRepId) {
         throw new Error(
@@ -45,9 +51,25 @@ export function useSubmitIntake(formData: any, clearDraft: () => void) {
       console.log('Success! Both records saved.');
       clearDraft();
       alert('Record saved successfully!');
-    } catch (error: any) {
+    } catch (error) {
+      // ==========================================
+      // ROLLBACK: DELETE ORPHANED REP IF STEP 2 FAILS
+      // ==========================================
+      if (generatedRepId) {
+        console.warn('Rolling back: Deleting orphaned representative...');
+        await API.delete(`/representatives/${generatedRepId}`).catch(
+          (deleteErr) => {
+            console.error(
+              'Failed to clean up orphaned representative:',
+              deleteErr,
+            );
+          },
+        );
+      }
+
       console.error('Submission failed:', error);
-      console.error('Backend error details:', error.response?.data); // This exposes the exact 400 error
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      console.error('Backend error details:', (error as any).response?.data);
       alert('Failed to save the record. Check the console.');
     }
   };
