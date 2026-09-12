@@ -16,9 +16,15 @@ export const createDeceasedRecordQuerySchema = z.object({
   hasmaturedlifeplan: z.boolean(),
   plantype: z.enum(['Direct', 'Life', 'LGU']),
   datecreated: z.coerce.date(),
-  managedby: z.string().min(1),
+  dateofdeath: withNullDefault(z.coerce.date()),
+  managedby: withNullDefault(z.string().min(1)),
   representedby: withNullDefault(z.int32()),
 });
+
+export const deceasedrecordPatchSchema =
+  createDeceasedRecordQuerySchema.partial();
+
+export type DeceasedRecordSchema = z.infer<typeof deceasedrecordPatchSchema>;
 
 export type CreateDeceasedRecordQuery = z.infer<
   typeof createDeceasedRecordQuerySchema
