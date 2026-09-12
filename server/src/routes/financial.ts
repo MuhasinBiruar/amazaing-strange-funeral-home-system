@@ -13,8 +13,13 @@ import {
 } from 'shared';
 import { foldPeriods, toExclusiveEndBound } from '@/util/financial';
 import validate from '@/middleware/validate';
-import { createLguCase, getLguCases } from '@/controllers/financial/lgucase';
-import { createLifeplan, getLifeplan } from '@/controllers/financial/lifeplan';
+import {
+  createLguCase,
+  getLguCases,
+  createLifeplan,
+  getLifeplan,
+  getDirect,
+} from '@/controllers/financial';
 
 const router = Router();
 
@@ -46,7 +51,21 @@ router.post(
  */
 router.get('/lifeplans', requireAuth, getLifeplan);
 
-// TODO: Create direct under financial endpoint
+/**
+ * Sample URLs
+ * `http://localhost:4000/financial/direct`
+ *
+ * `http://localhost:4000/financial/direct?search=Dela%20Cruz`
+ *
+ * `http://localhost:4000/financial/direct?search=Reyes&sortBy=totalamountpaid&sortOrder=desc`
+ *
+ * `http://localhost:4000/financial/direct?sortBy=totalamount&sortOrder=asc&page=1&limit=20`
+ *
+ * `http://localhost:4000/financial/direct?sortBy=representative_name&sortOrder=asc`
+ *
+ * `http://localhost:4000/financial/direct?sortBy=caseid&sortOrder=desc&page=2&limit=10`
+ */
+router.get('/direct', requireAuth, getDirect);
 
 /**
  * Sample URLs
