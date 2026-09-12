@@ -1,8 +1,9 @@
 import { FileText } from 'lucide-react';
 
 interface PhysicalDescriptionProps {
-  data: any;
-  onChange: (field: string, value: any) => void;
+  data: Record<string, string | undefined>;
+  onChange: (field: string, value: string) => void;
+  errors?: Record<string, string>;
 }
 
 export default function PhysicalDescription({
