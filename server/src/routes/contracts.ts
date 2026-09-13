@@ -8,6 +8,7 @@ import pool from '@/db';
 import requireAuth from '@/middleware/require-auth';
 import { NotFoundError } from '@/errors/http-errors';
 import validate from '@/middleware/validate';
+import { getDeceasedName } from '@/util/audit-log';
 import { createContractQuerySchema, type CreateContractQuery } from 'shared';
 
 const router = Router();
@@ -75,6 +76,9 @@ router.post(
           parsed.packageid,
         ],
       );
+
+      const deceasedName = await getDeceasedName(parsed.caseid);
+      res.locals.auditAction = `${res.locals.session.user.name} created a new contract for ${deceasedName}`;
 
       res.status(201).json({
         data: result.rows[0],

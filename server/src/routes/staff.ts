@@ -108,6 +108,9 @@ router.post(
           },
         },
       });
+
+      res.locals.auditAction = `${res.locals.session.user.name} created a new staff account for ${parsed.firstName} ${parsed.lastName} (${username})`;
+
       res.status(201).json({ data: staff });
     } catch (error) {
       next(error);

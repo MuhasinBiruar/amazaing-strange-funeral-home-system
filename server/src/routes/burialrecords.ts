@@ -2,6 +2,7 @@ import pool from '@/db';
 import { NotFoundError } from '@/errors';
 import requireAuth from '@/middleware/require-auth';
 import validate from '@/middleware/validate';
+import { getDeceasedName } from '@/util/audit-log';
 import {
   createBurialRecordQuerySchema,
   type CreateBurialRecordQuery,
@@ -66,6 +67,9 @@ router.post(
         ) VALUES ($1, $2, $3) RETURNING burialid;`,
         [parsed.burialdate, parsed.burialsite, parsed.caseid],
       );
+
+      const deceasedName = await getDeceasedName(parsed.caseid);
+      res.locals.auditAction = `${res.locals.session.user.name} added a burial record for ${deceasedName}`;
 
       res.status(201).json({
         data: result.rows[0],

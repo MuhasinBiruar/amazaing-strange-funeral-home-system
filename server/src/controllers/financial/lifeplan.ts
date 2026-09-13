@@ -1,5 +1,6 @@
 import pool from '@/db';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
+import { getDeceasedName } from '@/util/audit-log';
 import type { NextFunction, Request, Response } from 'express';
 import { getLifeplansQuerySchema, type CreateLifeplanQuery } from 'shared';
 
@@ -41,6 +42,9 @@ export async function createLifeplan(
         parsed.companyid,
       ],
     );
+
+    const deceasedName = await getDeceasedName(parsed.caseid);
+    res.locals.auditAction = `${res.locals.session.user.name} created a life plan for ${deceasedName}`;
 
     res.status(201).json({
       data: result.rows[0],

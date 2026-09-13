@@ -1,5 +1,6 @@
 import pool from '@/db';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
+import { getDeceasedName } from '@/util/audit-log';
 import type { NextFunction, Request, Response } from 'express';
 import { getLguCasesQuerySchema, type CreateLguCaseQuery } from 'shared';
 
@@ -27,6 +28,9 @@ export async function createLguCase(
         ) VALUES ($1, $2, $3) RETURNING lgucaseid;`,
       [parsed.reimbursementstatus, parsed.reimbursementamount, parsed.caseid],
     );
+
+    const deceasedName = await getDeceasedName(parsed.caseid);
+    res.locals.auditAction = `${res.locals.session.user.name} created an LGU case for ${deceasedName}`;
 
     res.status(201).json({
       data: result.rows[0],
