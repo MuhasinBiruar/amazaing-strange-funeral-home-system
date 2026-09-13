@@ -75,7 +75,7 @@ export default function DashboardPage() {
         </header>
 
         <div className="space-y-7">
-          {['Daily Work', 'Operations', 'Finance'].map((section) => (
+          {['Daily Work', 'Operations', 'Finance', 'Admin'].map((section) => (
             <section key={section} aria-labelledby={`${section}-heading`}>
               <h2
                 id={`${section}-heading`}
