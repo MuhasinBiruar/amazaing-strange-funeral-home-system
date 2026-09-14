@@ -6,17 +6,6 @@ import type {
 } from 'shared';
 import type { SubmitEvent } from 'react';
 
-// Convert empty form strings into proper null values, so Zod's
-// .min(1) checks don't reject fields the user simply left blank.
-const cleanEmptyStrings = (data: Record<string, unknown>) => {
-  return Object.fromEntries(
-    Object.entries(data).map(([key, value]) => [
-      key,
-      typeof value === 'string' && value.trim() === '' ? null : value,
-    ]),
-  );
-};
-
 export function useSubmitIntake(
   formData: Record<string, unknown>,
   clearDraft: () => void,
@@ -24,10 +13,6 @@ export function useSubmitIntake(
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
 
-    const cleanedFormData = cleanEmptyStrings(formData) as Record<
-      string,
-      unknown
-    >;
     let generatedRepId: number | null = null;
 
     try {
@@ -35,41 +20,39 @@ export function useSubmitIntake(
       // STEP 1: CREATE THE REPRESENTATIVE FIRST
       // ==========================================
       const repPayload: CreateRepresentativeQuery = {
-        firstname: cleanedFormData.rep_firstname as string,
-        middlename: cleanedFormData.rep_middlename as string,
-        lastname: cleanedFormData.rep_lastname as string,
-        relationship: cleanedFormData.rep_relationship as string,
-        contactnumber: cleanedFormData.rep_contactnumber as string,
-        address: cleanedFormData.rep_address as string,
+        firstname: formData.rep_firstname as string,
+        middlename: formData.rep_middlename as string,
+        lastname: formData.rep_lastname as string,
+        relationship: formData.rep_relationship as string,
+        contactnumber: formData.rep_contactnumber as string,
+        address: formData.rep_address as string,
         datecreated: new Date(),
       };
 
       const repResponse = await API.post('/representatives', repPayload);
       generatedRepId = repResponse.data.data.representativeid;
 
-      if (!generatedRepId) {
+      if (!generatedRepId)
         throw new Error(
           'Representative created but no ID returned — check backend response shape',
         );
-      }
 
       // ==========================================
       // STEP 2: CREATE THE DECEASED RECORD
       // ==========================================
       const recordPayload: CreateDeceasedRecordQuery = {
-        firstname: cleanedFormData.firstname as string,
-        middlename: cleanedFormData.middlename as string | null,
-        lastname: cleanedFormData.lastname as string,
-        causeofdeath: cleanedFormData.causeofdeath as string | null,
-        typeofdeath: cleanedFormData.typeofdeath as string | null,
-        physicaldescription: cleanedFormData.physicaldescription as
-          string | null,
+        firstname: formData.firstname as string,
+        middlename: formData.middlename as string | null,
+        lastname: formData.lastname as string,
+        causeofdeath: formData.causeofdeath as string | null,
+        typeofdeath: formData.typeofdeath as string | null,
+        physicaldescription: formData.physicaldescription as string | null,
         servicestatus: 'intake',
         hasmaturedlifeplan: false,
-        plantype: cleanedFormData.planType === 'Life Plan' ? 'Life' : 'Direct',
+        plantype: formData.planType === 'Life Plan' ? 'Life' : 'Direct',
         datecreated: new Date(),
-        dateofdeath: cleanedFormData.dateofdeath
-          ? new Date(cleanedFormData.dateofdeath as string)
+        dateofdeath: formData.dateofdeath
+          ? new Date(formData.dateofdeath as string)
           : null,
         managedby: null,
         representedby: generatedRepId,
