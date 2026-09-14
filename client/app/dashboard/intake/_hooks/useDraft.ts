@@ -1,28 +1,24 @@
+'use client';
+
 import { useState, useEffect, useRef } from 'react';
 
 export function useDraft<T extends Record<string, unknown>>(
   storageKey: string,
   initialState: T,
 ) {
-  const [formData, setFormData] = useState<T>(initialState);
-  const [isDraftLoaded, setIsDraftLoaded] = useState(false);
-  const isClearingRef = useRef(false);
+  const [formData, setFormData] = useState<T>(() => {
+    // Guard against SSR since localStorage is not available on the server
+    if (typeof window === 'undefined') return initialState;
 
-  useEffect(() => {
-    const savedDraft = localStorage.getItem(storageKey);
-    if (savedDraft) {
-      try {
-        // eslint-disable-next-line
-        setFormData(JSON.parse(savedDraft));
-      } catch {
-        localStorage.removeItem(storageKey);
-
-        setFormData(initialState);
-      }
+    try {
+      const saved = localStorage.getItem(storageKey);
+      return saved ? (JSON.parse(saved) as T) : initialState;
+    } catch {
+      localStorage.removeItem(storageKey);
+      return initialState;
     }
-    setIsDraftLoaded(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storageKey]);
+  });
+  const isClearingRef = useRef(false);
 
   useEffect(() => {
     if (isClearingRef.current) {
@@ -30,10 +26,8 @@ export function useDraft<T extends Record<string, unknown>>(
       return;
     }
 
-    if (isDraftLoaded) {
-      localStorage.setItem(storageKey, JSON.stringify(formData));
-    }
-  }, [formData, isDraftLoaded, storageKey]);
+    localStorage.setItem(storageKey, JSON.stringify(formData));
+  }, [formData, storageKey]);
 
   // Accepts any string so page.tsx doesn't throw a type error
   const handleFormChange = (field: string, value: unknown) => {
@@ -49,5 +43,5 @@ export function useDraft<T extends Record<string, unknown>>(
     setFormData(initialState);
   };
 
-  return { formData, isDraftLoaded, handleFormChange, clearDraft };
+  return { formData, handleFormChange, clearDraft };
 }
