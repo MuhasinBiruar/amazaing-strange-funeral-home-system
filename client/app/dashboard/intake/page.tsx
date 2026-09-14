@@ -10,6 +10,7 @@ import Actionbar from './_components/actionbar';
 import { useDraft } from './_hooks/useDraft';
 import { useSubmitIntake } from './_hooks/useSubmitIntake';
 import { validateIntakeForm, getFirstErrorField } from './_lib/validateIntake';
+import isObjectEmpty from '@/utils/isObjectEmpty';
 
 export default function IntakePage() {
   const { formData, handleFormChange, clearDraft } = useDraft('intake_draft', {
@@ -21,6 +22,7 @@ export default function IntakePage() {
 
   const onFieldChange = (field: string, value: unknown) => {
     handleFormChange(field, value);
+
     if (errors[field]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -34,8 +36,9 @@ export default function IntakePage() {
     e.preventDefault();
     const validationErrors = validateIntakeForm(formData);
 
-    if (Object.keys(validationErrors).length > 0) {
+    if (isObjectEmpty(validationErrors)) {
       setErrors(validationErrors);
+
       const firstErrorField = getFirstErrorField(validationErrors);
       if (firstErrorField) {
         const el = document.getElementById(firstErrorField);
