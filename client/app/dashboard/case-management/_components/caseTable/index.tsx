@@ -8,6 +8,7 @@ import TableFooter from '@/components/table/tableFooter';
 import TableBody from './tableBody';
 import type { Case } from 'shared';
 import { getCases } from '@/services/caseService';
+import CaseDetailPanel from '../caseDetailPanel';
 
 const SEARCH_DEBOUNCE_MS = 500 as const;
 const ROW_HEIGHT_PX = 45 as const;
@@ -29,6 +30,7 @@ export default function CaseTable() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [dboSearch, commitDboSearch] = useDebouncedState(
     search,
     SEARCH_DEBOUNCE_MS,
@@ -119,6 +121,7 @@ export default function CaseTable() {
         errorMsg={errorMsg}
         isLoading={isLoading}
         theadRef={theadRef}
+        onSelectCase={setSelectedCase}
       />
 
       <div ref={footerWrapRef}>
@@ -129,6 +132,15 @@ export default function CaseTable() {
           limit={limit}
         />
       </div>
+
+      {selectedCase && (
+        <CaseDetailPanel
+          key={selectedCase.caseid}
+          caseid={selectedCase.caseid}
+          representativeid={selectedCase.representativeid}
+          onClose={() => setSelectedCase(null)}
+        />
+      )}
     </div>
   );
 }

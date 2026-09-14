@@ -4,7 +4,10 @@ import { useState, type SubmitEvent } from 'react';
 import VitalStatistics from './_components/vitalstatistics';
 import PhysicalDescription from './_components/physicaldescription';
 import ServiceArrangement from './_components/servicearrangement';
-import DocumentChecklist from './_components/documentchecklist';
+import DocumentChecklist, {
+  initialStagedDocuments,
+  type StagedDocument,
+} from './_components/documentchecklist';
 import RepresentativeInformation from './_components/representativeinfo';
 import Actionbar from './_components/actionbar';
 import { useDraft } from './_hooks/useDraft';
@@ -17,7 +20,16 @@ export default function IntakePage() {
     plantype: '',
     locationOfDeath: 'Hospital',
   });
-  const { handleSubmit } = useSubmitIntake(formData, clearDraft);
+  // Kept separate from `formData`: `useDraft` JSON-serialises that to
+  // localStorage on every change, and `File` objects can't survive that.
+  const [stagedDocuments, setStagedDocuments] = useState<StagedDocument[]>(
+    initialStagedDocuments,
+  );
+  const { handleSubmit } = useSubmitIntake(
+    formData,
+    stagedDocuments,
+    clearDraft,
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const onFieldChange = (field: string, value: unknown) => {
@@ -80,7 +92,10 @@ export default function IntakePage() {
             onChange={onFieldChange}
             errors={errors}
           />
-          <DocumentChecklist />
+          <DocumentChecklist
+            documents={stagedDocuments}
+            onChange={setStagedDocuments}
+          />
           <RepresentativeInformation
             data={formData}
             onChange={onFieldChange}

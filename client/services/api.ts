@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const TIMEOUT_MX = 6000 as const;
+const TIMEOUT_MX = 8000 as const;
 
 export const API = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,

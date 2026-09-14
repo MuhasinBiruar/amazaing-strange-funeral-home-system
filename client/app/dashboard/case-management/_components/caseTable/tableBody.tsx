@@ -31,6 +31,7 @@ export default function TableBody({
   isLoading,
   errorMsg,
   theadRef,
+  onSelectCase,
 }: {
   sortBy: ColumnKey;
   setSortBy: Dispatch<SetStateAction<ColumnKey>>;
@@ -41,6 +42,7 @@ export default function TableBody({
   errorMsg: string | null;
   isLoading: boolean;
   theadRef?: (node: HTMLTableSectionElement | null) => void;
+  onSelectCase: (c: Case) => void;
 }) {
   return (
     <div className="overflow-x-auto relative">
@@ -108,8 +110,14 @@ export default function TableBody({
                 key={c.caseid}
                 className="h-11.25 border-b border-gray-100 last:border-0 hover:bg-gray-50"
               >
-                <td className="px-5 py-3 text-gray-500 wrap-break-word">
-                  {c.deceased_name}
+                <td className="px-5 py-3 wrap-break-word">
+                  <button
+                    type="button"
+                    onClick={() => onSelectCase(c)}
+                    className="text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer text-left"
+                  >
+                    {c.deceased_name}
+                  </button>
                 </td>
                 <td className="px-5 py-3 text-gray-500 wrap-break-word">
                   {c.representative_name}
