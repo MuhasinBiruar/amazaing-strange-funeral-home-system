@@ -13,8 +13,20 @@ export function useDraft<T extends Record<string, unknown>>(
   useEffect(() => {
     try {
       const saved = localStorage.getItem(storageKey);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (saved) setFormData(JSON.parse(saved) as T);
+      if (saved) {
+        const parsed: unknown = JSON.parse(saved);
+        const isValidDraft =
+          typeof parsed === 'object' &&
+          parsed !== null &&
+          !Array.isArray(parsed);
+
+        if (isValidDraft) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setFormData(parsed as T);
+        } else {
+          localStorage.removeItem(storageKey);
+        }
+      }
     } catch {
       localStorage.removeItem(storageKey);
     }
