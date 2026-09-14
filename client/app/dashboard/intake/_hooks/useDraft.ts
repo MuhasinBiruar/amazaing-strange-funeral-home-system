@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect, useRef } from 'react';
 
 export function useDraft<T extends Record<string, unknown>>(
@@ -9,19 +11,26 @@ export function useDraft<T extends Record<string, unknown>>(
   const isClearingRef = useRef(false);
 
   useEffect(() => {
-    const savedDraft = localStorage.getItem(storageKey);
-    if (savedDraft) {
-      try {
-        // eslint-disable-next-line
-        setFormData(JSON.parse(savedDraft));
-      } catch {
-        localStorage.removeItem(storageKey);
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed: unknown = JSON.parse(saved);
 
-        setFormData(initialState);
+        if (
+          typeof parsed === 'object' &&
+          parsed !== null &&
+          !Array.isArray(parsed)
+        ) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setFormData(parsed as T);
+        } else {
+          localStorage.removeItem(storageKey);
+        }
       }
+    } catch {
+      localStorage.removeItem(storageKey);
     }
     setIsDraftLoaded(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
 
   useEffect(() => {
@@ -35,7 +44,6 @@ export function useDraft<T extends Record<string, unknown>>(
     }
   }, [formData, isDraftLoaded, storageKey]);
 
-  // Accepts any string so page.tsx doesn't throw a type error
   const handleFormChange = (field: string, value: unknown) => {
     setFormData((prev) => ({
       ...prev,

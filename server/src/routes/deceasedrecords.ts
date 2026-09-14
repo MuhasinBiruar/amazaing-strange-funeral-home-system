@@ -13,10 +13,10 @@ import { getRepresentativeName, joinName } from '@/util/audit-log';
 import {
   createDeceasedRecordQuerySchema,
   getUncontractedDeceasedQuerySchema,
-  deceasedrecordPatchSchema,
-  // type CreateDeceasedRecordQuery,
+  updateDeceasedRecordQuerySchema,
+  type CreateDeceasedRecordQuery,
   type UncontractedDeceased,
-  type DeceasedRecordSchema,
+  type UpdateDeceasedRecordQuery,
 } from 'shared';
 
 const router = Router();
@@ -187,7 +187,7 @@ router.post(
   requireAuth,
   validate(createDeceasedRecordQuerySchema),
   async (
-    req: Request<{}, {}, DeceasedRecordSchema>,
+    req: Request<{}, {}, CreateDeceasedRecordQuery>,
     res: Response,
     next: NextFunction,
   ) => {
@@ -254,9 +254,9 @@ router.post(
 router.patch(
   '/:id',
   requireAuth,
-  validate(deceasedrecordPatchSchema),
+  validate(updateDeceasedRecordQuerySchema),
   async (
-    req: Request<{ id: string }, {}, Partial<DeceasedRecordSchema>>,
+    req: Request<{ id: string }, {}, UpdateDeceasedRecordQuery>,
     res: Response,
     next: NextFunction,
   ) => {

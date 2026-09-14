@@ -21,13 +21,15 @@ export const createDeceasedRecordQuerySchema = z.object({
   representedby: withNullDefault(z.int32()),
 });
 
-export const deceasedrecordPatchSchema =
-  createDeceasedRecordQuerySchema.partial();
-
-export type DeceasedRecordSchema = z.infer<typeof deceasedrecordPatchSchema>;
-
 export type CreateDeceasedRecordQuery = z.infer<
   typeof createDeceasedRecordQuerySchema
+>;
+
+export const updateDeceasedRecordQuerySchema =
+  createDeceasedRecordQuerySchema.partial();
+
+export type UpdateDeceasedRecordQuery = z.infer<
+  typeof updateDeceasedRecordQuerySchema
 >;
 
 /**

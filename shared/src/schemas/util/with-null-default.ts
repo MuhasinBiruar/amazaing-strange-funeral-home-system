@@ -1,8 +1,13 @@
 import { z } from 'zod';
 
-export default function withNullDefault<T extends z.ZodType>(field: T) {
-  return field
-    .nullable()
-    .optional()
+/**
+ * Converts empty or undefined values to null.
+ */
+export default function withNullDefault<T extends z.ZodType>(schema: T) {
+  return z
+    .preprocess((val) => {
+      if (typeof val === 'string' && val.trim() === '') return null;
+      return val;
+    }, schema.nullable().optional())
     .transform((val) => val ?? null);
 }

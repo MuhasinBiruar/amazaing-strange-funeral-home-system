@@ -13,7 +13,7 @@ const SORT_COLUMNS: Record<string, string> = {
   caseid: 'l.caseid',
   deceased_name: 'deceased_name',
   companyid: 'l.companyid',
-  company_name: 'lc.companyname',
+  companyname: 'lc.companyname',
 };
 
 export async function createLifeplan(
@@ -64,23 +64,23 @@ export async function getLifeplan(
       getLifeplansQuerySchema.parse(req.query);
 
     const selectClause = `
-        SELECT 
-          l.planid,
-          l.plannumber,
-          l.planholdername,
-          l.minimumthreshold,
-          l.totalamount,
-          l.caseid,
-          CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
-          l.companyid,
-          lc.companyname AS company_name
-      `;
+      SELECT 
+        l.planid,
+        l.plannumber,
+        l.planholdername,
+        l.minimumthreshold,
+        l.totalamount,
+        l.caseid,
+        CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
+        l.companyid,
+        lc.companyname
+    `;
 
     const fromAndJoins = `
-        FROM public.lifeplan l
-        LEFT JOIN public.deceasedrecord dr ON l.caseid = dr.caseid
-        LEFT JOIN public.lifeplancompany lc ON l.companyid = lc.companyid
-      `;
+      FROM public.lifeplan l
+      LEFT JOIN public.deceasedrecord dr ON l.caseid = dr.caseid
+      LEFT JOIN public.lifeplancompany lc ON l.companyid = lc.companyid
+    `;
 
     // Start building `whereClause`
     const whereConditions: string[] = [];

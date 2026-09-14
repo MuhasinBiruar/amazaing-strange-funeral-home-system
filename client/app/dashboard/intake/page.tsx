@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import VitalStatistics from './_components/vitalstatistics';
 import PhysicalDescription from './_components/physicaldescription';
 import ServiceArrangement from './_components/servicearrangement';
@@ -10,19 +10,19 @@ import Actionbar from './_components/actionbar';
 import { useDraft } from './_hooks/useDraft';
 import { useSubmitIntake } from './_hooks/useSubmitIntake';
 import { validateIntakeForm, getFirstErrorField } from './_lib/validateIntake';
+import isObjectEmpty from '@/utils/isObjectEmpty';
 
 export default function IntakePage() {
-  const { formData, isDraftLoaded, handleFormChange, clearDraft } = useDraft(
-    'intake_draft',
-    { planType: '', locationOfDeath: 'Hospital' },
-  );
+  const { formData, handleFormChange, clearDraft } = useDraft('intake_draft', {
+    plantype: '',
+    locationOfDeath: 'Hospital',
+  });
   const { handleSubmit } = useSubmitIntake(formData, clearDraft);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  if (!isDraftLoaded) return null;
-
   const onFieldChange = (field: string, value: unknown) => {
     handleFormChange(field, value);
+
     if (errors[field]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -32,12 +32,13 @@ export default function IntakePage() {
     }
   };
 
-  const handleValidatedSubmit = (e: React.FormEvent) => {
+  const handleValidatedSubmit = (e: SubmitEvent) => {
     e.preventDefault();
     const validationErrors = validateIntakeForm(formData);
 
-    if (Object.keys(validationErrors).length > 0) {
+    if (!isObjectEmpty(validationErrors)) {
       setErrors(validationErrors);
+
       const firstErrorField = getFirstErrorField(validationErrors);
       if (firstErrorField) {
         const el = document.getElementById(firstErrorField);
