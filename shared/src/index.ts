@@ -1,3 +1,7 @@
+import contactNumberSchema from './schemas/util/contact-number-schema';
+import nameSchema from './schemas/util/name-schema';
+import passwordSchema from './schemas/util/password-schema';
+
 export interface AppErrorResponse {
   error: {
     code: string;
@@ -9,6 +13,13 @@ export interface AppErrorResponse {
   };
 }
 
+const ZodUtils = {
+  nameSchema,
+  contactNumberSchema,
+  passwordSchema,
+};
+
+export { ZodUtils };
 export * from './schemas/burialrecord';
 export * from './schemas/case';
 export * from './schemas/contract';
