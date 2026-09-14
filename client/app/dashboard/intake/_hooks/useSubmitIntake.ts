@@ -1,10 +1,10 @@
-import { FormEvent } from 'react';
 import axios from 'axios';
 import { API } from '@/services/api';
 import type {
   CreateDeceasedRecordQuery,
   CreateRepresentativeQuery,
 } from 'shared';
+import type { SubmitEvent } from 'react';
 
 // Convert empty form strings into proper null values, so Zod's
 // .min(1) checks don't reject fields the user simply left blank.
@@ -21,7 +21,7 @@ export function useSubmitIntake(
   formData: Record<string, unknown>,
   clearDraft: () => void,
 ) {
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
 
     const cleanedFormData = cleanEmptyStrings(formData) as Record<
