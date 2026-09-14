@@ -12,6 +12,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/multer": "^2.2.0",
     "@types/node": "^26.2.0",
     "@types/pg": "^8.21.0",
     "eslint": "^9.39.5",
@@ -20,11 +21,13 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1131.0",
     "better-auth": "^1.6.27",
     "bignumber.js": "^11.1.5",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "multer": "^2.4.0",
     "pg": "^8.22.0",
     "shared": "*",
     "zod": "^4.4.3"

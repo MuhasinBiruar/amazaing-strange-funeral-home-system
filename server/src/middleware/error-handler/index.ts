@@ -2,6 +2,7 @@ import { APIError } from 'better-auth';
 import { Request, Response, NextFunction } from 'express';
 import { DatabaseError } from 'pg';
 import { ZodError } from 'zod';
+import { MulterError } from 'multer';
 import { handleDatabaseError } from './handlers';
 import { AppError } from '@/errors';
 
@@ -44,6 +45,18 @@ export default function errorHandler(
       error: {
         code: error.status,
         message: error.message,
+      },
+    });
+  }
+
+  if (error instanceof MulterError) {
+    return res.status(400).json({
+      error: {
+        code: 'FILE_UPLOAD_ERROR',
+        message:
+          error.code === 'LIMIT_FILE_SIZE'
+            ? 'File is too large. Maximum size is 20MB.'
+            : error.message,
       },
     });
   }

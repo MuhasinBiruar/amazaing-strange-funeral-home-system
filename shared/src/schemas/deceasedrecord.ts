@@ -32,6 +32,20 @@ export type UpdateDeceasedRecordQuery = z.infer<
   typeof updateDeceasedRecordQuerySchema
 >;
 
+export const deceasedRecordSchema = createDeceasedRecordQuerySchema.extend({
+  caseid: z.int32(),
+});
+
+export type DeceasedRecordRow = z.infer<typeof deceasedRecordSchema>;
+
+export const getDeceasedRecordResponseSchema = z.object({
+  data: deceasedRecordSchema,
+});
+
+export type GetDeceasedRecordResponse = z.infer<
+  typeof getDeceasedRecordResponseSchema
+>;
+
 /**
  * A deceased record that has no contract yet, joined with its representative
  * and managing staff.

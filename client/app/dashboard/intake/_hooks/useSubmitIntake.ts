@@ -1,13 +1,16 @@
 import axios from 'axios';
 import { API } from '@/services/api';
+import { uploadDocument } from '@/services/documentService';
 import type {
   CreateDeceasedRecordQuery,
   CreateRepresentativeQuery,
 } from 'shared';
 import type { SubmitEvent } from 'react';
+import type { StagedDocument } from '../_components/documentchecklist';
 
 export function useSubmitIntake(
   formData: Record<string, unknown>,
+  stagedDocuments: StagedDocument[],
   clearDraft: () => void,
 ) {
   const handleSubmit = async (e: SubmitEvent) => {
@@ -58,13 +61,44 @@ export function useSubmitIntake(
         representedby: generatedRepId,
       };
 
-      await API.post('/deceasedrecords', recordPayload);
+      const recordResponse = await API.post(
+        '/deceasedrecords',
+        recordPayload,
+      );
+      const caseid: number = recordResponse.data.data.caseid;
 
       // TODO: Create lifeplan & lifeplancompany
 
+      // ==========================================
+      // STEP 3: UPLOAD ANY STAGED DOCUMENTS
+      // ==========================================
+      // The record now exists, so uploads can be attributed to its caseid.
+      // A failed upload here doesn't roll back the record/representative
+      // already saved — the document itself can be retried later from the
+      // case's detail panel.
+      const failedUploads: string[] = [];
+      for (const doc of stagedDocuments) {
+        if (!doc.file) continue;
+
+        try {
+          await uploadDocument(caseid, doc.documenttype, doc.file);
+        } catch (uploadError) {
+          failedUploads.push(doc.documenttype);
+          console.error(`Failed to upload ${doc.documenttype}:`, uploadError);
+        }
+      }
+
       console.log('Success! Both records saved.');
       clearDraft();
-      alert('Record saved successfully!');
+
+      if (failedUploads.length > 0) {
+        alert(
+          `Record saved, but these documents failed to upload: ${failedUploads.join(', ')}. ` +
+            `You can upload them again later from the case's detail panel.`,
+        );
+      } else {
+        alert('Record saved successfully!');
+      }
     } catch (error) {
       // ==========================================
       // ROLLBACK: DELETE ORPHANED REP IF STEP 2 FAILS
