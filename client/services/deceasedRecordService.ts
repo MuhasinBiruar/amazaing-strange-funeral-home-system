@@ -1,6 +1,8 @@
 import {
+  getDeceasedRecordResponseSchema,
   getUncontractedDeceasedResponseSchema,
   type GetUncontractedDeceasedQuery,
+  type UpdateDeceasedRecordQuery,
 } from 'shared';
 import { API } from './api';
 
@@ -36,9 +38,18 @@ export async function getDeceasedRecord(id: number) {
   try {
     const response = await API.get(`/deceasedrecords/${id}`);
 
-    return response.data;
+    return getDeceasedRecordResponseSchema.parse(response.data).data;
   } catch (error) {
     console.error('Error fetching deceased record:', error);
     throw error;
   }
+}
+
+export async function updateDeceasedRecord(
+  caseid: number,
+  payload: UpdateDeceasedRecordQuery,
+) {
+  const response = await API.patch(`/deceasedrecords/${caseid}`, payload);
+
+  return getDeceasedRecordResponseSchema.parse(response.data).data;
 }

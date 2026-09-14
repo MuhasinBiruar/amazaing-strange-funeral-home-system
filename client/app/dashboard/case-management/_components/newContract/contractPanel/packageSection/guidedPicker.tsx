@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import type { Package } from 'shared';
 import { getPackages } from '@/services/packageService';
-import { labelClass } from '../fieldStyles';
+import { labelClass } from '../../../fieldStyles';
 import { formatCurrency } from '@/components/table/format';
 import PackageTypeButtons from './packageTypeButtons';
 import type { ConfirmedPackage, PackageType } from './types';
