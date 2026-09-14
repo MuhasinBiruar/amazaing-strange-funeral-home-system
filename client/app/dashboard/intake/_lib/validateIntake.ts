@@ -14,10 +14,6 @@ export const intakeFormSchema = z
     firstname: nameSchema('First name'),
     middlename: nameSchema('Middle name', false),
     lastname: nameSchema('Last name'),
-    dateofdeath: z.preprocess(
-      (val) => (val === '' ? undefined : val),
-      z.coerce.date().optional(),
-    ),
 
     // Service Arrangement
     plantype: requiredText('Please select a plan type.'),
@@ -34,8 +30,10 @@ export const intakeFormSchema = z
   })
   .refine(
     (data) =>
-      data.plantype === 'Life Plan' &&
-      (!data.lifeplancompany || data.lifeplancompany.length === 0),
+      !(
+        data.plantype === 'Life Plan' &&
+        (!data.lifeplancompany || data.lifeplancompany.trim().length === 0)
+      ),
     {
       error: 'Life plan company is required.',
       path: ['lifeplancompany'],
