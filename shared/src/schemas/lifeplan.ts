@@ -19,7 +19,7 @@ export type Lifeplan = z.infer<typeof lifeplanSchema>;
 
 export const lifeplanRowSchema = lifeplanSchema.extend({
   deceased_name: z.string(),
-  company_name: z.string(),
+  companyname: z.string(),
 });
 
 export type LifeplanRow = z.infer<typeof lifeplanRowSchema>;
