@@ -36,7 +36,7 @@ export default function IntakePage() {
     e.preventDefault();
     const validationErrors = validateIntakeForm(formData);
 
-    if (isObjectEmpty(validationErrors)) {
+    if (!isObjectEmpty(validationErrors)) {
       setErrors(validationErrors);
 
       const firstErrorField = getFirstErrorField(validationErrors);
