@@ -1,6 +1,15 @@
 import z from 'zod';
 import withNullDefault from './with-null-default';
 
+export default function nameSchema(
+  fieldName: string,
+  isRequired?: true,
+): z.ZodString;
+export default function nameSchema(
+  fieldName: string,
+  isRequired: false,
+): ReturnType<typeof withNullDefault<z.ZodString>>;
+
 export default function nameSchema(fieldName: string, isRequired = true) {
   const schema = z
     .string()
