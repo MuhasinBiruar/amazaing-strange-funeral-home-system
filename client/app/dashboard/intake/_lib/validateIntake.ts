@@ -12,39 +12,42 @@ export const intakeFormSchema = z
   .object({
     // Vital Statistics
     firstname: nameSchema('First name'),
+    middlename: nameSchema('Middle name', false),
     lastname: nameSchema('Last name'),
-    dateofdeath: requiredText('Date of death is required.'),
-    typeofdeath: requiredText('Type of death is required.'),
-    causeofdeath: requiredText('Cause of death is required.'),
+    dateofdeath: z.preprocess(
+      (val) => (val === '' ? undefined : val),
+      z.coerce.date().optional(),
+    ),
 
     // Service Arrangement
     planType: requiredText('Please select a plan type.'),
-    lifeplancompany: z.string().trim(),
+    lifeplancompany: z.string().trim().optional(),
 
     // Representative Information
     rep_firstname: nameSchema('First name'),
+    rep_middlename: nameSchema('Middle name'),
     rep_lastname: nameSchema('Last name'),
-    rep_relationship: requiredText('Relationship is required.'),
     rep_contactnumber: requiredText('Contact number is required.').pipe(
       contactNumberSchema,
     ),
     rep_address: requiredText('Address is required.'),
   })
-  .superRefine((data, ctx) => {
-    if (data.planType === 'Life Plan' && !data.lifeplancompany) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Life plan company is required.',
-        path: ['lifeplancompany'],
-      });
-    }
-  });
+  .refine(
+    (data) =>
+      data.planType === 'Life Plan' &&
+      (!data.lifeplancompany || data.lifeplancompany.length === 0),
+    {
+      error: 'Life plan company is required.',
+      path: ['lifeplancompany'],
+    },
+  );
 
 export type IntakeForm = z.infer<typeof intakeFormSchema>;
 
 function normalizeIntakeInput(data: Record<string, string | undefined>) {
   return {
     firstname: data.firstname ?? '',
+    middlename: data.middlename ?? '',
     lastname: data.lastname ?? '',
     dateofdeath: data.dateofdeath ?? '',
     typeofdeath: data.typeofdeath ?? '',
@@ -52,8 +55,8 @@ function normalizeIntakeInput(data: Record<string, string | undefined>) {
     planType: data.planType ?? '',
     lifeplancompany: data.lifeplancompany ?? '',
     rep_firstname: data.rep_firstname ?? '',
+    rep_middlename: data.rep_middlename ?? '',
     rep_lastname: data.rep_lastname ?? '',
-    rep_relationship: data.rep_relationship ?? '',
     rep_contactnumber: data.rep_contactnumber ?? '',
     rep_address: data.rep_address ?? '',
   };
@@ -85,8 +88,8 @@ export const INTAKE_FIELD_ORDER = [
   'planType',
   'lifeplancompany',
   'rep_firstname',
+  'rep_middlename',
   'rep_lastname',
-  'rep_relationship',
   'rep_contactnumber',
   'rep_address',
 ];

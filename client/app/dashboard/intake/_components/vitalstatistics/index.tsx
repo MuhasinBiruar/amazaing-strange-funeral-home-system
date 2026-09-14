@@ -52,6 +52,11 @@ export default function VitalStatistics({
             className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Middle Name"
           />
+          {errors.middlename && (
+            <p className="text-red-700 text-xs font-bold mt-1">
+              {errors.middlename}
+            </p>
+          )}
         </div>
 
         <div>
@@ -96,11 +101,6 @@ export default function VitalStatistics({
               className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 pl-10 text-sm focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden"
             />
           </div>
-          {errors.dateofdeath && (
-            <p className="text-red-700 text-xs font-bold mt-1">
-              {errors.dateofdeath}
-            </p>
-          )}
         </div>
 
         <div>
@@ -144,11 +144,6 @@ export default function VitalStatistics({
             <option value="Suicide">Suicide</option>
             <option value="Unknown">Unknown</option>
           </select>
-          {errors.typeofdeath && (
-            <p className="text-red-700 text-xs font-bold mt-1">
-              {errors.typeofdeath}
-            </p>
-          )}
         </div>
 
         <div>
@@ -162,11 +157,6 @@ export default function VitalStatistics({
             className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm min-h-20"
             placeholder="As stated in the medical certificate or preliminary report..."
           />
-          {errors.causeofdeath && (
-            <p className="text-red-700 text-xs font-bold mt-1">
-              {errors.causeofdeath}
-            </p>
-          )}
         </div>
       </div>
     </section>
