@@ -29,7 +29,7 @@ export default function DeceasedTable({
   refreshKey: number;
 }) {
   const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState<ColumnKey>('caseid');
+  const [sortBy, setSortBy] = useState<ColumnKey>('deceased_name');
   const [sortOrder, setSortDir] = useState<SortOrder>('desc');
   const [deceasedStatus, setDeceasedStatus] =
     useState<NullableDeceasedStatus>(null);

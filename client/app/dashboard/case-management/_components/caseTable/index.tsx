@@ -14,7 +14,7 @@ const ROW_HEIGHT_PX = 45 as const;
 
 export default function CaseTable() {
   const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState<ColumnKey>('caseid');
+  const [sortBy, setSortBy] = useState<ColumnKey>('deceased_name');
   const [sortOrder, setSortDir] = useState<SortOrder>('desc');
   const [deceasedStatus, setDeceasedStatus] =
     useState<NullableDeceasedStatus>(null);
