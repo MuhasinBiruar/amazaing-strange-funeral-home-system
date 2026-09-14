@@ -20,7 +20,7 @@ export const intakeFormSchema = z
     ),
 
     // Service Arrangement
-    planType: requiredText('Please select a plan type.'),
+    plantype: requiredText('Please select a plan type.'),
     lifeplancompany: z.string().trim().optional(),
 
     // Representative Information
@@ -34,7 +34,7 @@ export const intakeFormSchema = z
   })
   .refine(
     (data) =>
-      data.planType === 'Life Plan' &&
+      data.plantype === 'Life Plan' &&
       (!data.lifeplancompany || data.lifeplancompany.length === 0),
     {
       error: 'Life plan company is required.',
@@ -52,7 +52,7 @@ function normalizeIntakeInput(data: Record<string, string | undefined>) {
     dateofdeath: data.dateofdeath ?? '',
     typeofdeath: data.typeofdeath ?? '',
     causeofdeath: data.causeofdeath ?? '',
-    planType: data.planType ?? '',
+    plantype: data.plantype ?? '',
     lifeplancompany: data.lifeplancompany ?? '',
     rep_firstname: data.rep_firstname ?? '',
     rep_middlename: data.rep_middlename ?? '',
@@ -81,11 +81,12 @@ export function validateIntakeForm(
 // Order determines which field gets focused first when multiple are invalid
 export const INTAKE_FIELD_ORDER = [
   'firstname',
+  'middlename',
   'lastname',
   'dateofdeath',
   'typeofdeath',
   'causeofdeath',
-  'planType',
+  'plantype',
   'lifeplancompany',
   'rep_firstname',
   'rep_middlename',

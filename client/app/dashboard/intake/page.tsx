@@ -14,7 +14,7 @@ import isObjectEmpty from '@/utils/isObjectEmpty';
 
 export default function IntakePage() {
   const { formData, handleFormChange, clearDraft } = useDraft('intake_draft', {
-    planType: '',
+    plantype: '',
     locationOfDeath: 'Hospital',
   });
   const { handleSubmit } = useSubmitIntake(formData, clearDraft);

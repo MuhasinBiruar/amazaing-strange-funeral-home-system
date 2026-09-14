@@ -21,23 +21,23 @@ export default function ServiceArrangement({
           PLAN TYPE
         </label>
         <select
-          id="planType"
-          value={data.planType || ''}
-          onChange={(e) => onChange('planType', e.target.value)}
+          id="plantype"
+          value={data.plantype || ''}
+          onChange={(e) => onChange('plantype', e.target.value)}
           className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
         >
           <option value="">Select Plan Type...</option>
           <option value="Life Plan">Life Plan</option>
           <option value="At-Need">At-Need (Walk-in)</option>
         </select>
-        {errors.planType && (
+        {errors.plantype && (
           <p className="text-red-700 text-xs font-bold mt-1">
-            {errors.planType}
+            {errors.plantype}
           </p>
         )}
       </div>
 
-      {data.planType === 'Life Plan' && (
+      {data.plantype === 'Life Plan' && (
         <div className="animate-in fade-in slide-in-from-top-2 duration-300">
           <label className="block text-xs font-semibold text-gray-700 mb-1">
             LIFE PLAN COMPANY

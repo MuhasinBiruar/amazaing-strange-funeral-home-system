@@ -49,7 +49,7 @@ export function useSubmitIntake(
         physicaldescription: formData.physicaldescription as string | null,
         servicestatus: 'intake',
         hasmaturedlifeplan: false,
-        plantype: formData.planType === 'Life Plan' ? 'Life' : 'Direct',
+        plantype: formData.plantype === 'Life Plan' ? 'Life' : 'Direct',
         datecreated: new Date(),
         dateofdeath: formData.dateofdeath
           ? new Date(formData.dateofdeath as string)
