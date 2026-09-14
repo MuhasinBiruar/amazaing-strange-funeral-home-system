@@ -1,13 +1,17 @@
 import z from 'zod';
+import withNullDefault from './with-null-default';
 
-export default function nameSchema(fieldName: string) {
-  return z
+export default function nameSchema(fieldName: string, isRequired = true) {
+  const schema = z
     .string()
     .trim()
-    .min(1, `${fieldName} is required`)
     .max(255, `${fieldName} must be at most 255 characters`)
     .regex(
-      /^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]+$/,
+      /^[\p{L}\p{M}\s'.,-]+$/u,
       `${fieldName} contains invalid characters`,
     );
+
+  if (isRequired) return schema.min(1, `${fieldName} is required`);
+
+  return withNullDefault(schema);
 }
