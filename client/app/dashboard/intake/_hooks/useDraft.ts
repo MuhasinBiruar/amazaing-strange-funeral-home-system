@@ -15,12 +15,12 @@ export function useDraft<T extends Record<string, unknown>>(
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed: unknown = JSON.parse(saved);
-        const isValidDraft =
+
+        if (
           typeof parsed === 'object' &&
           parsed !== null &&
-          !Array.isArray(parsed);
-
-        if (isValidDraft) {
+          !Array.isArray(parsed)
+        ) {
           // eslint-disable-next-line react-hooks/set-state-in-effect
           setFormData(parsed as T);
         } else {
