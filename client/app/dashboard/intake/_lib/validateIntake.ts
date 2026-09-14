@@ -7,6 +7,7 @@ export interface IntakeValidationErrors {
 }
 
 const requiredText = (message: string) => z.string().trim().min(1, message);
+const optionalText = () => z.string().trim().optional();
 
 export const intakeFormSchema = z
   .object({
@@ -14,6 +15,12 @@ export const intakeFormSchema = z
     firstname: nameSchema('First name'),
     middlename: nameSchema('Middle name', false),
     lastname: nameSchema('Last name'),
+    dateofdeath: z.preprocess(
+      (val) => (val === '' ? undefined : val),
+      z.coerce.date().optional(),
+    ),
+    typeofdeath: optionalText(),
+    causeofdeath: optionalText(),
 
     // Service Arrangement
     plantype: requiredText('Please select a plan type.'),
@@ -23,6 +30,7 @@ export const intakeFormSchema = z
     rep_firstname: nameSchema('First name'),
     rep_middlename: nameSchema('Middle name'),
     rep_lastname: nameSchema('Last name'),
+    rep_relationship: optionalText(),
     rep_contactnumber: requiredText('Contact number is required.').pipe(
       contactNumberSchema,
     ),
@@ -55,6 +63,7 @@ function normalizeIntakeInput(data: Record<string, string | undefined>) {
     rep_firstname: data.rep_firstname ?? '',
     rep_middlename: data.rep_middlename ?? '',
     rep_lastname: data.rep_lastname ?? '',
+    rep_relationship: data.rep_relationship ?? '',
     rep_contactnumber: data.rep_contactnumber ?? '',
     rep_address: data.rep_address ?? '',
   };
@@ -77,7 +86,9 @@ export function validateIntakeForm(
 }
 
 // Order determines which field gets focused first when multiple are invalid
-export const INTAKE_FIELD_ORDER = [
+export const INTAKE_FIELD_ORDER: (keyof ReturnType<
+  typeof normalizeIntakeInput
+>)[] = [
   'firstname',
   'middlename',
   'lastname',
@@ -89,6 +100,7 @@ export const INTAKE_FIELD_ORDER = [
   'rep_firstname',
   'rep_middlename',
   'rep_lastname',
+  'rep_relationship',
   'rep_contactnumber',
   'rep_address',
 ];

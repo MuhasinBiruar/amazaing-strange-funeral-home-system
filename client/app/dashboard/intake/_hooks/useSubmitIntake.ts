@@ -60,6 +60,8 @@ export function useSubmitIntake(
 
       await API.post('/deceasedrecords', recordPayload);
 
+      // TODO: Create lifeplan & lifeplancompany
+
       console.log('Success! Both records saved.');
       clearDraft();
       alert('Record saved successfully!');
