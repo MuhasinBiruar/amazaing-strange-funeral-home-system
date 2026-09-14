@@ -157,7 +157,7 @@ export default function ContractPanel({
         role="dialog"
         aria-modal="true"
         aria-label={`New contract for ${deceased.deceased_name}`}
-        className={`fixed inset-y-0 right-0 z-50 w-full sm:w-112 bg-white shadow-xl border-l border-gray-200 flex flex-col transition-transform duration-300 ease-out ${
+        className={`fixed inset-y-0 right-0 z-50 w-full sm:w-md bg-white shadow-xl border-l border-gray-200 flex flex-col transition-transform duration-300 ease-out ${
           shown ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -241,8 +241,8 @@ export default function ContractPanel({
                 />
                 {confirmedPackage && (
                   <p className="text-[11px] text-gray-400 mt-1">
-                    Amount, embalming period and inclusions below were
-                    prefilled from it — feel free to adjust for this contract.
+                    Amount, embalming period and inclusions below were prefilled
+                    from it — feel free to adjust for this contract.
                   </p>
                 )}
               </div>

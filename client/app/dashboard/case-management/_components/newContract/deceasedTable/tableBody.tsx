@@ -85,7 +85,7 @@ export default function TableBody({
             </tr>
           )}
 
-          {!errorMsg && !isLoading && records.length === 0 && (
+          {!errorMsg && records.length === 0 && (
             <tr>
               <td
                 colSpan={COLUMNS.length}
@@ -134,7 +134,7 @@ export default function TableBody({
       </table>
 
       {isLoading && (
-        <div className="absolute inset-0 top-17.25 bottom-0 flex items-center justify-center bg-white/80">
+        <div className="absolute inset-0 top-12 bottom-0 flex items-center justify-center bg-white/80">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Loader2 size={16} className="animate-spin" />
             Loading...
