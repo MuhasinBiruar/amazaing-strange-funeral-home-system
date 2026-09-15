@@ -23,6 +23,22 @@ import {
 
 const router = Router();
 
+/**
+ * Sample URLs
+ * `http://localhost:4000/financial/direct`
+ *
+ * `http://localhost:4000/financial/direct?search=Dela%20Cruz`
+ *
+ * `http://localhost:4000/financial/direct?search=Reyes&sortBy=totalamountpaid&sortOrder=desc`
+ *
+ * `http://localhost:4000/financial/direct?sortBy=totalamount&sortOrder=asc&page=1&limit=20`
+ *
+ * `http://localhost:4000/financial/direct?sortBy=representative_name&sortOrder=asc`
+ *
+ * `http://localhost:4000/financial/direct?sortBy=caseid&sortOrder=desc&page=2&limit=10`
+ */
+router.get('/direct', requireAuth, getDirect);
+
 router.post(
   '/lgucases',
   requireAuth,
@@ -50,22 +66,6 @@ router.post(
  * `http://localhost:4000/financial/lifeplans?search=ABC%20Life&sortBy=totalamount&sortOrder=desc&page=1&limit=20`
  */
 router.get('/lifeplans', requireAuth, getLifeplan);
-
-/**
- * Sample URLs
- * `http://localhost:4000/financial/direct`
- *
- * `http://localhost:4000/financial/direct?search=Dela%20Cruz`
- *
- * `http://localhost:4000/financial/direct?search=Reyes&sortBy=totalamountpaid&sortOrder=desc`
- *
- * `http://localhost:4000/financial/direct?sortBy=totalamount&sortOrder=asc&page=1&limit=20`
- *
- * `http://localhost:4000/financial/direct?sortBy=representative_name&sortOrder=asc`
- *
- * `http://localhost:4000/financial/direct?sortBy=caseid&sortOrder=desc&page=2&limit=10`
- */
-router.get('/direct', requireAuth, getDirect);
 
 /**
  * Sample URLs
