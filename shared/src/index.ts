@@ -29,6 +29,7 @@ export * from './schemas/document';
 export * from './schemas/financial';
 export * from './schemas/lgucase';
 export * from './schemas/lifeplan';
+export * from './schemas/lifeplancompany';
 export * from './schemas/package';
 export * from './schemas/representative';
 export * from './schemas/staff';
