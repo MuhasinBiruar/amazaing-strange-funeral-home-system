@@ -202,7 +202,7 @@ export default function CaseDetailPanel({
         role="dialog"
         aria-modal="true"
         aria-label="Case details"
-        className={`fixed inset-y-0 right-0 z-50 w-full sm:w-112 bg-white shadow-xl border-l border-gray-200 flex flex-col transition-transform duration-300 ease-out ${
+        className={`fixed inset-y-0 right-0 z-50 w-full sm:w-md bg-white shadow-xl border-l border-gray-200 flex flex-col transition-transform duration-300 ease-out ${
           shown ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -253,9 +253,7 @@ export default function CaseDetailPanel({
                       value={deceasedForm.firstname}
                       onChange={(e) =>
                         setDeceasedForm((prev) =>
-                          prev
-                            ? { ...prev, firstname: e.target.value }
-                            : prev,
+                          prev ? { ...prev, firstname: e.target.value } : prev,
                         )
                       }
                       className={fieldClass}
@@ -267,9 +265,7 @@ export default function CaseDetailPanel({
                       value={deceasedForm.middlename}
                       onChange={(e) =>
                         setDeceasedForm((prev) =>
-                          prev
-                            ? { ...prev, middlename: e.target.value }
-                            : prev,
+                          prev ? { ...prev, middlename: e.target.value } : prev,
                         )
                       }
                       className={fieldClass}
@@ -491,9 +487,7 @@ export default function CaseDetailPanel({
                         value={representativeForm.lastname}
                         onChange={(e) =>
                           setRepresentativeForm((prev) =>
-                            prev
-                              ? { ...prev, lastname: e.target.value }
-                              : prev,
+                            prev ? { ...prev, lastname: e.target.value } : prev,
                           )
                         }
                         className={fieldClass}
@@ -538,9 +532,7 @@ export default function CaseDetailPanel({
                         value={representativeForm.address}
                         onChange={(e) =>
                           setRepresentativeForm((prev) =>
-                            prev
-                              ? { ...prev, address: e.target.value }
-                              : prev,
+                            prev ? { ...prev, address: e.target.value } : prev,
                           )
                         }
                         className={`${fieldClass} resize-y`}
@@ -548,8 +540,9 @@ export default function CaseDetailPanel({
                     </div>
 
                     <p className="text-[11px] text-gray-400">
-                      Editing representatives isn&apos;t available yet — there&apos;s
-                      no save endpoint for it. Changes here won&apos;t persist.
+                      Editing representatives isn&apos;t available yet —
+                      there&apos;s no save endpoint for it. Changes here
+                      won&apos;t persist.
                     </p>
                     <button
                       type="button"
@@ -566,9 +559,7 @@ export default function CaseDetailPanel({
               <DocumentsSection
                 caseid={caseid}
                 documents={documents}
-                onUploaded={(doc) =>
-                  setDocuments((prev) => [doc, ...prev])
-                }
+                onUploaded={(doc) => setDocuments((prev) => [doc, ...prev])}
               />
             </>
           )}

@@ -217,7 +217,7 @@ export default function DocumentsSection({
             aria-modal="true"
             aria-label={expandedImage.alt}
             onClick={() => setExpandedImage(null)}
-            className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 cursor-zoom-out"
+            className="fixed inset-0 z-100 bg-black/90 flex items-center justify-center p-4 cursor-zoom-out"
           >
             <button
               type="button"
