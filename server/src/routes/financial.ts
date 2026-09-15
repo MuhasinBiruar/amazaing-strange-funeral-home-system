@@ -24,6 +24,8 @@ import {
   getLifeplanCompanies,
   getLifeplanCompany,
 } from '@/controllers/financial';
+import { idParamSchema } from 'shared/utils';
+import validateParams from '@/middleware/validate-params';
 
 const router = Router();
 
@@ -77,7 +79,12 @@ router.post(
   validate(createLifeplanCompanyQuerySchema),
   createLifeplanCompany,
 );
-router.get('/lifeplans/companies/:id', requireAuth, getLifeplanCompany);
+router.get(
+  '/lifeplans/companies/:id',
+  requireAuth,
+  validateParams(idParamSchema),
+  getLifeplanCompany,
+);
 /**
  * Sample URLs
  * `http://localhost:4000/financial/lifeplans/companies`

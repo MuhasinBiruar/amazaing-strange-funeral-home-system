@@ -6,6 +6,7 @@ import {
   getLifeplanCompaniesQuerySchema,
   type CreateLifeplanCompanyQuery,
 } from 'shared';
+import type { IdParam } from 'shared/utils';
 
 const SORT_COLUMNS: Record<string, string> = {
   companyid: 'l.companyid',
@@ -44,7 +45,7 @@ export async function getLifeplanCompany(
   next: NextFunction,
 ) {
   try {
-    const { id } = req.params;
+    const { id } = req.params as unknown as IdParam;
     const result = await pool.query(
       'SELECT * FROM lifeplancompany WHERE companyid = $1',
       [id],
