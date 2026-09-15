@@ -1,5 +1,5 @@
 import z from 'zod';
-import withNullDefault from './util/with-null-default';
+import { withNullDefault } from '../utils/with-null-default';
 
 export const createContractQuerySchema = z.object({
   signeddate: z.coerce.date(),

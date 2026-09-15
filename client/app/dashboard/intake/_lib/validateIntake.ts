@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { ZodUtils } from 'shared';
-const { nameSchema, contactNumberSchema } = ZodUtils;
+import { nameSchema, contactNumberSchema } from 'shared/utils';
 
 export interface IntakeValidationErrors {
   [field: string]: string;

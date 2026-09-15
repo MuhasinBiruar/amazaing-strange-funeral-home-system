@@ -2,7 +2,7 @@ import z from 'zod';
 import {
   paginationQuerySchema,
   paginationResponseSchema,
-} from './util/pagination-schema';
+} from '../utils/pagination-schema';
 
 export const caseSchema = z.object({
   deceased_name: z.string(),
