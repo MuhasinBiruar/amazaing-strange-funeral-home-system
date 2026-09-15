@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "tsc --noEmit && tsdown",
-    "dev": "tsc --watch",
+    "dev": "tsdown --watch",
     "lint": "eslint . --fix"
   },
   "devDependencies": {
