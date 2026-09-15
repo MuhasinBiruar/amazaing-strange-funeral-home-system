@@ -8,6 +8,7 @@ import pool from '@/db';
 import requireAuth from '@/middleware/require-auth';
 import {
   createLguCaseQuery,
+  createLifeplanCompanyQuerySchema,
   createLifeplanQuery,
   getFinancialSummaryQuerySchema,
 } from 'shared';
@@ -19,9 +20,30 @@ import {
   createLifeplan,
   getLifeplan,
   getDirect,
+  createLifeplanCompany,
+  getLifeplanCompanies,
+  getLifeplanCompany,
 } from '@/controllers/financial';
+import { idParamSchema } from 'shared/utils';
+import validateParams from '@/middleware/validate-params';
 
 const router = Router();
+
+/**
+ * Sample URLs
+ * `http://localhost:4000/financial/direct`
+ *
+ * `http://localhost:4000/financial/direct?search=Dela%20Cruz`
+ *
+ * `http://localhost:4000/financial/direct?search=Reyes&sortBy=totalamountpaid&sortOrder=desc`
+ *
+ * `http://localhost:4000/financial/direct?sortBy=totalamount&sortOrder=asc&page=1&limit=20`
+ *
+ * `http://localhost:4000/financial/direct?sortBy=representative_name&sortOrder=asc`
+ *
+ * `http://localhost:4000/financial/direct?sortBy=caseid&sortOrder=desc&page=2&limit=10`
+ */
+router.get('/direct', requireAuth, getDirect);
 
 router.post(
   '/lgucases',
@@ -51,21 +73,25 @@ router.post(
  */
 router.get('/lifeplans', requireAuth, getLifeplan);
 
+router.post(
+  '/lifeplans/companies',
+  requireAuth,
+  validate(createLifeplanCompanyQuerySchema),
+  createLifeplanCompany,
+);
+router.get(
+  '/lifeplans/companies/:id',
+  requireAuth,
+  validateParams(idParamSchema),
+  getLifeplanCompany,
+);
 /**
  * Sample URLs
- * `http://localhost:4000/financial/direct`
- *
- * `http://localhost:4000/financial/direct?search=Dela%20Cruz`
- *
- * `http://localhost:4000/financial/direct?search=Reyes&sortBy=totalamountpaid&sortOrder=desc`
- *
- * `http://localhost:4000/financial/direct?sortBy=totalamount&sortOrder=asc&page=1&limit=20`
- *
- * `http://localhost:4000/financial/direct?sortBy=representative_name&sortOrder=asc`
- *
- * `http://localhost:4000/financial/direct?sortBy=caseid&sortOrder=desc&page=2&limit=10`
+ * `http://localhost:4000/financial/lifeplans/companies`
+ * `http://localhost:4000/financial/lifeplans/companies?search=Corporation`
+ * `http://localhost:4000/financial/lifeplans/companies?search=Company&sortBy=companyname&sortOrder=desc&page=1&limit=20`
  */
-router.get('/direct', requireAuth, getDirect);
+router.get('/lifeplans/companies', requireAuth, getLifeplanCompanies);
 
 /**
  * Sample URLs

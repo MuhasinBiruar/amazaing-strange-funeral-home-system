@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import withNullDefault from './util/with-null-default';
-import contactNumberSchema from './util/contact-number-schema';
-import nameSchema from './util/name-schema';
-import passwordSchema from './util/password-schema';
+import { withNullDefault } from '../utils/with-null-default';
+import { contactNumberSchema } from '../utils/contact-number-schema';
+import { nameSchema } from '../utils/name-schema';
+import { passwordSchema } from '../utils/password-schema';
 
 export const createStaffQuerySchema = z.object({
   email: withNullDefault(

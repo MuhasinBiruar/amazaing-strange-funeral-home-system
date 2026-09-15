@@ -1,6 +1,6 @@
 import z from 'zod';
 
-const contactNumberSchema = z
+export const contactNumberSchema = z
   .string()
   .transform((val) => val.replace(/[\s\-()]/g, ''))
   .pipe(
@@ -16,5 +16,3 @@ const contactNumberSchema = z
         return val;
       }),
   );
-
-export default contactNumberSchema;

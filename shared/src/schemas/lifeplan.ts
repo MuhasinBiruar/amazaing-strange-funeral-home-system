@@ -2,8 +2,8 @@ import z from 'zod';
 import {
   paginationQuerySchema,
   paginationResponseSchema,
-} from './util/pagination-schema';
-import withNullDefault from './util/with-null-default';
+} from '../utils/pagination-schema';
+import { withNullDefault } from '../utils/with-null-default';
 
 export const lifeplanSchema = z.object({
   planid: z.int32(),
@@ -17,23 +17,23 @@ export const lifeplanSchema = z.object({
 
 export type Lifeplan = z.infer<typeof lifeplanSchema>;
 
-export const lifeplanRowSchema = lifeplanSchema.extend({
+export const getLifeplansQueryRowSchema = lifeplanSchema.extend({
   deceased_name: z.string(),
   companyname: z.string(),
 });
 
-export type LifeplanRow = z.infer<typeof lifeplanRowSchema>;
+export type getLifeplansQueryRow = z.infer<typeof getLifeplansQueryRowSchema>;
 
 export const getLifeplansQuerySchema = paginationQuerySchema.extend({
   search: z.string().optional(),
-  sortBy: z.keyof(lifeplanRowSchema).default('planid'),
+  sortBy: z.keyof(getLifeplansQueryRowSchema).default('planid'),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
 });
 
 export type GetLifeplansQuery = z.infer<typeof getLifeplansQuerySchema>;
 
 export const getLifeplansResponseSchema = paginationResponseSchema.extend({
-  data: z.array(lifeplanRowSchema),
+  data: z.array(getLifeplansQueryRowSchema),
 });
 
 export type GetLifeplansResponse = z.infer<typeof getLifeplansResponseSchema>;

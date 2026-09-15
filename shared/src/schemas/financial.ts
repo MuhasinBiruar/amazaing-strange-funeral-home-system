@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import bigNumberSchema from './util/big-number-schema';
+import { bigNumberSchema } from '../utils/big-number-schema';
 
 export const financialUnitEnum = z.enum(['day', 'week', 'month', 'year']);
 export type FinancialUnit = z.infer<typeof financialUnitEnum>;

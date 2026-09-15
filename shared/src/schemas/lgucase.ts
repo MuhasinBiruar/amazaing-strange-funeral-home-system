@@ -2,7 +2,7 @@ import z from 'zod';
 import {
   paginationQuerySchema,
   paginationResponseSchema,
-} from './util/pagination-schema';
+} from '../utils/pagination-schema';
 
 export const lguCaseSchema = z.object({
   lgucaseid: z.int32(),

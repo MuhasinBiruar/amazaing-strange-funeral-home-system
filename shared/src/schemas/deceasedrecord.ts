@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import withNullDefault from './util/with-null-default';
+import { withNullDefault } from '../utils/with-null-default';
 import {
   paginationQuerySchema,
   paginationResponseSchema,
-} from './util/pagination-schema';
+} from '../utils/pagination-schema';
 
 export const createDeceasedRecordQuerySchema = z.object({
   firstname: z.string().min(1),
