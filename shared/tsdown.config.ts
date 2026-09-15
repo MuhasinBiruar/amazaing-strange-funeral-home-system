@@ -6,4 +6,7 @@ export default defineConfig({
   platform: 'node',
   format: 'esm',
   sourcemap: true,
+  dts: {
+    sourcemap: true,
+  },
 });
