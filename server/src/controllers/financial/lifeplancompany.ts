@@ -141,3 +141,23 @@ export async function getLifeplanCompanies(
     next(error);
   }
 }
+
+export async function deleteLifeplanCompany(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { id } = req.params as unknown as IdParam;
+    const result = await pool.query(
+      'DELETE FROM lifeplancompany WHERE companyid = $1 RETURNING *',
+      [id],
+    );
+    if (result.rows.length === 0) throw new NotFoundError();
+
+    res.locals.auditAction = `${res.locals.session.user.name} deleted a life plan company.`;
+    res.json({ data: result.rows[0] });
+  } catch (error) {
+    next(error);
+  }
+}
