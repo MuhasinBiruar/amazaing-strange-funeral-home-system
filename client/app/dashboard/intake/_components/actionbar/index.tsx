@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
-import ConfirmModal from '../confirmmodal';
+import ConfirmModal from '@/components/modals/confirmModal';
 
 export default function ActionBar({
   clearDraft,

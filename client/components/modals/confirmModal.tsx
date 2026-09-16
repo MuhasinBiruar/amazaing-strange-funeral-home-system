@@ -1,14 +1,5 @@
 import { AlertCircle, X, FileText } from 'lucide-react';
 
-interface ConfirmModalProps {
-  title: string;
-  message: string;
-  items?: string[];
-  confirmLabel: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-}
-
 export default function ConfirmModal({
   title,
   message,
@@ -16,7 +7,14 @@ export default function ConfirmModal({
   confirmLabel,
   onConfirm,
   onCancel,
-}: ConfirmModalProps) {
+}: {
+  title: string;
+  message: string;
+  items?: string[];
+  confirmLabel: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 space-y-4 animate-in zoom-in-95 duration-200">
