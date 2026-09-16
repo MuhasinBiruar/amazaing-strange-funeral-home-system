@@ -9,6 +9,7 @@ import type {
 } from 'shared';
 import type { SubmitEvent } from 'react';
 import type { StagedDocument } from '../_components/documentchecklist';
+import type { InfoModalOptions } from '@/components/modals/infoModal';
 
 function getPlantype(
   rawPlantype: string,
@@ -19,12 +20,12 @@ function getPlantype(
   return 'Direct';
 }
 
-// TODO: Replace alerts with modal
 export function useSubmitIntake(
   formData: Record<string, unknown>,
   stagedDocuments: StagedDocument[],
   clearDraft: () => void,
   setStatus: (status: string) => void,
+  setInfoModal: (props: InfoModalOptions) => void,
 ) {
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
@@ -116,12 +117,21 @@ export function useSubmitIntake(
       clearDraft();
 
       if (failedUploads.length > 0) {
-        alert(
-          `Record saved, but these documents failed to upload: ${failedUploads.join(', ')}. ` +
-            `You can upload them again later from the case's detail panel.`,
-        );
+        setInfoModal({
+          title: 'Record Saved with Warnings',
+          message:
+            'Your record was saved successfully, but some documents failed to \
+            upload. You can retry uploading them later from the Case \
+            Management page.',
+          items: failedUploads,
+          severity: 'warning',
+        });
       } else {
-        alert('Record saved successfully!');
+        setInfoModal({
+          title: 'Success',
+          message: 'Record saved successfully!',
+          severity: 'success',
+        });
       }
     } catch (error) {
       setStatus('Cleaning up…');
@@ -164,12 +174,24 @@ export function useSubmitIntake(
 
       setStatus('');
       if (rollbackFailures.length > 0) {
-        alert(
-          `Failed to save the record, and automatic cleanup also failed for: ` +
-            `${rollbackFailures.join(', ')}. Please report this to an admin.`,
-        );
+        setInfoModal({
+          title: 'Critical Save Error',
+          message: `The system failed to save your changes and could not \
+          automatically undo the partial updates for: ${rollbackFailures.join(
+            ', ',
+          )}. Please report this to an administrator immediately to prevent \
+          data inconsistencies.`,
+          severity: 'error',
+        });
       } else {
-        alert('Failed to save the record. Check the console.');
+        setInfoModal({
+          title: 'Changes Not Saved',
+          message:
+            'The system encountered an error and could not save your record. \
+            Your existing data was safely restored. Please try saving again or \
+            contact an admin if the issue persists.',
+          severity: 'error',
+        });
       }
     }
   };
