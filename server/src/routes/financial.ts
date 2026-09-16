@@ -23,6 +23,7 @@ import {
   createLifeplanCompany,
   getLifeplanCompanies,
   getLifeplanCompany,
+  deleteLifeplanCompany,
 } from '@/controllers/financial';
 import { idParamSchema } from 'shared/utils';
 import validateParams from '@/middleware/validate-params';
@@ -92,6 +93,12 @@ router.get(
  * `http://localhost:4000/financial/lifeplans/companies?search=Company&sortBy=companyname&sortOrder=desc&page=1&limit=20`
  */
 router.get('/lifeplans/companies', requireAuth, getLifeplanCompanies);
+router.delete(
+  '/lifeplans/companies/:id',
+  requireAuth,
+  validateParams(idParamSchema),
+  deleteLifeplanCompany,
+);
 
 /**
  * Sample URLs

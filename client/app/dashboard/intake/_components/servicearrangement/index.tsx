@@ -27,8 +27,9 @@ export default function ServiceArrangement({
           className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
         >
           <option value="">Select Plan Type...</option>
-          <option value="Life Plan">Life Plan</option>
-          <option value="At-Need">At-Need (Walk-in)</option>
+          <option value="Life">Life Plan</option>
+          <option value="Direct">At-Need (Walk-in)</option>
+          <option value="LGU">LGU</option>
         </select>
         {errors.plantype && (
           <p className="text-red-700 text-xs font-bold mt-1">
@@ -37,8 +38,8 @@ export default function ServiceArrangement({
         )}
       </div>
 
-      {data.plantype === 'Life Plan' && (
-        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+      {data.plantype === 'Life' && (
+        <div className="animate-fade-in-down">
           <label className="block text-xs font-semibold text-gray-700 mb-1">
             LIFE PLAN COMPANY
           </label>
@@ -62,6 +63,13 @@ export default function ServiceArrangement({
               required after submission.
             </p>
           </div>
+        </div>
+      )}
+
+      {data.plantype === 'LGU' && (
+        /* TODO: Add proper fields for LGU */
+        <div className="animate-fade-in-down">
+          <h1>TODO: ADD PROPER FIELDS FOR LGU</h1>
         </div>
       )}
     </section>

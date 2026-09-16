@@ -18,6 +18,8 @@ import {
   type UncontractedDeceased,
   type UpdateDeceasedRecordQuery,
 } from 'shared';
+import validateParams from '@/middleware/validate-params';
+import { idParamSchema, type IdParam } from 'shared/utils';
 
 const router = Router();
 
@@ -245,7 +247,6 @@ router.post(
         data: result.rows[0],
       });
     } catch (error) {
-      // Fixed: Removed `: any`
       next(error);
     }
   },
@@ -321,6 +322,39 @@ router.patch(
       }`;
 
       res.json({ data: updated });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.delete(
+  '/:id',
+  requireAuth,
+  validateParams(idParamSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params as unknown as IdParam;
+
+      const result = await pool.query(
+        'DELETE FROM DeceasedRecord WHERE caseid = $1 RETURNING *',
+        [id],
+      );
+
+      if (result.rows.length === 0) throw new NotFoundError();
+
+      const deleted = result.rows[0];
+      const deceasedName = joinName(
+        deleted.firstname,
+        deleted.middlename,
+        deleted.lastname,
+      );
+      res.locals.auditAction = `${res.locals.session.user.name} deleted deceased record ${deceasedName}`;
+
+      res.json({
+        data: deleted,
+        message: 'Rollback successful: Deceased record deleted.',
+      });
     } catch (error) {
       next(error);
     }
