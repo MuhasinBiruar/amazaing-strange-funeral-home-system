@@ -38,7 +38,7 @@ export const intakeFormSchema = z
   .refine(
     (data) =>
       !(
-        data.plantype === 'Life Plan' &&
+        data.plantype === 'Life' &&
         (!data.lifeplancompany || data.lifeplancompany.trim().length === 0)
       ),
     {
