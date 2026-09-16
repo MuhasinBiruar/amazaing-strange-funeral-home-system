@@ -3,11 +3,24 @@ import { API } from '@/services/api';
 import { uploadDocument } from '@/services/documentService';
 import type {
   CreateDeceasedRecordQuery,
+  CreateLifeplanCompanyQuery,
+  CreateLifeplanQuery,
   CreateRepresentativeQuery,
 } from 'shared';
 import type { SubmitEvent } from 'react';
 import type { StagedDocument } from '../_components/documentchecklist';
 
+function getPlantype(
+  rawPlantype: string,
+): CreateDeceasedRecordQuery['plantype'] {
+  if (rawPlantype === 'Life') return 'Life';
+  else if (rawPlantype === 'LGU') return 'LGU';
+
+  return 'Direct';
+}
+
+// TODO: Replace alerts with modal
+// TODO: Add loading when waiting for submission to be successful/failed
 export function useSubmitIntake(
   formData: Record<string, unknown>,
   stagedDocuments: StagedDocument[],
@@ -17,11 +30,11 @@ export function useSubmitIntake(
     e.preventDefault();
 
     let generatedRepId: number | null = null;
+    let generatedCaseId: number | null = null;
+    let generatedCompanyId: number | null = null;
 
     try {
-      // ==========================================
-      // STEP 1: CREATE THE REPRESENTATIVE FIRST
-      // ==========================================
+      // STEP 1: REPRESENTATIVE
       const repPayload: CreateRepresentativeQuery = {
         firstname: formData.rep_firstname as string,
         middlename: formData.rep_middlename as string,
@@ -31,18 +44,10 @@ export function useSubmitIntake(
         address: formData.rep_address as string,
         datecreated: new Date(),
       };
-
       const repResponse = await API.post('/representatives', repPayload);
-      generatedRepId = repResponse.data.data.representativeid;
+      generatedRepId = repResponse.data.data.representativeid as number;
 
-      if (!generatedRepId)
-        throw new Error(
-          'Representative created but no ID returned — check backend response shape',
-        );
-
-      // ==========================================
-      // STEP 2: CREATE THE DECEASED RECORD
-      // ==========================================
+      // STEP 2: DECEASED RECORD
       const recordPayload: CreateDeceasedRecordQuery = {
         firstname: formData.firstname as string,
         middlename: formData.middlename as string | null,
@@ -52,7 +57,7 @@ export function useSubmitIntake(
         physicaldescription: formData.physicaldescription as string | null,
         servicestatus: 'intake',
         hasmaturedlifeplan: false,
-        plantype: formData.plantype === 'Life Plan' ? 'Life' : 'Direct',
+        plantype: getPlantype(formData.plantype as string),
         datecreated: new Date(),
         dateofdeath: formData.dateofdeath
           ? new Date(formData.dateofdeath as string)
@@ -60,35 +65,48 @@ export function useSubmitIntake(
         managedby: null,
         representedby: generatedRepId,
       };
+      const recordResponse = await API.post('/deceasedrecords', recordPayload);
+      generatedCaseId = recordResponse.data.data.caseid as number;
 
-      const recordResponse = await API.post(
-        '/deceasedrecords',
-        recordPayload,
-      );
-      const caseid: number = recordResponse.data.data.caseid;
+      if (formData.plantype === 'Life') {
+        // STEP 3: LIFEPLAN COMPANY
+        const companyPayload: CreateLifeplanCompanyQuery = {
+          companyname: formData.lifeplancompany as string,
+          contactinfo: null,
+        };
+        const companyResponse = await API.post(
+          '/financial/lifeplans/companies',
+          companyPayload,
+        );
+        generatedCompanyId = companyResponse.data.data.companyid as number;
 
-      // TODO: Create lifeplan & lifeplancompany
+        // STEP 4: LIFEPLAN
+        const lifeplanPayload: CreateLifeplanQuery = {
+          plannumber: null,
+          planholdername: null,
+          minimumthreshold: null,
+          totalamount: null,
+          caseid: generatedCaseId,
+          companyid: generatedCompanyId,
+        };
+        await API.post('/financial/lifeplans', lifeplanPayload);
+      } else if (formData.plantype === 'LGU') {
+        // TODO: Create lgucase
+      }
 
-      // ==========================================
-      // STEP 3: UPLOAD ANY STAGED DOCUMENTS
-      // ==========================================
-      // The record now exists, so uploads can be attributed to its caseid.
-      // A failed upload here doesn't roll back the record/representative
-      // already saved — the document itself can be retried later from the
-      // case's detail panel.
+      // STEP 5: UPLOAD ANY STAGED DOCUMENTS
       const failedUploads: string[] = [];
       for (const doc of stagedDocuments) {
         if (!doc.file) continue;
-
         try {
-          await uploadDocument(caseid, doc.documenttype, doc.file);
+          await uploadDocument(generatedCaseId!, doc.documenttype, doc.file);
         } catch (uploadError) {
           failedUploads.push(doc.documenttype);
           console.error(`Failed to upload ${doc.documenttype}:`, uploadError);
         }
       }
 
-      console.log('Success! Both records saved.');
+      console.log('Success! Records saved.');
       clearDraft();
 
       if (failedUploads.length > 0) {
@@ -100,21 +118,34 @@ export function useSubmitIntake(
         alert('Record saved successfully!');
       }
     } catch (error) {
-      // ==========================================
-      // ROLLBACK: DELETE ORPHANED REP IF STEP 2 FAILS
-      // ==========================================
-      let rollbackFailed = false;
+      const rollbackFailures: string[] = [];
+
+      if (generatedCompanyId) {
+        try {
+          await API.delete(
+            `/financial/lifeplans/companies/${generatedCompanyId}`,
+          );
+        } catch (err) {
+          rollbackFailures.push(`life plan company (ID ${generatedCompanyId})`);
+          console.error('Failed to clean up orphaned lifeplan company:', err);
+        }
+      }
+
+      if (generatedCaseId) {
+        try {
+          await API.delete(`/deceasedrecords/${generatedCaseId}`);
+        } catch (err) {
+          rollbackFailures.push(`deceased record (case #${generatedCaseId})`);
+          console.error('Failed to clean up orphaned deceased record:', err);
+        }
+      }
 
       if (generatedRepId) {
-        console.warn('Rolling back: deleting orphaned representative...');
         try {
           await API.delete(`/representatives/${generatedRepId}`);
-        } catch (deleteErr) {
-          rollbackFailed = true;
-          console.error(
-            'Failed to clean up orphaned representative:',
-            deleteErr,
-          );
+        } catch (err) {
+          rollbackFailures.push(`representative (ID ${generatedRepId})`);
+          console.error('Failed to clean up orphaned representative:', err);
         }
       }
 
@@ -124,11 +155,10 @@ export function useSubmitIntake(
         console.error('Submission failed:', error);
       }
 
-      if (rollbackFailed) {
+      if (rollbackFailures.length > 0) {
         alert(
-          `Failed to save the record, and automatic cleanup also failed. ` +
-            `A representative record (ID ${generatedRepId}) may be orphaned — ` +
-            `please report this to an admin.`,
+          `Failed to save the record, and automatic cleanup also failed for: ` +
+            `${rollbackFailures.join(', ')}. Please report this to an admin.`,
         );
       } else {
         alert('Failed to save the record. Check the console.');
