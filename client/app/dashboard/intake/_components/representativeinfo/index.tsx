@@ -43,6 +43,7 @@ export default function RepresentativeInfo({
               MIDDLE NAME
             </label>
             <input
+              id="rep_middlename"
               type="text"
               value={data.rep_middlename || ''}
               onChange={(e) => onChange('rep_middlename', e.target.value)}

@@ -20,11 +20,11 @@ function getPlantype(
 }
 
 // TODO: Replace alerts with modal
-// TODO: Add loading when waiting for submission to be successful/failed
 export function useSubmitIntake(
   formData: Record<string, unknown>,
   stagedDocuments: StagedDocument[],
   clearDraft: () => void,
+  setStatus: (status: string) => void,
 ) {
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
@@ -35,6 +35,7 @@ export function useSubmitIntake(
 
     try {
       // STEP 1: REPRESENTATIVE
+      setStatus('Saving representative…');
       const repPayload: CreateRepresentativeQuery = {
         firstname: formData.rep_firstname as string,
         middlename: formData.rep_middlename as string,
@@ -48,6 +49,7 @@ export function useSubmitIntake(
       generatedRepId = repResponse.data.data.representativeid as number;
 
       // STEP 2: DECEASED RECORD
+      setStatus('Saving deceased record…');
       const recordPayload: CreateDeceasedRecordQuery = {
         firstname: formData.firstname as string,
         middlename: formData.middlename as string | null,
@@ -69,6 +71,7 @@ export function useSubmitIntake(
       generatedCaseId = recordResponse.data.data.caseid as number;
 
       if (formData.plantype === 'Life') {
+        setStatus('Saving life plan…');
         // STEP 3: LIFEPLAN COMPANY
         const companyPayload: CreateLifeplanCompanyQuery = {
           companyname: formData.lifeplancompany as string,
@@ -91,10 +94,13 @@ export function useSubmitIntake(
         };
         await API.post('/financial/lifeplans', lifeplanPayload);
       } else if (formData.plantype === 'LGU') {
+        setStatus('Saving life plan…');
         // TODO: Create lgucase
       }
 
       // STEP 5: UPLOAD ANY STAGED DOCUMENTS
+      if (stagedDocuments.some((d) => d.file))
+        setStatus('Uploading documents…');
       const failedUploads: string[] = [];
       for (const doc of stagedDocuments) {
         if (!doc.file) continue;
@@ -106,7 +112,7 @@ export function useSubmitIntake(
         }
       }
 
-      console.log('Success! Records saved.');
+      setStatus('');
       clearDraft();
 
       if (failedUploads.length > 0) {
@@ -118,6 +124,7 @@ export function useSubmitIntake(
         alert('Record saved successfully!');
       }
     } catch (error) {
+      setStatus('Cleaning up…');
       const rollbackFailures: string[] = [];
 
       if (generatedCompanyId) {
@@ -150,11 +157,12 @@ export function useSubmitIntake(
       }
 
       if (axios.isAxiosError(error)) {
-        console.error('Backend error details:', error.response?.data);
+        console.error('Server error details:', error.response?.data);
       } else {
         console.error('Submission failed:', error);
       }
 
+      setStatus('');
       if (rollbackFailures.length > 0) {
         alert(
           `Failed to save the record, and automatic cleanup also failed for: ` +
