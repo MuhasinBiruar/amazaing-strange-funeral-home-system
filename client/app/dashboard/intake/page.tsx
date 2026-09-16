@@ -14,6 +14,8 @@ import { useDraft } from './_hooks/useDraft';
 import { useSubmitIntake } from './_hooks/useSubmitIntake';
 import { validateIntakeForm, getFirstErrorField } from './_lib/validateIntake';
 import isObjectEmpty from '@/utils/isObjectEmpty';
+import type { InfoModalOptions } from '@/components/modals/infoModal';
+import InfoModal from '@/components/modals/infoModal';
 
 export default function IntakePage() {
   const { formData, handleFormChange, clearDraft } = useDraft('intake_draft', {
@@ -27,6 +29,16 @@ export default function IntakePage() {
     initialStagedDocuments,
   );
 
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
+  const [infoModalOptions, setInfoModalOptions] = useState<InfoModalOptions>({
+    title: '',
+    message: '',
+  });
+  const openInfoModal = (options: InfoModalOptions) => {
+    setInfoModalOptions(options);
+    setIsInfoModalOpen(true);
+  };
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState('');
   const { handleSubmit } = useSubmitIntake(
@@ -34,6 +46,7 @@ export default function IntakePage() {
     stagedDocuments,
     clearDraft,
     setSubmitStatus,
+    openInfoModal,
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -127,6 +140,28 @@ export default function IntakePage() {
           />
         </fieldset>
       </form>
+
+      {isInfoModalOpen && (
+        <InfoModal
+          title={infoModalOptions.title}
+          message={infoModalOptions.message}
+          closeLabel={infoModalOptions.closeLabel}
+          onClose={() => {
+            setIsInfoModalOpen(false);
+            setInfoModalOptions({
+              title: '',
+              message: '',
+              closeLabel: undefined,
+              severity: undefined,
+              items: undefined,
+              itemIcon: undefined,
+            });
+          }}
+          severity={infoModalOptions.severity}
+          items={infoModalOptions.items}
+          itemIcon={infoModalOptions.itemIcon}
+        />
+      )}
     </div>
   );
 }
