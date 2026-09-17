@@ -1,12 +1,10 @@
 import { z } from 'zod';
 import { bigNumberSchema } from '../utils/big-number-schema';
-
-export const financialUnitEnum = z.enum(['day', 'week', 'month', 'year']);
-export type FinancialUnit = z.infer<typeof financialUnitEnum>;
+import { dateUnitEnum } from '@/utils/date-unit-enum';
 
 export const getFinancialSummaryQuerySchema = z
   .object({
-    unit: financialUnitEnum.default('month'),
+    unit: dateUnitEnum.default('month'),
     interval: z.coerce.number().int().min(1).max(1000).default(1),
     startDate: z.coerce
       .date()
@@ -47,7 +45,7 @@ export type FinancialBucket = z.infer<typeof financialBucketSchema>;
 export const getFinancialSummaryResponseSchema = z.object({
   data: z.array(financialBucketSchema),
   meta: z.object({
-    unit: financialUnitEnum,
+    unit: dateUnitEnum,
     interval: z.int(),
     startDate: z.coerce.date().nullable(),
     endDate: z.coerce.date().nullable(),

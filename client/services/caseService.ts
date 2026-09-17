@@ -8,8 +8,13 @@ export async function getCases({
   sortOrder,
   search,
   status,
+  startDate,
+  endDate,
   signal,
-}: GetCasesQuery & { signal?: AbortSignal }) {
+}: Omit<GetCasesQuery, 'startDate'> & {
+  startDate?: string | undefined;
+  signal?: AbortSignal;
+}) {
   const params = new URLSearchParams();
   params.append('page', String(page));
   params.append('limit', String(limit));
@@ -17,10 +22,12 @@ export async function getCases({
   params.append('sortOrder', sortOrder);
   if (search) params.append('search', search);
   if (status) params.append('status', status);
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
 
   const result = await API.get(`/cases?${params}`, {
     withCredentials: true,
-    signal: signal,
+    signal,
   });
   return getCasesResponseSchema.parse(result.data);
 }

@@ -12,7 +12,7 @@ import {
   createLifeplanQuery,
   getFinancialSummaryQuerySchema,
 } from 'shared';
-import { foldPeriods, toExclusiveEndBound } from '@/util/financial';
+import { foldPeriods } from '@/util/financial';
 import validate from '@/middleware/validate';
 import {
   createLguCase,
@@ -27,6 +27,7 @@ import {
 } from '@/controllers/financial';
 import { idParamSchema } from 'shared/utils';
 import validateParams from '@/middleware/validate-params';
+import { toExclusiveEndBound } from '@/util/date';
 
 const router = Router();
 

@@ -9,10 +9,6 @@ export interface SortableColumn<K extends string> {
 
 /**
  * A `<th>` that toggles sorting for its column.
- *
- * Generic over the column key so it can back any table whose sortable keys are
- * derived from a shared zod schema (`keyof Case`, `keyof UncontractedDeceased`,
- * and so on).
  */
 export default function SortableHeaderCell<K extends string>({
   column,

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { FileText, Loader2, Upload, X } from 'lucide-react';
 import type { DocumentWithUrl } from 'shared';
 import { uploadDocument } from '@/services/documentService';
-import { formatDate, titleCase } from '@/components/table/format';
+import { formatDate, titleCase } from '@/utils/format';
 import { fieldClass, labelClass } from '../fieldStyles';
 
 const ACCEPTED_TYPES = 'image/*,application/pdf';
