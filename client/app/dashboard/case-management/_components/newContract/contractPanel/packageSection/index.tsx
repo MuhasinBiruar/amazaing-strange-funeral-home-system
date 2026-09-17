@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pencil } from 'lucide-react';
-import { formatCurrency } from '@/components/table/format';
+import { formatCurrency } from '@/utils/format';
 import QuickForm from './quickForm';
 import GuidedPicker from './guidedPicker';
 import {

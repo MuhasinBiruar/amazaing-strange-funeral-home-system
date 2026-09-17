@@ -1,137 +1,141 @@
-import { useState, useEffect } from 'react';
-import type { ColumnKey, NullableDeceasedStatus, SortOrder } from './types';
-import useDebouncedState from '@/utils/useDebouncedValue';
-import useDynamicLimit from '@/utils/useDynamicLimit';
-import useElementHeight from '@/utils/useElementHeight';
-import TableHeader from './tableHeader';
-import TableFooter from '@/components/table/tableFooter';
-import TableBody from './tableBody';
+import { useState } from 'react';
+import DataTable from '@/components/dataTable';
+import { formatCurrency, formatDate, titleCase } from '@/utils/format';
+import type {
+  DataTableColumn,
+  DateRangeValue,
+  FilterDef,
+} from '@/components/dataTable/types';
 import type { Case } from 'shared';
 import { getCases } from '@/services/caseService';
 import CaseDetailPanel from '../caseDetailPanel';
 
-const SEARCH_DEBOUNCE_MS = 500 as const;
-const ROW_HEIGHT_PX = 45 as const;
+export type ColumnKey = keyof Case;
+
+type CaseFilters = {
+  status: Case['servicestatus'] | null;
+  dateRange: DateRangeValue;
+};
+
+const DEFAULT_FILTERS: CaseFilters = {
+  status: null,
+  dateRange: { from: null, to: null },
+};
+
+const FILTERS: FilterDef<CaseFilters>[] = [
+  {
+    type: 'select',
+    key: 'status',
+    options: [
+      { label: 'All statuses', value: null },
+      { label: 'Active', value: 'active' },
+      { label: 'Completed', value: 'completed' },
+      { label: 'Intake', value: 'intake' },
+      { label: 'Pending', value: 'pending' },
+    ],
+  },
+  {
+    type: 'dateRange',
+    key: 'dateRange',
+    label: 'Created',
+  },
+];
 
 export default function CaseTable() {
-  const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState<ColumnKey>('deceased_name');
-  const [sortOrder, setSortDir] = useState<SortOrder>('desc');
-  const [deceasedStatus, setDeceasedStatus] =
-    useState<NullableDeceasedStatus>(null);
-  const [page, setPage] = useState(1);
-
-  const [headerWrapRef, headerHeight] = useElementHeight<HTMLDivElement>();
-  const [theadRef, theadHeight] = useElementHeight<HTMLTableSectionElement>();
-  const [footerWrapRef, footerHeight] = useElementHeight<HTMLDivElement>();
-
-  const [cases, setCases] = useState<Case[]>([]);
-  const [total, setTotal] = useState(0);
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
-  const [dboSearch, commitDboSearch] = useDebouncedState(
-    search,
-    SEARCH_DEBOUNCE_MS,
-  );
 
-  const chromeHeight = headerHeight + theadHeight + footerHeight;
-
-  const [containerRef, limit] = useDynamicLimit<HTMLDivElement>({
-    rowHeight: ROW_HEIGHT_PX,
-    chromeHeight,
-    outsideChromeSelector: 'footer',
-    minLimit: 2,
-    maxLimit: 50,
-  });
-
-  // Reset page if search or limit changes.
-  const [prevDboSearch, setPrevDboSearch] = useState(dboSearch);
-  if (dboSearch !== prevDboSearch) {
-    setPrevDboSearch(dboSearch);
-    setPage(1);
-  }
-
-  const [prevLimit, setPrevLimit] = useState(limit);
-  if (limit !== prevLimit) {
-    setPrevLimit(limit);
-    setPage(1);
-  }
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function fetchPaginatedContracts() {
-      setIsLoading(true);
-      setErrorMsg(null);
-
-      try {
-        const res = await getCases({
-          page,
-          limit,
-          sortBy,
-          sortOrder,
-          status: deceasedStatus || undefined,
-          search: dboSearch,
-          signal: controller.signal,
-        });
-
-        setCases(res.data);
-        setTotal(res.meta.total);
-      } catch (error) {
-        if (controller.signal.aborted) return;
-
-        console.error('Failed to load contracts:', error);
-        setErrorMsg('Could not load contracts. Try   again.');
-        setCases([]);
-      } finally {
-        if (!controller.signal.aborted) setIsLoading(false);
-      }
-    }
-    fetchPaginatedContracts();
-
-    return () => controller.abort();
-  }, [dboSearch, sortBy, sortOrder, page, limit, deceasedStatus]);
+  const columns: DataTableColumn<Case, ColumnKey>[] = [
+    {
+      key: 'deceased_name',
+      label: 'Deceased name',
+      widthClassName: 'w-45',
+      cellClassName: 'px-5 py-3 wrap-break-word',
+      render: (c) => (
+        <button
+          type="button"
+          onClick={() => setSelectedCase(c)}
+          className="text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer text-center"
+        >
+          {c.deceased_name}
+        </button>
+      ),
+    },
+    {
+      key: 'representative_name',
+      label: 'Representative name',
+      widthClassName: 'w-45',
+      cellClassName: 'px-5 py-3 text-gray-500 wrap-break-word',
+      render: (c) => c.representative_name,
+    },
+    {
+      key: 'burialdatedeadline',
+      label: 'Burial deadline',
+      widthClassName: 'w-35',
+      render: (c) => formatDate(c.burialdatedeadline),
+    },
+    {
+      key: 'dateofdeath',
+      label: 'Date of death',
+      widthClassName: 'w-32.5',
+      render: (c) => formatDate(c.dateofdeath),
+    },
+    {
+      key: 'total_pending_docs',
+      label: 'Total pending docs.',
+      widthClassName: 'w-30',
+      render: (c) => c.total_pending_docs,
+    },
+    {
+      key: 'totalamount',
+      label: 'Total amount',
+      widthClassName: 'w-35',
+      render: (c) => formatCurrency(c.totalamount),
+    },
+    {
+      key: 'servicestatus',
+      label: 'Service status',
+      widthClassName: 'w-32.5',
+      render: (c) => titleCase(c.servicestatus),
+    },
+    {
+      key: 'datecreated',
+      label: 'Date created',
+      widthClassName: 'w-32.5',
+      render: (c) => formatDate(c.datecreated),
+    },
+    {
+      key: 'managed_by_name',
+      label: 'Manager name',
+      widthClassName: 'w-40',
+      cellClassName: 'px-5 py-3 text-gray-500 wrap-break-word',
+      render: (c) => c.managed_by_name,
+    },
+  ];
 
   return (
-    <div
-      ref={containerRef}
-      className="rounded-lg border border-gray-200 bg-white overflow-hidden"
-    >
-      <div ref={headerWrapRef}>
-        <TableHeader
-          total={total}
-          search={search}
-          setSearch={setSearch}
-          deceasedStatus={deceasedStatus}
-          setDeceasedStatus={setDeceasedStatus}
-          setPage={setPage}
-          commitDboSearch={commitDboSearch}
-        />
-      </div>
-
-      <TableBody
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        sortDir={sortOrder}
-        setSortDir={setSortDir}
-        setPage={setPage}
-        cases={cases}
-        errorMsg={errorMsg}
-        isLoading={isLoading}
-        theadRef={theadRef}
-        onSelectCase={setSelectedCase}
+    <>
+      <DataTable<Case, ColumnKey, CaseFilters>
+        title="Log"
+        countLabel={(total) => `${total} items`}
+        searchPlaceholder="Search contracts..."
+        filters={FILTERS}
+        defaultFilters={DEFAULT_FILTERS}
+        columns={columns}
+        rowKey={(c) => c.caseid}
+        defaultSortBy="deceased_name"
+        defaultSortOrder="desc"
+        fetchData={({ filters, ...params }) =>
+          getCases({
+            ...params,
+            status: filters.status ?? undefined,
+            startDate: filters.dateRange.from ?? undefined,
+            endDate: filters.dateRange.to ?? undefined,
+          })
+        }
+        emptyMessage="No contracts match your search."
+        loadErrorMessage="Could not load contracts. Try again."
+        bodyOffsetClassName="top-17.25"
       />
-
-      <div ref={footerWrapRef}>
-        <TableFooter
-          page={page}
-          setPage={setPage}
-          total={total}
-          limit={limit}
-        />
-      </div>
 
       {selectedCase && (
         <CaseDetailPanel
@@ -141,6 +145,6 @@ export default function CaseTable() {
           onClose={() => setSelectedCase(null)}
         />
       )}
-    </div>
+    </>
   );
 }

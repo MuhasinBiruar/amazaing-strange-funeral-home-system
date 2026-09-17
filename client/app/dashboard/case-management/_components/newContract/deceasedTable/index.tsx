@@ -1,24 +1,73 @@
-import { useState, useEffect } from 'react';
-import type { ColumnKey, NullableDeceasedStatus, SortOrder } from './types';
-import useDebouncedState from '@/utils/useDebouncedValue';
-import useDynamicLimit from '@/utils/useDynamicLimit';
-import useElementHeight from '@/utils/useElementHeight';
-import TableHeader from './tableHeader';
-import TableFooter from '@/components/table/tableFooter';
-import TableBody from './tableBody';
+import DataTable from '@/components/dataTable';
+import { formatDate, titleCase } from '@/utils/format';
+import type { DataTableColumn, FilterDef } from '@/components/dataTable/types';
 import type { UncontractedDeceased } from 'shared';
 import { getUncontractedDeceased } from '@/services/deceasedRecordService';
 
-const SEARCH_DEBOUNCE_MS = 500 as const;
-const ROW_HEIGHT_PX = 45 as const;
+type ColumnKey = keyof UncontractedDeceased;
 
-/**
- * Paginated, searchable table of deceased records that have no contract yet.
- *
- * @remarks
- * `refreshKey` is bumped by the parent after a contract is created so the newly
- * contracted record drops out of the list.
- */
+type DeceasedFilters = {
+  status: UncontractedDeceased['servicestatus'] | null;
+};
+
+const DEFAULT_FILTERS: DeceasedFilters = { status: null };
+
+const FILTERS: FilterDef<DeceasedFilters>[] = [
+  {
+    type: 'select',
+    key: 'status',
+    options: [
+      { label: 'All statuses', value: null },
+      { label: 'Active', value: 'active' },
+      { label: 'Completed', value: 'completed' },
+      { label: 'Intake', value: 'intake' },
+      { label: 'Pending', value: 'pending' },
+    ],
+  },
+];
+
+const COLUMNS: DataTableColumn<UncontractedDeceased, ColumnKey>[] = [
+  {
+    key: 'deceased_name',
+    label: 'Deceased name',
+    widthClassName: 'w-45',
+    cellClassName: 'px-5 py-3 text-gray-500 wrap-break-word',
+    render: (r) => r.deceased_name,
+  },
+  {
+    key: 'representative_name',
+    label: 'Representative name',
+    widthClassName: 'w-45',
+    cellClassName: 'px-5 py-3 text-gray-500 wrap-break-word',
+    render: (r) => r.representative_name || '—',
+  },
+  {
+    key: 'servicestatus',
+    label: 'Service status',
+    widthClassName: 'w-32.5',
+    render: (r) => titleCase(r.servicestatus),
+  },
+  {
+    key: 'plantype',
+    label: 'Plan type',
+    widthClassName: 'w-27.5',
+    render: (r) => r.plantype,
+  },
+  {
+    key: 'datecreated',
+    label: 'Date created',
+    widthClassName: 'w-32.5',
+    render: (r) => formatDate(r.datecreated),
+  },
+  {
+    key: 'managed_by_name',
+    label: 'Manager name',
+    widthClassName: 'w-40',
+    cellClassName: 'px-5 py-3 text-gray-500 wrap-break-word',
+    render: (r) => r.managed_by_name || '—',
+  },
+];
+
 export default function DeceasedTable({
   selectedCaseId,
   onSelect,
@@ -28,124 +77,29 @@ export default function DeceasedTable({
   onSelect: (record: UncontractedDeceased) => void;
   refreshKey: number;
 }) {
-  const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState<ColumnKey>('deceased_name');
-  const [sortOrder, setSortDir] = useState<SortOrder>('desc');
-  const [deceasedStatus, setDeceasedStatus] =
-    useState<NullableDeceasedStatus>(null);
-  const [page, setPage] = useState(1);
-
-  const [headerWrapRef, headerHeight] = useElementHeight<HTMLDivElement>();
-  const [theadRef, theadHeight] = useElementHeight<HTMLTableSectionElement>();
-  const [footerWrapRef, footerHeight] = useElementHeight<HTMLDivElement>();
-
-  const [records, setRecords] = useState<UncontractedDeceased[]>([]);
-  const [total, setTotal] = useState(0);
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [dboSearch, commitDboSearch] = useDebouncedState(
-    search,
-    SEARCH_DEBOUNCE_MS,
-  );
-
-  const chromeHeight = headerHeight + theadHeight + footerHeight;
-
-  const [containerRef, limit] = useDynamicLimit<HTMLDivElement>({
-    rowHeight: ROW_HEIGHT_PX,
-    chromeHeight,
-    outsideChromeSelector: 'footer',
-    minLimit: 2,
-    maxLimit: 50,
-  });
-
-  // Reset page if search or limit changes.
-  const [prevDboSearch, setPrevDboSearch] = useState(dboSearch);
-  if (dboSearch !== prevDboSearch) {
-    setPrevDboSearch(dboSearch);
-    setPage(1);
-  }
-
-  const [prevLimit, setPrevLimit] = useState(limit);
-  if (limit !== prevLimit) {
-    setPrevLimit(limit);
-    setPage(1);
-  }
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function fetchUncontractedDeceased() {
-      setIsLoading(true);
-      setErrorMsg(null);
-
-      try {
-        const res = await getUncontractedDeceased({
-          page,
-          limit,
-          sortBy,
-          sortOrder,
-          status: deceasedStatus || undefined,
-          search: dboSearch,
-          signal: controller.signal,
-        });
-
-        setRecords(res.data);
-        setTotal(res.meta.total);
-      } catch (error) {
-        if (controller.signal.aborted) return;
-
-        console.error('Failed to load deceased records:', error);
-        setErrorMsg('Could not load deceased records. Try again.');
-        setRecords([]);
-      } finally {
-        if (!controller.signal.aborted) setIsLoading(false);
-      }
-    }
-    fetchUncontractedDeceased();
-
-    return () => controller.abort();
-  }, [dboSearch, sortBy, sortOrder, page, limit, deceasedStatus, refreshKey]);
-
   return (
-    <div
-      ref={containerRef}
-      className="rounded-lg border border-gray-200 bg-white overflow-hidden"
-    >
-      <div ref={headerWrapRef}>
-        <TableHeader
-          total={total}
-          search={search}
-          setSearch={setSearch}
-          deceasedStatus={deceasedStatus}
-          setDeceasedStatus={setDeceasedStatus}
-          setPage={setPage}
-          commitDboSearch={commitDboSearch}
-        />
-      </div>
-
-      <TableBody
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        sortDir={sortOrder}
-        setSortDir={setSortDir}
-        setPage={setPage}
-        records={records}
-        errorMsg={errorMsg}
-        isLoading={isLoading}
-        theadRef={theadRef}
-        selectedCaseId={selectedCaseId}
-        onSelect={onSelect}
-      />
-
-      <div ref={footerWrapRef}>
-        <TableFooter
-          page={page}
-          setPage={setPage}
-          total={total}
-          limit={limit}
-        />
-      </div>
-    </div>
+    <DataTable<UncontractedDeceased, ColumnKey, DeceasedFilters>
+      title="Select a deceased record"
+      countLabel={(total) => `${total} awaiting a contract`}
+      searchPlaceholder="Search deceased..."
+      filters={FILTERS}
+      defaultFilters={DEFAULT_FILTERS}
+      columns={COLUMNS}
+      rowKey={(r) => r.caseid}
+      defaultSortBy="deceased_name"
+      defaultSortOrder="desc"
+      fetchData={({ filters, ...params }) =>
+        getUncontractedDeceased({
+          ...params,
+          status: filters.status ?? undefined,
+        })
+      }
+      onRowClick={onSelect}
+      isRowSelected={(r) => r.caseid === selectedCaseId}
+      emptyMessage="No deceased records are waiting for a contract."
+      loadErrorMessage="Could not load deceased records. Try again."
+      bodyOffsetClassName="top-12"
+      refreshKey={refreshKey}
+    />
   );
 }
