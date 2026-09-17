@@ -97,7 +97,7 @@ export function calcUnitsBetween(from: Date, to: Date, unit: DateUnit) {
  */
 export function toExclusiveEndBound(dateStr: string): Date {
   const hasTime = dateStr.includes(':') || /T\d{2}/.test(dateStr);
-  if (!hasTime) return new Date(dateStr);
+  if (hasTime) return new Date(dateStr);
 
   return addDaysUTC(new Date(dateStr), 1);
 }
