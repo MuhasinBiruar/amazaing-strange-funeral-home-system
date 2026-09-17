@@ -21,11 +21,7 @@ export default function PhysicalDescription({
           DETAILED DESCRIPTION
         </label>
         <textarea
-          value={
-            data.physicaldescription?.length !== 0
-              ? data.physicaldescription
-              : undefined
-          }
+          value={data.physicaldescription || ''}
           onChange={(e) => onChange('physicaldescription', e.target.value)}
           className="w-full bg-gray-50 text-gray-900 border \
           placeholder:text-gray-400 border-gray-200 rounded-lg p-2.5 \
