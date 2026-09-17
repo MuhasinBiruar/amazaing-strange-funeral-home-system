@@ -130,45 +130,114 @@ router.get(
     try {
       const { unit, interval, startDate, endDate, caseid } =
         getFinancialSummaryQuerySchema.parse(req.query);
+
       const parsedEndDate = endDate ? new Date(endDate) : null;
 
-      const whereConditions: string[] = [`transactionstatus = 'completed'`];
+      const transactionWhereConditions: string[] = [
+        `transactionstatus = 'completed'`,
+      ];
+
+      const deliveryWhereConditions: string[] = [];
+
       const queryParams: unknown[] = [];
       let paramIndex = 1;
 
       if (startDate) {
-        whereConditions.push(`paymentdatetime >= $${paramIndex}`);
+        transactionWhereConditions.push(`paymentdatetime >= $${paramIndex}`);
+        deliveryWhereConditions.push(`deliverydate >= $${paramIndex}`);
+
         queryParams.push(startDate);
         paramIndex++;
       }
 
       if (endDate) {
-        whereConditions.push(`paymentdatetime < $${paramIndex}`);
+        transactionWhereConditions.push(`paymentdatetime < $${paramIndex}`);
+        deliveryWhereConditions.push(`deliverydate < $${paramIndex}`);
+
         queryParams.push(toExclusiveEndBound(endDate));
         paramIndex++;
       }
 
       if (caseid !== undefined) {
-        whereConditions.push(`caseid = $${paramIndex}`);
+        // Deliveries do not have a caseid column, so this filter
+        // only applies to transactions.
+        transactionWhereConditions.push(`caseid = $${paramIndex}`);
         queryParams.push(caseid);
         paramIndex++;
       }
 
-      const whereClause = `WHERE ${whereConditions.join(' AND ')}`;
+      const transactionWhereClause = `WHERE ${transactionWhereConditions.join(' AND ')}`;
+
+      const deliveryWhereClause = deliveryWhereConditions.length
+        ? `WHERE ${deliveryWhereConditions.join(' AND ')}`
+        : '';
 
       const result = await pool.query(
         `
+        WITH combined_financials AS (
+          -- Transactions
+          SELECT
+            date_trunc(
+              '${unit}',
+              paymentdatetime AT TIME ZONE 'UTC'
+            ) AS period,
+
+            COALESCE(
+              SUM(amount) FILTER (
+                WHERE paymentcategory = 'Refund'
+              ),
+              0
+            ) AS totalout,
+
+            COALESCE(
+              SUM(amount) FILTER (
+                WHERE NOT (paymentcategory = 'Refund')
+              ),
+              0
+            ) AS totalin,
+
+            COUNT(*)::bigint AS transactioncount
+
+          FROM public.transaction
+          ${transactionWhereClause}
+
+          GROUP BY period
+
+          UNION ALL
+
+          -- Casket Deliveries
+          SELECT
+            date_trunc('${unit}', deliverydate::timestamp) AS period,
+            COALESCE(SUM(totalamountpaid), 0) AS totalout,
+            0::double precision AS totalin,
+            0::bigint AS transactioncount
+
+          FROM public.casketdelivery
+          ${deliveryWhereClause}
+
+          GROUP BY period
+
+          UNION ALL
+
+          -- Formalin Deliveries
+          SELECT
+            date_trunc('${unit}', deliverydate::timestamp) AS period,
+            COALESCE(SUM(totalamountpaid), 0) AS totalout,
+            0::double precision AS totalin,
+            0::bigint AS transactioncount
+
+          FROM public.formalindelivery
+          ${deliveryWhereClause}
+
+          GROUP BY period
+        )
+
         SELECT
-          date_trunc('${unit}', paymentdatetime AT TIME ZONE 'UTC') AS period,
-          COALESCE(SUM(amount) FILTER (
-            WHERE paymentcategory = 'Refund'
-          ), 0)::text AS totalout,
-          COALESCE(SUM(amount) FILTER (
-            WHERE NOT (paymentcategory = 'Refund')
-          ), 0)::text AS totalin,
-          COUNT(*) AS transactioncount
-        FROM public.transaction
-        ${whereClause}
+          period,
+          COALESCE(SUM(totalout), 0)::text AS totalout,
+          COALESCE(SUM(totalin), 0)::text AS totalin,
+          COALESCE(SUM(transactioncount), 0)::bigint AS transactioncount
+        FROM combined_financials
         GROUP BY period
         ORDER BY period ASC;
         `,
