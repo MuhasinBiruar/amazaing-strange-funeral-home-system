@@ -1,4 +1,3 @@
-import 'primereact/resources/themes/bootstrap4-dark-blue/theme.css';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import PageGuard from '@/components/pageGuard';

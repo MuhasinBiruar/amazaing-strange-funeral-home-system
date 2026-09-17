@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 /* import { Geist, Geist_Mono } from "next/font/google"; */
 import { Work_Sans } from 'next/font/google';
 import './globals.css';
-import 'primereact/resources/themes/bootstrap4-dark-blue/theme.css';
+import 'primereact/resources/themes/lara-light-purple/theme.css';
+import { PrimeReactProvider } from 'primereact/api';
 
 const workSans = Work_Sans({
   variable: '--font-work-sans',
@@ -26,7 +27,13 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         className="min-h-dvh flex flex-col bg-white"
         suppressHydrationWarning
       >
-        {children}
+        <PrimeReactProvider
+          value={{
+            inputStyle: 'outlined',
+          }}
+        >
+          {children}
+        </PrimeReactProvider>
       </body>
     </html>
   );
