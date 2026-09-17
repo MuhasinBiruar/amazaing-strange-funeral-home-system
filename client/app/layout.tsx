@@ -1,9 +1,7 @@
 import type { Metadata } from 'next';
-/* import { Geist, Geist_Mono } from "next/font/google"; */
 import { Work_Sans } from 'next/font/google';
-import './globals.css';
-import 'primereact/resources/themes/lara-light-purple/theme.css';
 import { PrimeReactProvider } from 'primereact/api';
+import './globals.css';
 
 const workSans = Work_Sans({
   variable: '--font-work-sans',

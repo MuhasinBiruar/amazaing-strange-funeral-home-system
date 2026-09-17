@@ -17,17 +17,6 @@ function toDateValue(date: Date | null | undefined): string | null {
   return `${y}-${m}-${d}`;
 }
 
-/**
- * Single popover date-range picker (PrimeReact `Calendar` in range mode),
- * replacing two bare `<input type="date">` fields with one control that
- * shows an actual calendar grid for picking a start/end date.
- *
- * @remarks
- * Dates stay `yyyy-mm-dd` strings at the `DateRangeValue` boundary (parsed
- * as local dates, not UTC, so a `Date` round-trips to the same calendar day
- * regardless of timezone) — only this component talks to PrimeReact's `Date`
- * objects.
- */
 export default function DateRangeFilter({
   label,
   value,
@@ -56,7 +45,8 @@ export default function DateRangeFilter({
         readOnlyInput
         hideOnRangeSelection
         showButtonBar
-        inputClassName="text-sm! border! border-gray-200! rounded-md! px-2.5! py-1.5! text-gray-700! focus:outline-none! focus:ring-1 focus:ring-indigo-400! focus:border-indigo-400! cursor-pointer! w-40! sm:w-48! placeholder:text-gray-400! hover:border-indigo-400!"
+        inputClassName="text-sm border border-gray-200 rounded-md px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 cursor-pointer w-40 sm:w-48 placeholder:text-gray-400 hover:border-indigo-400!"
+        panelClassName="p-4"
       />
     </div>
   );

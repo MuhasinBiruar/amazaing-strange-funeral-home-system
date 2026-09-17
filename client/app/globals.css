@@ -1,4 +1,27 @@
-@import 'tailwindcss';
+@layer theme, base, primereact, override, components, utilities;
+
+@layer theme {
+  @import 'tailwindcss/theme.css';
+}
+
+@layer base {
+  @import 'tailwindcss/preflight.css';
+}
+
+@layer primereact {
+  @import 'primereact/resources/themes/lara-light-purple/theme.css';
+  @import 'primereact/resources/primereact.min.css';
+}
+
+@layer override {
+  .p-component {
+    font-family: var(--font-work-sans) !important;
+  }
+}
+
+@layer utilities {
+  @import 'tailwindcss/utilities.css';
+}
 
 :root {
   --background: #ededed;
@@ -23,16 +46,10 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-work-sans);
-}
-
-.p-component {
-  font-family: var(--font-work-sans) !important;
 }
