@@ -23,7 +23,9 @@ export default function PhysicalDescription({
         <textarea
           value={data.physicaldescription || ''}
           onChange={(e) => onChange('physicaldescription', e.target.value)}
-          className="w-full bg-gray-50 text-gray-900 border placeholder:text-gray-400 border-gray-200 rounded-lg p-2.5 text-sm min-h-30"
+          className="w-full bg-gray-50 text-gray-900 border \
+          placeholder:text-gray-400 border-gray-200 rounded-lg p-2.5 \
+          text-sm min-h-30 in-disabled:cursor-not-allowed"
           placeholder="Include estimated height/weight, identifying marks (tattoos, scars), and clothing worn at intake..."
         />
       </div>

@@ -24,7 +24,8 @@ export default function ServiceArrangement({
           id="plantype"
           value={data.plantype || ''}
           onChange={(e) => onChange('plantype', e.target.value)}
-          className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+          className="w-full bg-gray-50 text-gray-900 border border-gray-200 \
+          rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500 in-disabled:cursor-not-allowed"
         >
           <option value="">Select Plan Type...</option>
           <option value="Life">Life Plan</option>
@@ -48,7 +49,9 @@ export default function ServiceArrangement({
             type="text"
             value={data.lifeplancompany || ''}
             onChange={(e) => onChange('lifeplancompany', e.target.value)}
-            className="w-full bg-orange-50 text-gray-900 border border-orange-200 rounded-lg p-2.5 text-sm focus:ring-orange-500 focus:border-orange-500"
+            className="w-full bg-orange-50 text-gray-900 border \
+            border-orange-200 rounded-lg p-2.5 text-sm \
+            focus:ring-orange-500 focus:border-orange-500 in-disabled:cursor-not-allowed"
             placeholder="e.g., St. Peter Life Plan"
           />
           {errors.lifeplancompany && (

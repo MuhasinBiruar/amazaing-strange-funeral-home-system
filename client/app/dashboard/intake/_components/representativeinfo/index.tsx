@@ -29,7 +29,9 @@ export default function RepresentativeInfo({
               type="text"
               value={data.rep_firstname || ''}
               onChange={(e) => onChange('rep_firstname', e.target.value)}
-              className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full bg-gray-50 text-gray-900 border \
+              border-gray-200 rounded-lg p-2.5 text-sm \
+              focus:ring-indigo-500 focus:border-indigo-500 in-disabled:cursor-not-allowed"
               placeholder="First Name"
             />
             {errors.rep_firstname && (
@@ -47,7 +49,9 @@ export default function RepresentativeInfo({
               type="text"
               value={data.rep_middlename || ''}
               onChange={(e) => onChange('rep_middlename', e.target.value)}
-              className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full bg-gray-50 text-gray-900 border \
+              border-gray-200 rounded-lg p-2.5 text-sm \
+              focus:ring-indigo-500 focus:border-indigo-500 in-disabled:cursor-not-allowed"
               placeholder="Middle Name"
             />
             {errors.rep_middlename && (
@@ -65,7 +69,9 @@ export default function RepresentativeInfo({
               type="text"
               value={data.rep_lastname || ''}
               onChange={(e) => onChange('rep_lastname', e.target.value)}
-              className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full bg-gray-50 text-gray-900 border \
+              border-gray-200 rounded-lg p-2.5 text-sm \
+              focus:ring-indigo-500 focus:border-indigo-500 in-disabled:cursor-not-allowed"
               placeholder="Last Name"
             />
             {errors.rep_lastname && (
@@ -86,7 +92,9 @@ export default function RepresentativeInfo({
               type="text"
               value={data.rep_relationship || ''}
               onChange={(e) => onChange('rep_relationship', e.target.value)}
-              className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full bg-gray-50 text-gray-900 border \
+              border-gray-200 rounded-lg p-2.5 text-sm \
+              focus:ring-indigo-500 focus:border-indigo-500 in-disabled:cursor-not-allowed"
               placeholder="e.g., Spouse, Child, Sibling"
             />
           </div>
@@ -99,7 +107,9 @@ export default function RepresentativeInfo({
               type="tel"
               value={data.rep_contactnumber || ''}
               onChange={(e) => onChange('rep_contactnumber', e.target.value)}
-              className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full bg-gray-50 text-gray-900 border \
+              border-gray-200 rounded-lg p-2.5 text-sm \
+              focus:ring-indigo-500 focus:border-indigo-500 in-disabled:cursor-not-allowed"
               placeholder="e.g., 0912 345 6789"
             />
             {errors.rep_contactnumber && (
@@ -123,7 +133,9 @@ export default function RepresentativeInfo({
               id="rep_address"
               value={data.rep_address || ''}
               onChange={(e) => onChange('rep_address', e.target.value)}
-              className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 pl-10 text-sm focus:ring-indigo-500 focus:border-indigo-500 min-h-20"
+              className="w-full bg-gray-50 text-gray-900 border \
+              border-gray-200 rounded-lg p-2.5 pl-10 text-sm \
+              focus:ring-indigo-500 focus:border-indigo-500 min-h-20 in-disabled:cursor-not-allowed"
               placeholder="House/Block/Lot No., Street, Barangay, City/Municipality, Province"
             />
           </div>

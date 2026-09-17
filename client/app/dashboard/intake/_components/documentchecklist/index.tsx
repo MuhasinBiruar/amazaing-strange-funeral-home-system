@@ -152,13 +152,17 @@ export default function DocumentChecklist({
                 <button
                   type="button"
                   onClick={() => handleRemoveFile(doc.documenttype)}
-                  className="text-gray-400 hover:text-red-500 transition"
+                  className="text-gray-400 not-disabled:hover:text-red-500 transition in-disabled:cursor-not-allowed"
                   title="Remove file"
                 >
                   <Trash2 size={16} />
                 </button>
               ) : (
-                <label className="flex items-center gap-1 text-xs font-semibold text-gray-600 hover:text-indigo-600 cursor-pointer">
+                <label
+                  className="flex items-center gap-1 text-xs font-semibold \
+                  text-gray-600 in-enabled:hover:text-indigo-600 \
+                  cursor-pointer in-disabled:cursor-not-allowed"
+                >
                   <Upload size={14} />
                   UPLOAD
                   <input
@@ -178,7 +182,8 @@ export default function DocumentChecklist({
               <button
                 type="button"
                 onClick={() => handleRemoveRequirement(doc.documenttype)}
-                className="text-gray-300 hover:text-red-500 transition"
+                className="text-gray-300 not-disabled:hover:text-red-500 \
+                transition in-disabled:cursor-not-allowed"
                 title="Remove requirement"
                 aria-label={`Remove ${doc.documenttype} from the checklist`}
               >
@@ -199,13 +204,17 @@ export default function DocumentChecklist({
               }
             }}
             placeholder="Add a required document..."
-            className="flex-1 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400"
+            className="flex-1 text-sm border border-gray-200 rounded-md \
+            px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-1 \
+            focus:ring-indigo-400 focus:border-indigo-400 in-disabled:cursor-not-allowed"
           />
           <button
             type="button"
             onClick={handleAddRequirement}
             disabled={!newRequirement.trim()}
-            className="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 disabled:text-gray-300 disabled:cursor-not-allowed cursor-pointer shrink-0"
+            className="flex items-center gap-1 text-xs font-semibold \
+            text-indigo-600 hover:text-indigo-700 \
+            disabled:text-gray-300 cursor-pointer shrink-0 in-disabled:cursor-not-allowed"
           >
             <Plus size={14} /> ADD
           </button>

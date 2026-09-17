@@ -1,17 +1,15 @@
 import { User, Calendar } from 'lucide-react';
 import { useRef } from 'react';
 
-interface VitalStatisticsProps {
-  data: Record<string, string | undefined>;
-  onChange: (field: string, value: string) => void;
-  errors?: Record<string, string>;
-}
-
 export default function VitalStatistics({
   data,
   onChange,
   errors = {},
-}: VitalStatisticsProps) {
+}: {
+  data: Record<string, string | undefined>;
+  onChange: (field: string, value: string) => void;
+  errors?: Record<string, string>;
+}) {
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -31,7 +29,9 @@ export default function VitalStatistics({
             type="text"
             value={data.firstname || ''}
             onChange={(e) => onChange('firstname', e.target.value)}
-            className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full bg-gray-50 text-gray-900 border \
+            border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 \
+            focus:border-indigo-500 in-disabled:cursor-not-allowed"
             placeholder="First Name"
           />
           {errors.firstname && (
@@ -49,7 +49,9 @@ export default function VitalStatistics({
             type="text"
             value={data.middlename || ''}
             onChange={(e) => onChange('middlename', e.target.value)}
-            className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full bg-gray-50 text-gray-900 border \
+            border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 \
+            focus:border-indigo-500 in-disabled:cursor-not-allowed"
             placeholder="Middle Name"
           />
           {errors.middlename && (
@@ -68,7 +70,9 @@ export default function VitalStatistics({
             type="text"
             value={data.lastname || ''}
             onChange={(e) => onChange('lastname', e.target.value)}
-            className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full bg-gray-50 text-gray-900 border \
+            border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 \
+            focus:border-indigo-500 in-disabled:cursor-not-allowed"
             placeholder="Last Name"
           />
           {errors.lastname && (
@@ -83,7 +87,7 @@ export default function VitalStatistics({
             DATE OF DEATH
           </label>
           <div
-            className="relative cursor-pointer"
+            className="relative"
             onClick={() => dateInputRef.current?.showPicker()}
           >
             <Calendar
@@ -98,7 +102,10 @@ export default function VitalStatistics({
               value={data.dateofdeath || ''}
               onChange={(e) => onChange('dateofdeath', e.target.value)}
               onKeyDown={(e) => e.preventDefault()}
-              className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 pl-10 text-sm focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden"
+              className="w-full bg-gray-50 text-gray-900 border \
+              border-gray-200 rounded-lg p-2.5 pl-10 text-sm \
+              focus:ring-indigo-500 focus:border-indigo-500 \
+              [&::-webkit-calendar-picker-indicator]:hidden cursor-pointer in-disabled:cursor-not-allowed"
             />
           </div>
         </div>
@@ -113,10 +120,10 @@ export default function VitalStatistics({
                 key={loc}
                 type="button"
                 onClick={() => onChange('locationOfDeath', loc)}
-                className={`py-2 px-1 text-xs sm:text-sm font-medium rounded-lg border transition ${
+                className={`py-2 px-1 text-xs sm:text-sm font-medium rounded-lg border transition in-disabled:cursor-not-allowed ${
                   data.locationOfDeath === loc
                     ? 'bg-indigo-900 text-white border-indigo-900'
-                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    : 'bg-white text-gray-700 border-gray-200 in-enabled:hover:bg-gray-50'
                 }`}
               >
                 {loc}
@@ -133,7 +140,9 @@ export default function VitalStatistics({
             id="typeofdeath"
             value={data.typeofdeath || ''}
             onChange={(e) => onChange('typeofdeath', e.target.value)}
-            className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full bg-gray-50 text-gray-900 border \
+            border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 \
+            focus:border-indigo-500 in-disabled:cursor-not-allowed"
           >
             <option value="" disabled>
               Select type
@@ -154,7 +163,8 @@ export default function VitalStatistics({
             id="causeofdeath"
             value={data.causeofdeath || ''}
             onChange={(e) => onChange('causeofdeath', e.target.value)}
-            className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-lg p-2.5 text-sm min-h-20"
+            className="w-full bg-gray-50 text-gray-900 border \
+            border-gray-200 rounded-lg p-2.5 text-sm min-h-20 in-disabled:cursor-not-allowed"
             placeholder="As stated in the medical certificate or preliminary report..."
           />
         </div>
