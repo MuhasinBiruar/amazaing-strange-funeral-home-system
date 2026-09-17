@@ -37,17 +37,19 @@ export default function ActionBar({
           <div className="flex gap-3">
             <button
               type="button"
-              disabled={isSubmitting}
               onClick={() => setIsResetModalOpen(true)}
-              className="px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-semibold text-gray-600 \
+              bg-white border border-gray-300 rounded-lg hover:bg-gray-50 \
+              transition in-disabled:opacity-50 in-disabled:cursor-not-allowed"
             >
               Discard
             </button>
 
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-indigo-950 rounded-lg hover:bg-indigo-900 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-5 py-2 text-sm \
+              font-semibold text-white bg-indigo-950 rounded-lg \
+              hover:bg-indigo-900 transition shadow-sm in-disabled:opacity-50 in-disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <Loader2 size={16} className="animate-spin" />
