@@ -1,4 +1,4 @@
-import type { DateUnit } from 'shared';
+import type { DateUnit } from 'shared/utils';
 
 /**
  * Returns a representation of the start of the given day.

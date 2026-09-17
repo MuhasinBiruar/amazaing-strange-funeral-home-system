@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import type { DateUnit } from 'shared';
+import type { DateUnit } from 'shared/utils';
 import { z } from 'zod';
 import { addUnits, calcUnitsBetween, truncToUnit } from './date';
 
