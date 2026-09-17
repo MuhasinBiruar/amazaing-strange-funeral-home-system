@@ -5,6 +5,8 @@ export const paginationQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(10),
 });
 
+export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
+
 export const paginationResponseSchema = z.object({
   meta: z.object({
     total: z.number().int(),
@@ -13,3 +15,5 @@ export const paginationResponseSchema = z.object({
     totalPages: z.number().int(),
   }),
 });
+
+export type PaginationResponse = z.infer<typeof paginationResponseSchema>;
