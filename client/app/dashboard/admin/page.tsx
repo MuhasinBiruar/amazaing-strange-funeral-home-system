@@ -4,7 +4,6 @@ import { getAllStaff, getStaff } from '@/services/staffService';
 import { useState, useEffect } from 'react';
 import type { UpdateStaffQuery } from 'shared';
 import { RadioButton } from 'primereact/radiobutton';
-import 'primereact/resources/themes/lara-light-cyan/theme.css';
 import EditStaffModal from './_components/edit_modal';
 /**
  * @todo do not allow access to edit button if user has not selected a staff member to edit.

@@ -12,17 +12,17 @@ import CaseDetailPanel from '../caseDetailPanel';
 
 export type ColumnKey = keyof Case;
 
-type CaseFilters = {
+type Filters = {
   status: Case['servicestatus'] | null;
   dateRange: DateRangeValue;
 };
 
-const DEFAULT_FILTERS: CaseFilters = {
+const DEFAULT_FILTERS: Filters = {
   status: null,
   dateRange: { from: null, to: null },
 };
 
-const FILTERS: FilterDef<CaseFilters>[] = [
+const FILTERS: FilterDef<Filters>[] = [
   {
     type: 'select',
     key: 'status',
@@ -37,7 +37,7 @@ const FILTERS: FilterDef<CaseFilters>[] = [
   {
     type: 'dateRange',
     key: 'dateRange',
-    label: 'Created',
+    label: 'Filter by date created',
   },
 ];
 
@@ -114,7 +114,7 @@ export default function CaseTable() {
 
   return (
     <>
-      <DataTable<Case, ColumnKey, CaseFilters>
+      <DataTable<Case, ColumnKey, Filters>
         title="Log"
         countLabel={(total) => `${total} items`}
         searchPlaceholder="Search contracts..."

@@ -7,7 +7,10 @@ export interface PaginatedResponse<T> extends PaginationResponse {
   data: T[];
 }
 
-export interface FetchDataParams<K extends string, F> extends PaginationQuery {
+export interface FetchDataParams<
+  K extends string,
+  F extends Record<string, unknown>,
+> extends PaginationQuery {
   sortBy: K;
   sortOrder: SortOrder;
   search?: string;
@@ -26,29 +29,35 @@ export interface DataTableColumn<T, K extends string = string> {
   render: (row: T) => ReactNode;
 }
 
-export interface SelectFilterOption<V> {
-  label: string;
-  value: V;
-}
-
-export interface SelectFilterDef<F, K extends keyof F> {
+export interface SelectFilterDef<
+  F extends Record<string, unknown>,
+  K extends keyof F,
+> {
   type: 'select';
   key: K;
-  options: SelectFilterOption<F[K]>[];
+  options: {
+    label: string;
+    value: F[K];
+  }[];
 }
 
-/** An inclusive `[from, to]` range of `yyyy-mm-dd` strings, either end optional. */
-export interface DateRangeValue {
-  from: string | null;
-  to: string | null;
-}
-
-export interface DateRangeFilterDef<F, K extends keyof F> {
+export interface DateRangeFilterDef<
+  F extends Record<string, unknown>,
+  K extends keyof F,
+> {
   type: 'dateRange';
   key: K;
   label: string;
 }
 
-export type FilterDef<F> = {
+/**
+ * An inclusive `[from, to]` range of `yyyy-mm-dd` strings, either end optional.
+ */
+export interface DateRangeValue {
+  from: string | null;
+  to: string | null;
+}
+
+export type FilterDef<F extends Record<string, unknown>> = {
   [K in keyof F]: SelectFilterDef<F, K> | DateRangeFilterDef<F, K>;
 }[keyof F];
