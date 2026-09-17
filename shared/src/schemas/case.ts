@@ -25,6 +25,8 @@ export type Case = z.infer<typeof caseSchema>;
 export const getCasesQuerySchema = paginationQuerySchema.extend({
   search: z.string().optional(),
   status: caseSchema.shape.servicestatus.optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.iso.datetime().or(z.iso.date()).optional(),
   sortBy: z.keyof(caseSchema).default('caseid'),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
 });

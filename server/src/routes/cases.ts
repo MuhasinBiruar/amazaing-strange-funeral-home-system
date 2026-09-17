@@ -7,6 +7,7 @@ import {
 import { getCasesQuerySchema, type Case } from 'shared';
 import requireAuth from '@/middleware/require-auth';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
+import { toExclusiveEndBound } from '@/util/date';
 
 const router = Router();
 
@@ -38,8 +39,16 @@ router.get(
   requireAuth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { page, limit, search, status, sortBy, sortOrder } =
-        getCasesQuerySchema.parse(req.query);
+      const {
+        page,
+        limit,
+        search,
+        status,
+        startDate,
+        endDate,
+        sortBy,
+        sortOrder,
+      } = getCasesQuerySchema.parse(req.query);
 
       const selectClause = `
         SELECT 
@@ -92,6 +101,18 @@ router.get(
           CONCAT_WS(' ', s."firstName", s."middleName", s."lastName") ILIKE $${paramIndex}
         )`);
         queryParams.push(`%${search}%`);
+        paramIndex++;
+      }
+
+      if (startDate) {
+        whereConditions.push(`dr.datecreated >= $${paramIndex}`);
+        queryParams.push(startDate);
+        paramIndex++;
+      }
+
+      if (endDate) {
+        whereConditions.push(`dr.datecreated < $${paramIndex}`);
+        queryParams.push(toExclusiveEndBound(endDate));
         paramIndex++;
       }
 
