@@ -6,13 +6,13 @@ import { getUncontractedDeceased } from '@/services/deceasedRecordService';
 
 type ColumnKey = keyof UncontractedDeceased;
 
-type DeceasedFilters = {
+type Filters = {
   status: UncontractedDeceased['servicestatus'] | null;
 };
 
-const DEFAULT_FILTERS: DeceasedFilters = { status: null };
+const DEFAULT_FILTERS: Filters = { status: null };
 
-const FILTERS: FilterDef<DeceasedFilters>[] = [
+const FILTERS: FilterDef<Filters>[] = [
   {
     type: 'select',
     key: 'status',
@@ -78,7 +78,7 @@ export default function DeceasedTable({
   refreshKey: number;
 }) {
   return (
-    <DataTable<UncontractedDeceased, ColumnKey, DeceasedFilters>
+    <DataTable<UncontractedDeceased, ColumnKey, Filters>
       title="Select a deceased record"
       countLabel={(total) => `${total} awaiting a contract`}
       searchPlaceholder="Search deceased..."
