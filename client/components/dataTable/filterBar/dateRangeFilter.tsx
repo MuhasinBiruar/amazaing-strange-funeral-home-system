@@ -56,10 +56,7 @@ export default function DateRangeFilter({
         readOnlyInput
         hideOnRangeSelection
         showButtonBar
-        inputClassName="text-sm! border! border-gray-200! rounded-md! px-2.5! \
-        py-1.5! text-gray-700! focus:outline-none! focus:ring-1 \
-        focus:ring-indigo-400! focus:border-indigo-400! cursor-pointer! w-40! \
-        sm:w-48! placeholder:text-gray-400! hover:border-indigo-400!"
+        inputClassName="text-sm! border! border-gray-200! rounded-md! px-2.5! py-1.5! text-gray-700! focus:outline-none! focus:ring-1 focus:ring-indigo-400! focus:border-indigo-400! cursor-pointer! w-40! sm:w-48! placeholder:text-gray-400! hover:border-indigo-400!"
       />
     </div>
   );
