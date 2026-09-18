@@ -14,6 +14,7 @@ import contractsRouter from './routes/contracts';
 import packagesRouter from './routes/packages';
 import casesRouter from './routes/cases';
 import financialRouter from './routes/financial';
+import casketInventoryRouter from './routes/casketinventory';
 import auditLog from './middleware/audit-log';
 
 const app = express();
@@ -40,6 +41,7 @@ app.use('/representatives', representativesRouter);
 app.use('/contracts', contractsRouter);
 app.use('/packages', packagesRouter);
 app.use('/cases', casesRouter);
+app.use('/casketinventory', casketInventoryRouter);
 
 app.use('/api/me', meRouter);
 

@@ -112,17 +112,24 @@ export default function ContractPanel({
       // picked via the guided flow already has one; nothing to create.
       let packageid = confirmedPackage.packageid;
       if (packageid === null) {
+        if (confirmedPackage.casketid === null) {
+          setErrorMsg('Select a casket for the new package first.');
+          setIsSubmitting(false);
+          return;
+        }
+
         const created = await createPackage({
           packagename: confirmedPackage.packagename,
           packagetype: confirmedPackage.packagetype,
           price: confirmedPackage.price,
           embalmingperiod: confirmedPackage.embalmingperiod,
           inclusions: confirmedPackage.inclusions,
+          casketid: confirmedPackage.casketid,
         });
         packageid = created.packageid;
       }
 
-      await createContract({
+      const contractResponse = await createContract({
         caseid: deceased.caseid,
         packageid,
         signeddate: new Date(form.signeddate),
@@ -131,6 +138,13 @@ export default function ContractPanel({
         embalmingperiod: Number(form.embalmingperiod),
         inclusions: emptyToNull(form.inclusions),
       });
+
+      // Assigning the package's casket may have just brought its stock down
+      // to (or below) the minimum threshold — the contract still succeeded,
+      // this is a heads-up, not an error.
+      if (contractResponse.casketWarning) {
+        alert(contractResponse.casketWarning);
+      }
 
       onCreated();
     } catch (error) {

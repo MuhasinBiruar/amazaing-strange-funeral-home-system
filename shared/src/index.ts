@@ -11,6 +11,7 @@ export interface AppErrorResponse {
 
 export * from './schemas/burialrecord';
 export * from './schemas/case';
+export * from './schemas/casketinventory';
 export * from './schemas/contract';
 export * from './schemas/deceasedrecord';
 export * from './schemas/direct';
