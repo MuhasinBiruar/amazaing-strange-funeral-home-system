@@ -45,7 +45,7 @@ const modules = [
     name: 'Financial Dashboard',
     description: 'View payments and balances',
     icon: Wallet,
-    routeTo: null,
+    routeTo: '/dashboard/financials',
   },
   {
     section: 'Admin',
