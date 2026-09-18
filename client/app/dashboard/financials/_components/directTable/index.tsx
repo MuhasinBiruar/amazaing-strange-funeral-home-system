@@ -5,16 +5,10 @@ import DataTable from '@/components/dataTable';
 import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import { getDirectPlans, type DirectPlan } from '@/services/financialService';
+import TransactionHistoryPanel from './transactionHistoryPanel';
 
 type ColumnKey = keyof DirectPlan;
 
-/**
- * Direct payment plans log.
- *
- * @remarks
- * "History" opens a placeholder modal — the transaction-history endpoint
- * isn't built yet, so this just reserves the interaction pattern.
- */
 export default function DirectTable() {
   const [historyFor, setHistoryFor] = useState<DirectPlan | null>(null);
 
@@ -76,31 +70,13 @@ export default function DirectTable() {
         loadErrorMessage="Could not load direct payment plans. Try again."
       />
 
-      {/* Placeholder — transaction-history endpoint not built yet */}
       {historyFor && (
-        <div
-          className="fixed inset-0 bg-black/30 flex items-center justify-center z-50"
-          onClick={() => setHistoryFor(null)}
-        >
-          <div
-            className="bg-white rounded-lg p-6 max-w-md w-full space-y-3"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="font-semibold text-gray-900">
-              Transaction history — {historyFor.deceased_name}
-            </h3>
-            <p className="text-sm text-gray-500">
-              Placeholder: transaction history endpoint isn't available yet.
-              This will show a chronological list of payments once built.
-            </p>
-            <button
-              onClick={() => setHistoryFor(null)}
-              className="text-sm text-indigo-600 hover:underline cursor-pointer"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+        <TransactionHistoryPanel
+          key={historyFor.caseid}
+          caseid={historyFor.caseid}
+          deceasedName={historyFor.deceased_name}
+          onClose={() => setHistoryFor(null)}
+        />
       )}
     </>
   );

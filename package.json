@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@types/react-date-range": "^1.4.10",
     "concurrently": "^10.0.4",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.0",
@@ -32,5 +33,9 @@
   "allowScripts": {
     "esbuild@0.28.1": true,
     "unrs-resolver@1.12.2": true
+  },
+  "dependencies": {
+    "date-fns": "^4.4.0",
+    "react-date-range": "^2.0.1"
   }
 }
