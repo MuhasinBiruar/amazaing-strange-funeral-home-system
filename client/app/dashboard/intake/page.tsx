@@ -16,8 +16,10 @@ import { validateIntakeForm, getFirstErrorField } from './_lib/validateIntake';
 import isObjectEmpty from '@/utils/isObjectEmpty';
 import type { InfoModalOptions } from '@/components/modals/infoModal';
 import InfoModal from '@/components/modals/infoModal';
+import { useRouter } from 'next/navigation';
 
 export default function IntakePage() {
+  const router = useRouter();
   const { formData, handleFormChange, clearDraft } = useDraft('intake_draft', {
     plantype: '',
     locationOfDeath: 'Hospital',
@@ -147,6 +149,12 @@ export default function IntakePage() {
           message={infoModalOptions.message}
           closeLabel={infoModalOptions.closeLabel}
           onClose={() => {
+            if (
+              infoModalOptions.severity === 'success' ||
+              infoModalOptions.severity === 'warning'
+            ) {
+              router.push('/dashboard/case-management');
+            }
             setIsInfoModalOpen(false);
             setInfoModalOptions({
               title: '',
