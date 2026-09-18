@@ -27,6 +27,10 @@ export const FK_CONSTRAINTS: Record<
     field: 'packageid',
     message: 'Referenced package does not exist.',
   },
+  package_casketid_fkey: {
+    field: 'casketid',
+    message: 'Referenced casket does not exist.',
+  },
   contract_caseid_fkey: {
     field: 'caseid',
     message: 'Referenced deceased record does not exist.',

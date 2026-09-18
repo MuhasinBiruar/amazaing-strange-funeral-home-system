@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 import { fieldClass, labelClass } from '../../../fieldStyles';
 import PackageTypeButtons from './packageTypeButtons';
+import CasketPicker from './casketPicker';
 import type { PackageDraft } from './types';
 
 export default function QuickForm({
@@ -21,6 +22,12 @@ export default function QuickForm({
           }
         />
       </div>
+
+      <CasketPicker
+        packagetype={draft.packagetype}
+        value={draft.casket}
+        onChange={(casket) => setDraft((prev) => ({ ...prev, casket }))}
+      />
 
       <div>
         <label htmlFor="pkg-name" className={labelClass}>

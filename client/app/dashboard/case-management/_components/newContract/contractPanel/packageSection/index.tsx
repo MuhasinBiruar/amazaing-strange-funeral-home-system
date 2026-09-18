@@ -45,6 +45,9 @@ export default function PackageSection({
             {confirmed.packagetype} · {formatCurrency(confirmed.price)} ·{' '}
             {confirmed.embalmingperiod}-day embalming
           </p>
+          <p className="text-xs text-gray-400">
+            {confirmed.caskettype ?? 'No casket linked'}
+          </p>
         </div>
         <button
           type="button"

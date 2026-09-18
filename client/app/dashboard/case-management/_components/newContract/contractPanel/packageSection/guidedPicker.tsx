@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import type { Package } from 'shared';
+import type { PackageWithCasket } from 'shared';
 import { getPackages } from '@/services/packageService';
 import { labelClass } from '../../../fieldStyles';
 import { formatCurrency } from '@/utils/format';
@@ -20,7 +20,7 @@ export default function GuidedPicker({
 }) {
   const [packagetype, setPackagetype] = useState<PackageType | ''>('');
   const [showList, setShowList] = useState(false);
-  const [packages, setPackages] = useState<Package[] | null>(null);
+  const [packages, setPackages] = useState<PackageWithCasket[] | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
@@ -114,18 +114,34 @@ export default function GuidedPicker({
             <button
               type="button"
               key={p.packageid}
+              disabled={p.casket_currentstock === 0}
               onClick={() => setSelectedId(p.packageid)}
-              className={`w-full text-left rounded-md border px-3 py-2 transition cursor-pointer ${
-                selectedId === p.packageid
-                  ? 'border-indigo-400 bg-indigo-50'
-                  : 'border-gray-200 hover:bg-gray-50'
+              className={`w-full text-left rounded-md border px-3 py-2 transition ${
+                p.casket_currentstock === 0
+                  ? 'border-gray-100 bg-gray-50 cursor-not-allowed'
+                  : selectedId === p.packageid
+                    ? 'border-indigo-400 bg-indigo-50 cursor-pointer'
+                    : 'border-gray-200 hover:bg-gray-50 cursor-pointer'
               }`}
             >
-              <p className="text-sm font-medium text-gray-900">
+              <p
+                className={`text-sm font-medium ${p.casket_currentstock === 0 ? 'text-gray-300' : 'text-gray-900'}`}
+              >
                 {p.packagename}
               </p>
-              <p className="text-xs text-gray-500">
+              <p
+                className={`text-xs ${p.casket_currentstock === 0 ? 'text-gray-300' : 'text-gray-500'}`}
+              >
                 {formatCurrency(p.price)} · {p.embalmingperiod}-day embalming
+              </p>
+              <p
+                className={`text-xs ${p.casket_currentstock === 0 ? 'text-red-400 font-semibold' : 'text-gray-400'}`}
+              >
+                {p.caskettype
+                  ? p.casket_currentstock === 0
+                    ? `${p.caskettype} · No stock`
+                    : `${p.caskettype} · ${p.casket_currentstock} in stock`
+                  : 'No casket linked'}
               </p>
               {p.inclusions && (
                 <p className="text-xs text-gray-400 mt-0.5 wrap-break-word">

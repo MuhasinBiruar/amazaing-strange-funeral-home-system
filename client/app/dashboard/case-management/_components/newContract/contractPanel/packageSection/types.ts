@@ -1,4 +1,4 @@
-import type { CreatePackageQuery, Package } from 'shared';
+import type { CasketInventory, CreatePackageQuery, PackageWithCasket } from 'shared';
 import emptyToNull from '@/utils/emptyToNull';
 
 export const PACKAGE_TYPES = [
@@ -17,6 +17,7 @@ export interface PackageDraft {
   price: string;
   embalmingperiod: string;
   inclusions: string;
+  casket: CasketInventory | null;
 }
 
 export function initialPackageDraft(): PackageDraft {
@@ -26,6 +27,7 @@ export function initialPackageDraft(): PackageDraft {
     price: '',
     embalmingperiod: '',
     inclusions: '',
+    casket: null,
   };
 }
 
@@ -36,7 +38,8 @@ export function isPackageDraftComplete(draft: PackageDraft): boolean {
     draft.price.trim() !== '' &&
     Number(draft.price) >= 0 &&
     draft.embalmingperiod.trim() !== '' &&
-    Number(draft.embalmingperiod) >= 0
+    Number(draft.embalmingperiod) >= 0 &&
+    draft.casket !== null
   );
 }
 
@@ -49,6 +52,7 @@ function toCreatePackageQuery(draft: PackageDraft): CreatePackageQuery | null {
     price: Number(draft.price),
     embalmingperiod: Number(draft.embalmingperiod),
     inclusions: emptyToNull(draft.inclusions),
+    casketid: (draft.casket as CasketInventory).casketid,
   };
 }
 
@@ -58,7 +62,7 @@ function toCreatePackageQuery(draft: PackageDraft): CreatePackageQuery | null {
  * from the existing catalog through the guided flow (`packageid` already
  * known, nothing to create).
  */
-export type ConfirmedPackage = Omit<Package, 'packageid'> & {
+export type ConfirmedPackage = Omit<PackageWithCasket, 'packageid'> & {
   packageid: number | null;
 };
 
@@ -67,5 +71,12 @@ export function toConfirmedPackage(draft: PackageDraft): ConfirmedPackage | null
   const query = toCreatePackageQuery(draft);
   if (!query) return null;
 
-  return { ...query, packageid: null };
+  const casket = draft.casket as CasketInventory;
+
+  return {
+    ...query,
+    packageid: null,
+    caskettype: casket.caskettype,
+    casket_currentstock: casket.currentstock,
+  };
 }

@@ -12,9 +12,18 @@ import { createPackageQuerySchema, type CreatePackageQuery } from 'shared';
 
 const router = Router();
 
+const SELECT_WITH_CASKET = `
+  SELECT
+    p.*,
+    ci.caskettype,
+    ci.currentstock AS casket_currentstock
+  FROM package p
+  LEFT JOIN casketinventory ci ON p.casketid = ci.casketid
+`;
+
 router.get('/', requireAuth, async (_req, res, next) => {
   try {
-    const result = await pool.query('SELECT * from package');
+    const result = await pool.query(SELECT_WITH_CASKET);
 
     res.json({
       data: result.rows,
@@ -28,7 +37,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
-      'SELECT * FROM package WHERE packageid = $1',
+      `${SELECT_WITH_CASKET} WHERE p.packageid = $1`,
       [id],
     );
     if (result.rows.length === 0) throw new NotFoundError();
@@ -57,8 +66,9 @@ router.post(
           packagetype,
           price,
           embalmingperiod,
-          inclusions
-        ) VALUES ($1, $2, $3, $4, $5)
+          inclusions,
+          casketid
+        ) VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING packageid;`,
         [
           parsed.packagename,
@@ -66,6 +76,7 @@ router.post(
           parsed.price,
           parsed.embalmingperiod,
           parsed.inclusions,
+          parsed.casketid,
         ],
       );
 
