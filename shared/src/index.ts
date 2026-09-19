@@ -11,6 +11,7 @@ export interface AppErrorResponse {
 
 export * from './schemas/burialrecord';
 export * from './schemas/case';
+export * from './schemas/casketdelivery';
 export * from './schemas/casketinventory';
 export * from './schemas/contract';
 export * from './schemas/deceasedrecord';
@@ -18,6 +19,7 @@ export * from './schemas/delivery';
 export * from './schemas/direct';
 export * from './schemas/document';
 export * from './schemas/financial';
+export * from './schemas/formalindelivery';
 export * from './schemas/lgucase';
 export * from './schemas/lifeplan';
 export * from './schemas/lifeplancompany';
