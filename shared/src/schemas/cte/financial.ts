@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { bigNumberSchema } from '../utils/big-number-schema';
+import { bigNumberSchema } from '@/utils/big-number-schema';
 import { dateUnitEnum } from '@/utils/date-unit-enum';
 
 export const getFinancialSummaryQuerySchema = z

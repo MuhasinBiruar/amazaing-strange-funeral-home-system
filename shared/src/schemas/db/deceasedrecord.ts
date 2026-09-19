@@ -1,9 +1,6 @@
 import { z } from 'zod';
-import { withNullDefault } from '../utils/with-null-default';
-import {
-  paginationQuerySchema,
-  paginationResponseSchema,
-} from '../utils/pagination-schema';
+import { withNullDefault } from '@/utils/with-null-default';
+import { paginationQuerySchema, paginationResponseSchema } from '@/utils';
 
 export const createDeceasedRecordQuerySchema = z.object({
   firstname: z.string().min(1),
@@ -46,6 +43,7 @@ export type GetDeceasedRecordResponse = z.infer<
   typeof getDeceasedRecordResponseSchema
 >;
 
+// TODO: Clean-up schema
 /**
  * A deceased record that has no contract yet, joined with its representative
  * and managing staff.

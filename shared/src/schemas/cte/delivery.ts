@@ -2,7 +2,7 @@ import z from 'zod';
 import {
   paginationQuerySchema,
   paginationResponseSchema,
-} from '../utils/pagination-schema';
+} from '@/utils/pagination-schema';
 
 export const deliverySourceEnum = z.enum(['casket', 'formalin']);
 export type DeliverySource = z.infer<typeof deliverySourceEnum>;
