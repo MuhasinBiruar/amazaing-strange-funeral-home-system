@@ -16,8 +16,10 @@ import { validateIntakeForm, getFirstErrorField } from './_lib/validateIntake';
 import isObjectEmpty from '@/utils/isObjectEmpty';
 import type { InfoModalOptions } from '@/components/modals/infoModal';
 import InfoModal from '@/components/modals/infoModal';
+import { useRouter } from 'next/navigation';
 
 export default function IntakePage() {
+  const router = useRouter();
   const { formData, handleFormChange, clearDraft } = useDraft('intake_draft', {
     plantype: '',
     locationOfDeath: 'Hospital',
@@ -41,12 +43,14 @@ export default function IntakePage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState('');
+  const [createdCaseId, setCreatedCaseId] = useState<number | null>(null);
   const { handleSubmit } = useSubmitIntake(
     formData,
     stagedDocuments,
     clearDraft,
     setSubmitStatus,
     openInfoModal,
+    setCreatedCaseId,
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -145,9 +149,13 @@ export default function IntakePage() {
         <InfoModal
           title={infoModalOptions.title}
           message={infoModalOptions.message}
-          closeLabel={infoModalOptions.closeLabel}
+          closeLabel={
+            // Reads as "not now" once there's a proceed option to decline.
+            createdCaseId !== null ? 'Not now' : infoModalOptions.closeLabel
+          }
           onClose={() => {
             setIsInfoModalOpen(false);
+            setCreatedCaseId(null);
             setInfoModalOptions({
               title: '',
               message: '',
@@ -157,6 +165,22 @@ export default function IntakePage() {
               itemIcon: undefined,
             });
           }}
+          // Only offered once a record actually exists to assign a package
+          // to — asks rather than forcing the navigation.
+          confirmLabel={createdCaseId !== null ? 'Assign a package' : undefined}
+          onConfirm={
+            createdCaseId !== null
+              ? () => {
+                  // Land on the new-contract picker with the just-created
+                  // record already selected, rather than the plain case log.
+                  router.push(
+                    `/dashboard/case-management?tab=new-contract&caseid=${createdCaseId}`,
+                  );
+                  setIsInfoModalOpen(false);
+                  setCreatedCaseId(null);
+                }
+              : undefined
+          }
           severity={infoModalOptions.severity}
           items={infoModalOptions.items}
           itemIcon={infoModalOptions.itemIcon}

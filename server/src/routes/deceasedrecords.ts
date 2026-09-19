@@ -70,7 +70,7 @@ router.get(
   requireAuth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { page, limit, search, status, sortBy, sortOrder } =
+      const { page, limit, search, status, caseid, sortBy, sortOrder } =
         getUncontractedDeceasedQuerySchema.parse(req.query);
 
       const selectClause = `
@@ -101,6 +101,12 @@ router.get(
       const whereConditions: string[] = ['c.contractid IS NULL'];
       const queryParams: unknown[] = [];
       let paramIndex = 1;
+
+      if (caseid !== undefined) {
+        whereConditions.push(`dr.caseid = $${paramIndex}`);
+        queryParams.push(caseid);
+        paramIndex++;
+      }
 
       if (status) {
         whereConditions.push(`dr.servicestatus = $${paramIndex}`);

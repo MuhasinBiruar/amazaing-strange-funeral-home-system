@@ -27,6 +27,7 @@ export function useSubmitIntake(
   clearDraft: () => void,
   setStatus: (status: string) => void,
   setInfoModal: (props: InfoModalOptions) => void,
+  onRecordCreated: (caseid: number) => void,
 ) {
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
@@ -122,6 +123,7 @@ export function useSubmitIntake(
 
       setStatus('');
       clearDraft();
+      onRecordCreated(generatedCaseId!);
 
       if (failedUploads.length > 0) {
         setInfoModal({
@@ -129,14 +131,17 @@ export function useSubmitIntake(
           message:
             'Your record was saved successfully, but some documents failed to \
             upload. You can retry uploading them later from the Case \
-            Management page.',
+            Management page. Would you like to assign a package to this case \
+            now?',
           items: failedUploads,
           severity: 'warning',
         });
       } else {
         setInfoModal({
           title: 'Success',
-          message: 'Record saved successfully!',
+          message:
+            'Record saved successfully! Would you like to assign a package \
+            to this case now?',
           severity: 'success',
         });
       }
