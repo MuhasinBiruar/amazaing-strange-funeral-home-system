@@ -154,12 +154,8 @@ export default function IntakePage() {
             createdCaseId !== null ? 'Not now' : infoModalOptions.closeLabel
           }
           onClose={() => {
-            if (
-              infoModalOptions.severity === 'success' ||
-              infoModalOptions.severity === 'warning'
-            ) {
-              router.push('/dashboard/case-management');
-            }
+            // "Not now" — stay put. Only "Assign a package" (onConfirm,
+            // below) navigates away.
             setIsInfoModalOpen(false);
             setCreatedCaseId(null);
             setInfoModalOptions({
@@ -181,6 +177,7 @@ export default function IntakePage() {
                   // record already selected, rather than the plain case log.
                   router.push(
                     `/dashboard/case-management?tab=new-contract&caseid=${createdCaseId}`,
+                    { scroll: false },
                   );
                   setIsInfoModalOpen(false);
                   setCreatedCaseId(null);
