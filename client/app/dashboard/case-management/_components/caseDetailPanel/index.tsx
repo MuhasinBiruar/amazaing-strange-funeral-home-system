@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
-import type {
-  DeceasedRecordRow,
-  DocumentWithUrl,
-  Representative,
-} from 'shared';
+import type { DeceasedRecord, DocumentWithUrl, Representative } from 'shared';
 import {
   getDeceasedRecord,
   updateDeceasedRecord,
@@ -32,13 +28,13 @@ interface DeceasedForm {
   causeofdeath: string;
   typeofdeath: string;
   physicaldescription: string;
-  servicestatus: DeceasedRecordRow['servicestatus'];
-  plantype: DeceasedRecordRow['plantype'];
+  servicestatus: DeceasedRecord['servicestatus'];
+  plantype: DeceasedRecord['plantype'];
   dateofdeath: string;
   hasmaturedlifeplan: boolean;
 }
 
-function toDeceasedForm(record: DeceasedRecordRow): DeceasedForm {
+function toDeceasedForm(record: DeceasedRecord): DeceasedForm {
   return {
     firstname: record.firstname,
     middlename: record.middlename ?? '',

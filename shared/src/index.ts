@@ -13,6 +13,7 @@ export * from './schemas/cte/case';
 export * from './schemas/cte/delivery';
 export * from './schemas/cte/direct';
 export * from './schemas/cte/financial';
+export * from './schemas/cte/uncontracteddeceased';
 export * from './schemas/db/burialrecord';
 export * from './schemas/db/casketdelivery';
 export * from './schemas/db/casketinventory';
