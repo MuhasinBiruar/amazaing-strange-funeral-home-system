@@ -15,10 +15,13 @@ type Tab = z.infer<typeof tabEnum>;
  * deceased record under contract.
  *
  * @remarks
- * "New contract" swaps the case table for a picker of deceased records that
- * have no contract yet, rather than navigating away. Creating one bumps
- * `caseTableKey`, remounting `CaseTable` so the record — now a case for the
- * first time — appears in the log.
+ * The active tab lives in the `tab` query parameter rather than in component
+ * state, so the view survives a reload and is linkable. "New contract" swaps
+ * the case table for a picker of deceased records that have no contract yet,
+ * rather than navigating away. Because the two views are rendered
+ * conditionally, returning to the cases tab after a contract is created
+ * remounts `CaseTable`, so the record - now a case for the first time -
+ * appears in the log.
  */
 function CasesPageContent() {
   const router = useRouter();
