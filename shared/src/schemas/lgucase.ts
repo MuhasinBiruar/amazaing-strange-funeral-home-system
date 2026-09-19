@@ -7,7 +7,7 @@ import {
 export const lguCaseSchema = z.object({
   lgucaseid: z.int32(),
   reimbursementstatus: z.enum(['pending', 'approved', 'released', 'rejected']),
-  reimbursementamount: z.float64(),
+  reimbursementamount: z.float64().nonnegative(),
   caseid: z.int32(),
 });
 

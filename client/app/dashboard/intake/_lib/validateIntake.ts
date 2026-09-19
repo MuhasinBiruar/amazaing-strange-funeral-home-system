@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { nameSchema, contactNumberSchema } from 'shared/utils';
+import { lguCaseSchema } from 'shared';
 
 export interface IntakeValidationErrors {
   [field: string]: string;
@@ -24,6 +25,8 @@ export const intakeFormSchema = z
     // Service Arrangement
     plantype: requiredText('Please select a plan type.'),
     lifeplancompany: z.string().trim().optional(),
+    lgu_reimbursementamount: z.string().trim().optional(),
+    lgu_reimbursementstatus: z.string().trim().optional(),
 
     // Representative Information
     rep_firstname: nameSchema('First name'),
@@ -45,6 +48,59 @@ export const intakeFormSchema = z
       error: 'Life plan company is required.',
       path: ['lifeplancompany'],
     },
+  )
+  .refine(
+    (data) =>
+      !(
+        data.plantype === 'LGU' &&
+        (!data.lgu_reimbursementamount ||
+          data.lgu_reimbursementamount.trim().length === 0)
+      ),
+    {
+      error: 'Reimbursement amount is required.',
+      path: ['lgu_reimbursementamount'],
+    },
+  )
+  .refine(
+    (data) =>
+      !(
+        data.plantype === 'LGU' &&
+        data.lgu_reimbursementamount &&
+        data.lgu_reimbursementamount.trim().length > 0 &&
+        (Number.isNaN(Number(data.lgu_reimbursementamount)) ||
+          Number(data.lgu_reimbursementamount) < 0)
+      ),
+    {
+      error: 'Reimbursement amount must be a valid non-negative number.',
+      path: ['lgu_reimbursementamount'],
+    },
+  )
+  .refine(
+    (data) =>
+      !(
+        data.plantype === 'LGU' &&
+        (!data.lgu_reimbursementstatus ||
+          data.lgu_reimbursementstatus.trim().length === 0)
+      ),
+    {
+      error: 'Reimbursement status is required.',
+      path: ['lgu_reimbursementstatus'],
+    },
+  )
+  .refine(
+    (data) =>
+      !(
+        data.plantype === 'LGU' &&
+        data.lgu_reimbursementstatus &&
+        data.lgu_reimbursementstatus.trim().length > 0 &&
+        !lguCaseSchema.shape.reimbursementstatus.safeParse(
+          data.lgu_reimbursementstatus,
+        ).success
+      ),
+    {
+      error: 'Please select a valid reimbursement status.',
+      path: ['lgu_reimbursementstatus'],
+    },
   );
 
 export type IntakeForm = z.infer<typeof intakeFormSchema>;
@@ -59,6 +115,8 @@ function normalizeIntakeInput(data: Record<string, string | undefined>) {
     causeofdeath: data.causeofdeath ?? '',
     plantype: data.plantype ?? '',
     lifeplancompany: data.lifeplancompany ?? '',
+    lgu_reimbursementamount: data.lgu_reimbursementamount ?? '',
+    lgu_reimbursementstatus: data.lgu_reimbursementstatus ?? '',
     rep_firstname: data.rep_firstname ?? '',
     rep_middlename: data.rep_middlename ?? '',
     rep_lastname: data.rep_lastname ?? '',
@@ -96,6 +154,8 @@ export const INTAKE_FIELD_ORDER: (keyof ReturnType<
   'causeofdeath',
   'plantype',
   'lifeplancompany',
+  'lgu_reimbursementamount',
+  'lgu_reimbursementstatus',
   'rep_firstname',
   'rep_middlename',
   'rep_lastname',

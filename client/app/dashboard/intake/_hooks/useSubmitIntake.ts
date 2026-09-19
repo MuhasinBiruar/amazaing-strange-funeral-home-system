@@ -3,6 +3,7 @@ import { API } from '@/services/api';
 import { uploadDocument } from '@/services/documentService';
 import type {
   CreateDeceasedRecordQuery,
+  CreateLguCaseQuery,
   CreateLifeplanCompanyQuery,
   CreateLifeplanQuery,
   CreateRepresentativeQuery,
@@ -95,8 +96,14 @@ export function useSubmitIntake(
         };
         await API.post('/financial/lifeplans', lifeplanPayload);
       } else if (formData.plantype === 'LGU') {
-        setStatus('Saving life plan…');
-        // TODO: Create lgucase
+        setStatus('Saving LGU case…');
+        // STEP 3: LGU CASE
+        const lguCasePayload: CreateLguCaseQuery = {
+          reimbursementstatus: 'pending',
+          reimbursementamount: Number(formData.lgu_reimbursementamount),
+          caseid: generatedCaseId,
+        };
+        await API.post('/financial/lgucases', lguCasePayload);
       }
 
       // STEP 5: UPLOAD ANY STAGED DOCUMENTS
