@@ -7,7 +7,7 @@ const router = Router();
 router.get('/', requireAuth, async (_req, res, next) => {
   try {
     const result = await pool.query(
-      'SELECT * FROM casketinventory ORDER BY packagetier, caskettype',
+      'SELECT * FROM casketinventory ORDER BY caskettier, caskettype',
     );
 
     res.json({

@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const casketInventorySchema = z.object({
   casketid: z.int32(),
   caskettype: z.string(),
-  packagetier: z.string().nullable(),
+  caskettier: z.string().nullable(),
   currentstock: z.int32(),
   minimumthreshold: z.int32(),
 });

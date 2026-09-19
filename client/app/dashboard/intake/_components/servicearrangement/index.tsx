@@ -70,9 +70,58 @@ export default function ServiceArrangement({
       )}
 
       {data.plantype === 'LGU' && (
-        /* TODO: Add proper fields for LGU */
-        <div className="animate-fade-in-down">
-          <h1>TODO: ADD PROPER FIELDS FOR LGU</h1>
+        <div className="animate-fade-in-down space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              REIMBURSEMENT STATUS
+            </label>
+            <select
+              id="lgu_reimbursementstatus"
+              value={data.lgu_reimbursementstatus || ''}
+              onChange={(e) =>
+                onChange('lgu_reimbursementstatus', e.target.value)
+              }
+              className="w-full bg-gray-50 text-gray-900 border \
+              border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 \
+              focus:border-indigo-500 in-disabled:cursor-not-allowed"
+            >
+              <option value="">Select Status...</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="released">Released</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            {errors.lgu_reimbursementstatus && (
+              <p className="text-red-700 text-xs font-bold mt-1">
+                {errors.lgu_reimbursementstatus}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              REIMBURSEMENT AMOUNT (PHP)
+            </label>
+            <input
+              id="lgu_reimbursementamount"
+              type="number"
+              min="0"
+              step="0.01"
+              value={data.lgu_reimbursementamount || ''}
+              onChange={(e) =>
+                onChange('lgu_reimbursementamount', e.target.value)
+              }
+              className="w-full bg-gray-50 text-gray-900 border \
+              border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 \
+              focus:border-indigo-500 in-disabled:cursor-not-allowed"
+              placeholder="e.g., 15000"
+            />
+            {errors.lgu_reimbursementamount && (
+              <p className="text-red-700 text-xs font-bold mt-1">
+                {errors.lgu_reimbursementamount}
+              </p>
+            )}
+          </div>
         </div>
       )}
     </section>
