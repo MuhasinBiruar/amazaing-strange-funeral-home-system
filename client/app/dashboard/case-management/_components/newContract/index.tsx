@@ -11,7 +11,7 @@ import ContractPanel from './contractPanel';
  * The panel overlays the page rather than reflowing it, which keeps the table's
  * `useDynamicLimit` measurements valid while the panel is open.
  */
-export default function NewContract({ onCreated }: { onCreated: () => void }) {
+export default function NewContract({ onCreated }: { onCreated?: () => void }) {
   const [selected, setSelected] = useState<UncontractedDeceased | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -33,7 +33,7 @@ export default function NewContract({ onCreated }: { onCreated: () => void }) {
             // shows up in the case table.
             setSelected(null);
             setRefreshKey((k) => k + 1);
-            onCreated();
+            onCreated?.();
           }}
         />
       )}
