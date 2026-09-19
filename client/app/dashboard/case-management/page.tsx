@@ -1,23 +1,38 @@
 'use client';
 
-import { useState } from 'react';
 import { ArrowLeft, Plus } from 'lucide-react';
 import CaseTable from './_components/caseTable';
 import NewContract from './_components/newContract';
+import { useRouter, useSearchParams } from 'next/navigation';
+import z from 'zod';
+import { Suspense } from 'react';
+
+const tabEnum = z.enum(['view', 'new-contract']).catch('view');
+type Tab = z.infer<typeof tabEnum>;
 
 /**
  * Case management: the log of existing cases, and the entry point for putting a
  * deceased record under contract.
  *
  * @remarks
- * "New contract" swaps the case table for a picker of deceased records that
- * have no contract yet, rather than navigating away. Creating one bumps
- * `caseTableKey`, remounting `CaseTable` so the record — now a case for the
- * first time — appears in the log.
+ * The active tab lives in the `tab` query parameter rather than in component
+ * state, so the view survives a reload and is linkable. "New contract" swaps
+ * the case table for a picker of deceased records that have no contract yet,
+ * rather than navigating away. Because the two views are rendered
+ * conditionally, returning to the cases tab after a contract is created
+ * remounts `CaseTable`, so the record - now a case for the first time -
+ * appears in the log.
  */
-export default function CasesPage() {
-  const [isCreating, setIsCreating] = useState(false);
-  const [caseTableKey, setCaseTableKey] = useState(0);
+function CasesPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const activeTab = tabEnum.parse(searchParams.get('tab'));
+  const changeTab = (tabName: Tab) => {
+    router.replace(`/dashboard/case-management?tab=${tabName}`, {
+      scroll: false,
+    });
+  };
 
   return (
     <div className="flex-1 bg-gray-50 flex flex-col">
@@ -28,19 +43,19 @@ export default function CasesPage() {
               CASE MANAGEMENT
             </span>
             <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">
-              {isCreating ? 'New contract' : 'Cases'}
+              {activeTab === 'new-contract' ? 'New contract' : 'Cases'}
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              {isCreating
+              {activeTab === 'new-contract'
                 ? 'Select a deceased record to put under contract.'
                 : 'Review and manage case details, documents, and agreements.'}
             </p>
           </div>
 
-          {isCreating ? (
+          {activeTab === 'new-contract' ? (
             <button
               className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 text-sm font-medium px-4 py-2 hover:bg-gray-50 transition shrink-0 hover:cursor-pointer"
-              onClick={() => setIsCreating(false)}
+              onClick={() => changeTab('view')}
             >
               <ArrowLeft size={16} />
               Back to cases
@@ -48,25 +63,27 @@ export default function CasesPage() {
           ) : (
             <button
               className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition shrink-0 hover:cursor-pointer"
-              onClick={() => setIsCreating(true)}
+              onClick={() => changeTab('new-contract')}
             >
               <Plus size={16} />
               New contract
             </button>
           )}
         </div>
-
-        {isCreating ? (
-          <NewContract
-            onCreated={() => {
-              setIsCreating(false);
-              setCaseTableKey((k) => k + 1);
-            }}
-          />
+        {activeTab === 'new-contract' ? (
+          <NewContract onCreated={() => changeTab('view')} />
         ) : (
-          <CaseTable key={caseTableKey} />
-        )}
+          <CaseTable />
+        )}{' '}
       </main>
     </div>
+  );
+}
+
+export default function CasesPage() {
+  return (
+    <Suspense fallback={null}>
+      <CasesPageContent />
+    </Suspense>
   );
 }
