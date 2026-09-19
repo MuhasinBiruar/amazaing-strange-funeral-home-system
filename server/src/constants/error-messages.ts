@@ -47,6 +47,14 @@ export const FK_CONSTRAINTS: Record<
     field: 'caseid',
     message: 'Referenced deceased record does not exist.',
   },
+  casketdelivery_casketid_fkey: {
+    field: 'casketid',
+    message: 'Referenced casket does not exist.',
+  },
+  formalindelivery_formalinid_fkey: {
+    field: 'formalinid',
+    message: 'Referenced formalin inventory item does not exist.',
+  },
 };
 
 export const UNIQUE_CONSTRAINTS: Record<

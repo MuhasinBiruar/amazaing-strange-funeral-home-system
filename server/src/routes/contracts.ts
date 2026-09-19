@@ -10,6 +10,7 @@ import { NotFoundError, BadRequestError } from '@/errors';
 import validate from '@/middleware/validate';
 import { getDeceasedName } from '@/util/audit-log';
 import { createContractQuerySchema, type CreateContractQuery } from 'shared';
+import { withTransaction } from '@/util/with-transaction';
 
 const router = Router();
 
@@ -71,88 +72,86 @@ router.post(
     res: Response,
     next: NextFunction,
   ) => {
-    const parsed = req.body;
-    const client = await pool.connect();
-
     try {
-      await client.query('BEGIN');
+      const parsed = req.body;
 
-      const packageResult = await client.query(
-        'SELECT casketid FROM package WHERE packageid = $1',
-        [parsed.packageid],
-      );
-      if (packageResult.rows.length === 0) {
-        throw new NotFoundError('Referenced package does not exist.');
-      }
-      const casketid: number | null = packageResult.rows[0].casketid;
-
-      let casketWarning: string | null = null;
-
-      if (casketid !== null) {
-        const casketResult = await client.query(
-          `SELECT caskettype, currentstock, minimumthreshold
-           FROM casketinventory WHERE casketid = $1 FOR UPDATE`,
-          [casketid],
-        );
-        if (casketResult.rows.length === 0) {
-          throw new NotFoundError('Referenced casket does not exist.');
-        }
-
-        const casket = casketResult.rows[0];
-        if (casket.currentstock <= 0) {
-          throw new BadRequestError(
-            `No stock remaining for ${casket.caskettype}.`,
+      const { contract, casketWarning } = await withTransaction(
+        async (client) => {
+          const packageResult = await client.query(
+            'SELECT casketid FROM package WHERE packageid = $1',
+            [parsed.packageid],
           );
-        }
+          if (packageResult.rows.length === 0) {
+            throw new NotFoundError('Referenced package does not exist.');
+          }
+          const casketid: number | null = packageResult.rows[0].casketid;
 
-        const decremented = await client.query(
-          `UPDATE casketinventory SET currentstock = currentstock - 1
-           WHERE casketid = $1 RETURNING currentstock`,
-          [casketid],
-        );
-        const newStock: number = decremented.rows[0].currentstock;
+          let casketWarning: string | null = null;
 
-        if (newStock <= casket.minimumthreshold) {
-          casketWarning = `Stock for ${casket.caskettype} has reached the minimum threshold (${newStock} remaining).`;
-        }
-      }
+          if (casketid !== null) {
+            const casketResult = await client.query(
+              `SELECT caskettype, currentstock, minimumthreshold
+             FROM casketinventory WHERE casketid = $1 FOR UPDATE`,
+              [casketid],
+            );
+            if (casketResult.rows.length === 0) {
+              throw new NotFoundError('Referenced casket does not exist.');
+            }
 
-      const contractResult = await client.query(
-        `
-        INSERT INTO contract (
-          signeddate,
-          burialdatedeadline,
-          totalamount,
-          embalmingperiod,
-          inclusions,
-          caseid,
-          packageid
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING contractid;`,
-        [
-          parsed.signeddate,
-          parsed.burialdatedeadline,
-          parsed.totalamount,
-          parsed.embalmingperiod,
-          parsed.inclusions,
-          parsed.caseid,
-          parsed.packageid,
-        ],
+            const casket = casketResult.rows[0];
+            if (casket.currentstock <= 0) {
+              throw new BadRequestError(
+                `No stock remaining for ${casket.caskettype}.`,
+              );
+            }
+
+            const decremented = await client.query(
+              `UPDATE casketinventory SET currentstock = currentstock - 1
+             WHERE casketid = $1 RETURNING currentstock`,
+              [casketid],
+            );
+            const newStock: number = decremented.rows[0].currentstock;
+
+            if (newStock <= casket.minimumthreshold) {
+              casketWarning = `Stock for ${casket.caskettype} has reached the minimum threshold (${newStock} remaining).`;
+            }
+          }
+
+          const contractResult = await client.query(
+            `
+          INSERT INTO contract (
+            signeddate,
+            burialdatedeadline,
+            totalamount,
+            embalmingperiod,
+            inclusions,
+            caseid,
+            packageid
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING contractid;`,
+            [
+              parsed.signeddate,
+              parsed.burialdatedeadline,
+              parsed.totalamount,
+              parsed.embalmingperiod,
+              parsed.inclusions,
+              parsed.caseid,
+              parsed.packageid,
+            ],
+          );
+
+          return { contract: contractResult.rows[0], casketWarning };
+        },
       );
-
-      await client.query('COMMIT');
 
       const deceasedName = await getDeceasedName(parsed.caseid);
       res.locals.auditAction = `${res.locals.session.user.name} created a new contract for ${deceasedName}`;
 
       res.status(201).json({
-        data: contractResult.rows[0],
+        data: contract,
         casketWarning,
       });
     } catch (error) {
-      await client.query('ROLLBACK');
       next(error);
-    } finally {
-      client.release();
     }
   },
 );

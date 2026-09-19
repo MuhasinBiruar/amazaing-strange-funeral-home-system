@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { withNullDefault } from '../utils/with-null-default';
+import { withNullDefault } from '@/utils/with-null-default';
 
 export const createDocumentQuerySchema = z.object({
   documenttype: z.string().min(1),

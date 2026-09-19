@@ -1,9 +1,9 @@
 import z from 'zod';
-import { withNullDefault } from '../utils/with-null-default';
+import { withNullDefault } from '@/utils/with-null-default';
 import {
   paginationQuerySchema,
   paginationResponseSchema,
-} from '../utils/pagination-schema';
+} from '@/utils/pagination-schema';
 
 export const lifeplanCompanySchema = z.object({
   companyid: z.int32(),
