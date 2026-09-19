@@ -14,6 +14,7 @@ export * from './schemas/case';
 export * from './schemas/casketinventory';
 export * from './schemas/contract';
 export * from './schemas/deceasedrecord';
+export * from './schemas/delivery';
 export * from './schemas/direct';
 export * from './schemas/document';
 export * from './schemas/financial';
