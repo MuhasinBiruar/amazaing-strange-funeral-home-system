@@ -48,7 +48,7 @@ function CasketRow({
 }
 
 /**
- * Casket picker for the package builder. Caskets whose `packagetier` matches
+ * Casket picker for the package builder. Caskets whose `caskettier` matches
  * the package's own `packagetype` are shown first (that's the natural fit),
  * but every casket stays visible and selectable below — staff can still
  * override it. Out-of-stock caskets are grayed out and unselectable.
@@ -104,11 +104,9 @@ export default function CasketPicker({
         <div className="max-h-64 overflow-y-auto space-y-3 -mx-1 px-1">
           {(() => {
             const matching = caskets.filter(
-              (c) => c.packagetier === packagetype,
+              (c) => c.caskettier === packagetype,
             );
-            const others = caskets.filter(
-              (c) => c.packagetier !== packagetype,
-            );
+            const others = caskets.filter((c) => c.caskettier !== packagetype);
 
             return (
               <>
