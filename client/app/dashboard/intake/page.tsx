@@ -154,6 +154,12 @@ export default function IntakePage() {
             createdCaseId !== null ? 'Not now' : infoModalOptions.closeLabel
           }
           onClose={() => {
+            if (
+              infoModalOptions.severity === 'success' ||
+              infoModalOptions.severity === 'warning'
+            ) {
+              router.push('/dashboard/case-management');
+            }
             setIsInfoModalOpen(false);
             setCreatedCaseId(null);
             setInfoModalOptions({
