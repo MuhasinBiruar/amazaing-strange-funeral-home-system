@@ -20,6 +20,7 @@ import {
   createLifeplan,
   getLifeplan,
   getDirect,
+  getCaseTransactions,
   createLifeplanCompany,
   getLifeplanCompanies,
   getLifeplanCompany,
@@ -28,8 +29,22 @@ import {
 import { idParamSchema } from 'shared/utils';
 import validateParams from '@/middleware/validate-params';
 import { toExclusiveEndBound } from '@/util/date';
+import {
+  getDayTransactions,
+  createCaseTransaction,
+} from '@/controllers/financial';
+import { createTransactionSchema } from 'shared';
 
 const router = Router();
+
+router.post(
+  '/direct/:id/transactions',
+  requireAuth,
+  validateParams(idParamSchema),
+  validate(createTransactionSchema),
+  createCaseTransaction,
+);
+
 
 /**
  * Sample URLs
@@ -46,6 +61,17 @@ const router = Router();
  * `http://localhost:4000/financial/direct?sortBy=caseid&sortOrder=desc&page=2&limit=10`
  */
 router.get('/direct', requireAuth, getDirect);
+
+/**
+ * Sample URL
+ * `http://localhost:4000/financial/direct/12/transactions`
+ */
+router.get(
+  '/direct/:id/transactions',
+  requireAuth,
+  validateParams(idParamSchema),
+  getCaseTransactions,
+);
 
 router.post(
   '/lgucases',
@@ -100,6 +126,12 @@ router.delete(
   validateParams(idParamSchema),
   deleteLifeplanCompany,
 );
+
+/**
+ * Sample URL
+ * `http://localhost:4000/financial/transactions?startDate=2026-08-01&endDate=2026-08-01`
+ */
+router.get('/transactions', requireAuth, getDayTransactions);
 
 /**
  * Sample URLs

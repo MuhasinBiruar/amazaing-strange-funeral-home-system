@@ -54,6 +54,47 @@ export const getFinancialSummaryResponseSchema = z.object({
   }),
 });
 
+export const dayTransactionsQuerySchema = z.object({
+  startDate: z.string(),
+  endDate: z.string(),
+});
+export type DayTransactionsQuery = z.infer<typeof dayTransactionsQuerySchema>;
+
 export type GetFinancialSummaryResponse = z.infer<
   typeof getFinancialSummaryResponseSchema
 >;
+
+
+export type PaymentCategory = z.infer<typeof paymentCategoryEnum>;
+
+export const paymentCategoryEnum = z.enum([
+  'Down Payment',
+  'Installment',
+  'Full Payment',
+  'Refund',
+]);
+
+export const paymentMethodEnum = z.enum([
+  'Cash',
+  'Bank Transfer',
+  'GCash',
+  'Check',
+  'Credit Card',
+]);
+export type PaymentMethod = z.infer<typeof paymentMethodEnum>;
+
+
+export const transactionStatusEnum = z.enum([
+  'pending',
+  'completed',
+  'failed',
+  'refunded',
+]);
+export type TransactionStatus = z.infer<typeof transactionStatusEnum>;
+
+export const createTransactionSchema = z.object({
+  amount: z.coerce.number().positive('Amount must be greater than zero'),
+  paymentcategory: paymentCategoryEnum,
+  paymentmethod: paymentMethodEnum,
+});
+export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;

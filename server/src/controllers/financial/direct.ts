@@ -1,3 +1,4 @@
+import pool from '@/db';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 import type { NextFunction, Request, Response } from 'express';
 import { getDirectPlansQuerySchema } from 'shared';
@@ -11,6 +12,35 @@ const SORT_COLUMNS: Record<string, string> = {
   totalamount: 'c.totalamount',
   totalamountpaid: 'totalamountpaid',
 };
+
+export async function getCaseTransactions(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { id } = req.params as unknown as { id: string };
+
+    const result = await pool.query(
+      `
+      SELECT
+        transactionid,
+        amount,
+        paymentcategory,
+        transactionstatus,
+        paymentdatetime
+      FROM public.transaction
+      WHERE caseid = $1
+      ORDER BY paymentdatetime DESC
+      `,
+      [id],
+    );
+
+    res.json({ data: result.rows });
+  } catch (error) {
+    next(error);
+  }
+}
 
 export async function getDirect(
   req: Request,
