@@ -16,6 +16,13 @@ export interface InfoModalProps {
   severity?: 'info' | 'warning' | 'error' | 'success';
   items?: string[];
   itemIcon?: LucideIcon;
+  /**
+   * Adds a second, primary action button (e.g. "Assign a package") alongside
+   * the close button, which becomes secondary/muted. Provide both or
+   * neither — omitting them keeps the original single-button layout.
+   */
+  confirmLabel?: string;
+  onConfirm?: () => void;
 }
 
 export type InfoModalOptions = Omit<InfoModalProps, 'onClose'>;
@@ -55,7 +62,10 @@ export default function InfoModal({
   severity = 'info',
   items,
   itemIcon: ItemIcon = FileText,
+  confirmLabel,
+  onConfirm,
 }: InfoModalProps) {
+  const hasConfirmAction = Boolean(confirmLabel && onConfirm);
   const styles = severityStyles[severity];
 
   return (
@@ -94,10 +104,23 @@ export default function InfoModal({
           <button
             type="button"
             onClick={onClose}
-            className={`flex-1 py-2 text-sm font-bold text-white rounded-lg ${styles.button} transition`}
+            className={
+              hasConfirmAction
+                ? 'flex-1 py-2 text-sm font-bold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition'
+                : `flex-1 py-2 text-sm font-bold text-white rounded-lg ${styles.button} transition`
+            }
           >
             {closeLabel}
           </button>
+          {hasConfirmAction && (
+            <button
+              type="button"
+              onClick={onConfirm}
+              className={`flex-1 py-2 text-sm font-bold text-white rounded-lg ${styles.button} transition`}
+            >
+              {confirmLabel}
+            </button>
+          )}
         </div>
       </div>
     </div>

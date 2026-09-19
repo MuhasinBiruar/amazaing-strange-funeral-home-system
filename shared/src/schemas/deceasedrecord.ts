@@ -79,6 +79,9 @@ export type UncontractedDeceased = z.infer<typeof uncontractedDeceasedSchema>;
 export const getUncontractedDeceasedQuerySchema = paginationQuerySchema.extend({
   search: z.string().optional(),
   status: uncontractedDeceasedSchema.shape.servicestatus.optional(),
+  // Exact match, unlike `search` (which is a fuzzy ILIKE) — for fetching one
+  // specific record precisely, e.g. jumping straight to a just-created case.
+  caseid: z.coerce.number().int().optional(),
   sortBy: z.keyof(uncontractedDeceasedSchema).default('caseid'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });

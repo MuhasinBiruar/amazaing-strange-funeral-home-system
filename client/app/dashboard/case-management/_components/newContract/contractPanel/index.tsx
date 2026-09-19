@@ -183,9 +183,6 @@ export default function ContractPanel({
             <h2 className="text-lg font-serif font-bold text-gray-900 wrap-break-word">
               {deceased.deceased_name}
             </h2>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Case #{deceased.caseid}
-            </p>
           </div>
           <button
             type="button"
