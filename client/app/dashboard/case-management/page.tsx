@@ -34,12 +34,6 @@ function CasesPageContent() {
     });
   };
 
-  // Set when arriving here right after creating a record in intake, so its
-  // contract panel opens immediately instead of making staff find and click
-  // it in the list.
-  const caseidParam = searchParams.get('caseid');
-  const initialCaseId = caseidParam ? Number(caseidParam) : undefined;
-
   return (
     <div className="flex-1 bg-gray-50 flex flex-col">
       <main className="flex-1 w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -77,10 +71,7 @@ function CasesPageContent() {
           )}
         </div>
         {activeTab === 'new-contract' ? (
-          <NewContract
-            initialCaseId={initialCaseId}
-            onCreated={() => changeTab('view')}
-          />
+          <NewContract onCreated={() => changeTab('view')} />
         ) : (
           <CaseTable />
         )}
