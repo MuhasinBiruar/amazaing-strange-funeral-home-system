@@ -1,4 +1,5 @@
 import { API } from './api';
+import type { CreateTransactionInput } from 'shared';
 
 export interface DirectPlan {
   caseid: number;
@@ -45,6 +46,17 @@ export interface FinancialSummaryMeta {
   endDate: string | null;
   totalIn: number;
   totalOut: number;
+}
+
+export async function createCaseTransaction(
+  caseId: number,
+  payload: CreateTransactionInput,
+) {
+  const res = await API.post<{ data: any }>(
+    `/financial/direct/${caseId}/transactions`,
+    payload,
+  );
+  return res.data;
 }
 
 interface PaginatedParams {

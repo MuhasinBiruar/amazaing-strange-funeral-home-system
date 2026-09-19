@@ -30,12 +30,21 @@ import { idParamSchema } from 'shared/utils';
 import validateParams from '@/middleware/validate-params';
 import { toExclusiveEndBound } from '@/util/date';
 import {
-  // ...existing,
   getDayTransactions,
+  createCaseTransaction,
 } from '@/controllers/financial';
-
+import { createTransactionSchema } from 'shared';
 
 const router = Router();
+
+router.post(
+  '/direct/:id/transactions',
+  requireAuth,
+  validateParams(idParamSchema),
+  validate(createTransactionSchema),
+  createCaseTransaction,
+);
+
 
 /**
  * Sample URLs
