@@ -34,6 +34,8 @@ import {
   createCaseTransaction,
 } from '@/controllers/financial';
 import { createTransactionSchema } from 'shared';
+import { createExpenseSchema } from 'shared';
+import { getExpenses, createExpense } from '@/controllers/financial';
 
 const router = Router();
 
@@ -170,6 +172,7 @@ router.get(
       ];
 
       const deliveryWhereConditions: string[] = [];
+      const expenseWhereConditions: string[] = [];
 
       const queryParams: unknown[] = [];
       let paramIndex = 1;
@@ -177,6 +180,7 @@ router.get(
       if (startDate) {
         transactionWhereConditions.push(`paymentdatetime >= $${paramIndex}`);
         deliveryWhereConditions.push(`deliverydate >= $${paramIndex}`);
+        expenseWhereConditions.push(`expensedate >= $${paramIndex}`);
 
         queryParams.push(startDate);
         paramIndex++;
@@ -185,13 +189,14 @@ router.get(
       if (endDate) {
         transactionWhereConditions.push(`paymentdatetime < $${paramIndex}`);
         deliveryWhereConditions.push(`deliverydate < $${paramIndex}`);
+        expenseWhereConditions.push(`expensedate < $${paramIndex}`);
 
         queryParams.push(toExclusiveEndBound(endDate));
         paramIndex++;
       }
 
       if (caseid !== undefined) {
-        // Deliveries do not have a caseid column, so this filter
+        // Deliveries and Expenses do not have a caseid column, so this filter
         // only applies to transactions.
         transactionWhereConditions.push(`caseid = $${paramIndex}`);
         queryParams.push(caseid);
@@ -202,6 +207,10 @@ router.get(
 
       const deliveryWhereClause = deliveryWhereConditions.length
         ? `WHERE ${deliveryWhereConditions.join(' AND ')}`
+        : '';
+        
+      const expenseWhereClause = expenseWhereConditions.length
+        ? `WHERE ${expenseWhereConditions.join(' AND ')}`
         : '';
 
       const result = await pool.query(
@@ -262,6 +271,20 @@ router.get(
           ${deliveryWhereClause}
 
           GROUP BY period
+          
+          UNION ALL
+
+          -- General Expenses
+          SELECT
+            date_trunc('${unit}', expensedate::timestamp) AS period,
+            COALESCE(SUM(amount), 0) AS totalout,
+            0::double precision AS totalin,
+            0::bigint AS transactioncount
+
+          FROM public.expense
+          ${expenseWhereClause}
+
+          GROUP BY period
         )
 
         SELECT
@@ -300,5 +323,15 @@ router.get(
     }
   },
 );
+
+router.get('/expenses', requireAuth, getExpenses);
+
+router.post(
+  '/expenses',
+  requireAuth,
+  validate(createExpenseSchema),
+  createExpense
+);
+
 
 export default router;

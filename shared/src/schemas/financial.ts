@@ -74,6 +74,13 @@ export const paymentCategoryEnum = z.enum([
   'Refund',
 ]);
 
+export const createExpenseSchema = z.object({
+  description: z.string().min(1, 'Description is required'),
+  amount: z.coerce.number().positive('Amount must be greater than zero'),
+  recordedby: z.string().optional(),
+});
+export type CreateExpense = z.infer<typeof createExpenseSchema>;
+
 export const paymentMethodEnum = z.enum([
   'Cash',
   'Bank Transfer',
@@ -96,5 +103,6 @@ export const createTransactionSchema = z.object({
   amount: z.coerce.number().positive('Amount must be greater than zero'),
   paymentcategory: paymentCategoryEnum,
   paymentmethod: paymentMethodEnum,
+  orNumber: z.string().optional(),
 });
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;

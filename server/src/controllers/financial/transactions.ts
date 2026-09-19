@@ -9,14 +9,12 @@ import {
   type CreateTransactionInput,
 } from 'shared';
 
-// Helper for the getDayTransactions date bounds
 const toExclusiveEndBound = (dateStr: string) => {
   const d = new Date(dateStr);
   d.setDate(d.getDate() + 1);
   return d.toISOString().slice(0, 10);
 };
 
-// 1. Fetch Transactions for a Specific Day (The one we fixed earlier)
 export async function getDayTransactions(
   req: Request,
   res: Response,
@@ -70,6 +68,20 @@ export async function getDayTransactions(
           fd.deliverydate::timestamp AS datetime
         FROM public.formalindelivery fd
         WHERE fd.deliverydate >= $1 AND fd.deliverydate < $2
+
+        UNION ALL
+
+        SELECT
+          e.expenseid::text AS id,
+          'expense'::text AS source,
+          e.amount::numeric AS amount,
+          'out'::text AS direction,
+          NULL::int AS caseid,
+          NULL::text AS deceased_name,
+          ('Expense - ' || e.description)::text AS category,
+          e.expensedate::timestamp AS datetime
+        FROM public.expense e
+        WHERE e.expensedate >= $1 AND e.expensedate < $2
       ) combined
       ORDER BY datetime DESC
       `,
@@ -80,8 +92,7 @@ export async function getDayTransactions(
   } catch (error) {
     next(error);
   }
-}
-
+} 
 // 2. Create a New Case Transaction (The new one)
 export async function createCaseTransaction(
   req: Request<{ id: string }, {}, CreateTransactionInput>,
@@ -94,7 +105,6 @@ export async function createCaseTransaction(
     const parsed = createTransactionSchema.parse(req.body);
 
     const transaction = await withRepeatableRead(async (client) => {
-      // 1. Fetch total contract price
       const contractRes = await client.query(
         'SELECT totalamount FROM public.contract WHERE caseid = $1',
         [caseIdNum],
@@ -106,7 +116,6 @@ export async function createCaseTransaction(
 
       const totalAmount = Number(contractRes.rows[0].totalamount);
 
-      // 2. Fetch existing completed transaction total
       const paidRes = await client.query(
         `
         SELECT
@@ -130,30 +139,29 @@ export async function createCaseTransaction(
 
       const remainingBalance = Math.max(0, totalAmount - newPaid);
 
-      // 3. Insert new completed transaction record
       const insertRes = await client.query(
         `
         INSERT INTO public.transaction (
-          amount,
-          paymentdatetime,
-          paymentmethod,
-          paymentcategory,
-          remainingbalance,
-          transactionstatus,
-          caseid
+          amount, paymentdatetime, paymentmethod, paymentcategory, remainingbalance, transactionstatus, caseid
         ) VALUES ($1, NOW(), $2, $3, $4, 'completed', $5)
         RETURNING *;
         `,
-        [
-          parsed.amount,
-          parsed.paymentmethod,
-          parsed.paymentcategory,
-          remainingBalance,
-          caseIdNum,
-        ],
+        [parsed.amount, parsed.paymentmethod, parsed.paymentcategory, remainingBalance, caseIdNum]
       );
 
-      return insertRes.rows[0];
+      const newTransaction = insertRes.rows[0];
+
+      if (parsed.orNumber) {
+        await client.query(
+          `
+          INSERT INTO public.officialreceipt (ornumber, amount, issuedate, reissuancecount, transactionid)
+          VALUES ($1, $2, CURRENT_DATE, 0, $3);
+          `,
+          [parsed.orNumber, parsed.amount, newTransaction.transactionid]
+        );
+      }
+
+      return newTransaction;
     });
 
     const deceasedName = await getDeceasedName(caseIdNum);
@@ -164,3 +172,32 @@ export async function createCaseTransaction(
     next(error);
   }
 }
+
+export const getExpenses = async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT * FROM public.expense 
+      ORDER BY expensedate DESC, expenseid DESC
+    `);
+    res.json({ data: result.rows });
+  } catch (error) {
+    console.error('Failed to fetch expenses:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const createExpense = async (req: Request, res: Response) => {
+  try {
+    const parsed = req.body; // Assume validated by middleware
+    const result = await pool.query(
+      `INSERT INTO public.expense (description, amount, expensedate, recordedby)
+       VALUES ($1, $2, CURRENT_DATE, $3)
+       RETURNING *`,
+      [parsed.description, parsed.amount, parsed.recordedby || 'Staff']
+    );
+    res.status(201).json({ data: result.rows[0] });
+  } catch (error) {
+    console.error('Failed to create expense:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};

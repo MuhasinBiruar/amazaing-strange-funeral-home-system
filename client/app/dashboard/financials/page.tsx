@@ -5,22 +5,24 @@ import SummaryPanel from './_components/summaryPanel';
 import DirectTable from './_components/directTable';
 import LguTable from './_components/lguTable';
 import LifeplanTable from './_components/lifeplanTable';
+import ExpenseTable from './_components/expenseTable';
 
-type Tab = 'direct' | 'lgu' | 'lifeplan';
+type Tab = 'direct' | 'lgu' | 'lifeplan' | 'expenses';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'direct', label: 'Direct' },
   { key: 'lgu', label: 'LGU' },
   { key: 'lifeplan', label: 'Life Plan' },
+  { key: 'expenses', label: 'Expenses' },
 ];
 
 /**
  * Financial dashboard: money-in/money-out summary over time, plus separate
- * logs for Direct, LGU, and Life Plan payment types.
+ * logs for Direct, LGU, Life Plan payment types, and general Expenses.
  *
  * @remarks
  * Mirrors the case-management page shell (category pill, serif heading,
- * subtitle) and reuses the shared `DataTable` for each payment type's log.
+ * subtitle) and reuses the shared `DataTable` for each log.
  */
 export default function FinancialsPage() {
   const [tab, setTab] = useState<Tab>('direct');
@@ -36,8 +38,7 @@ export default function FinancialsPage() {
             Financials
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Track money in and out, and manage Direct, LGU, and Life Plan
-            payment records.
+            Track money in and out, and manage Direct, LGU, Life Plan payments, and general Expenses.
           </p>
         </div>
 
@@ -64,6 +65,7 @@ export default function FinancialsPage() {
         {tab === 'direct' && <DirectTable />}
         {tab === 'lgu' && <LguTable />}
         {tab === 'lifeplan' && <LifeplanTable />}
+        {tab === 'expenses' && <ExpenseTable />}
       </main>
     </div>
   );

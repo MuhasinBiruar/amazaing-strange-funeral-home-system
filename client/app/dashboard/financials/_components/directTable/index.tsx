@@ -6,11 +6,14 @@ import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import { getDirectPlans, type DirectPlan } from '@/services/financialService';
 import TransactionHistoryPanel from './transactionHistoryPanel';
+import RecordTransactionModal from './RecordTransactionModal';
 
 type ColumnKey = keyof DirectPlan;
 
 export default function DirectTable() {
   const [historyFor, setHistoryFor] = useState<DirectPlan | null>(null);
+  const [paymentFor, setPaymentFor] = useState<DirectPlan | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const columns: DataTableColumn<DirectPlan, ColumnKey>[] = [
     {
@@ -41,16 +44,25 @@ export default function DirectTable() {
     },
     {
       key: 'caseid',
-      label: 'History',
-      widthClassName: 'w-25',
+      label: 'Actions',
+      widthClassName: 'w-48',
       render: (d) => (
-        <button
-          type="button"
-          onClick={() => setHistoryFor(d)}
-          className="text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer text-sm"
-        >
-          View history
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => setPaymentFor(d)}
+            className="text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer text-sm font-medium"
+          >
+            Record payment
+          </button>
+          <button
+            type="button"
+            onClick={() => setHistoryFor(d)}
+            className="text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer text-sm"
+          >
+            View history
+          </button>
+        </div>
       ),
     },
   ];
@@ -58,6 +70,7 @@ export default function DirectTable() {
   return (
     <>
       <DataTable<DirectPlan, ColumnKey>
+        key={refreshKey}
         title="Direct payment log"
         countLabel={(total) => `${total} plans`}
         searchPlaceholder="Search by deceased or representative..."
@@ -72,10 +85,23 @@ export default function DirectTable() {
 
       {historyFor && (
         <TransactionHistoryPanel
-          key={historyFor.caseid}
+          key={`history-${historyFor.caseid}`}
           caseid={historyFor.caseid}
           deceasedName={historyFor.deceased_name}
           onClose={() => setHistoryFor(null)}
+        />
+      )}
+
+      {paymentFor && (
+        <RecordTransactionModal
+          key={`payment-${paymentFor.caseid}`}
+          caseId={paymentFor.caseid}
+          deceasedName={paymentFor.deceased_name}
+          onClose={() => setPaymentFor(null)}
+          onSuccess={() => {
+            // Force the table to remount and refetch new totals
+            setRefreshKey((prev) => prev + 1);
+          }}
         />
       )}
     </>

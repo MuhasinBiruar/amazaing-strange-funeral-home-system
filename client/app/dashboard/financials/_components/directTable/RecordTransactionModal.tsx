@@ -12,6 +12,7 @@ const PAYMENT_CATEGORIES: PaymentCategory[] = [
   'Refund',
 ];
 
+
 const PAYMENT_METHODS: PaymentMethod[] = [
   'Cash',
   'Bank Transfer',
@@ -36,6 +37,7 @@ export default function RecordTransactionModal({
   const [amount, setAmount] = useState<string>('');
   const [category, setCategory] = useState<PaymentCategory>('Down Payment');
   const [method, setMethod] = useState<PaymentMethod>('Cash');
+  const [orNumber, setOrNumber] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -55,6 +57,7 @@ export default function RecordTransactionModal({
         amount: parsedAmount,
         paymentcategory: category,
         paymentmethod: method,
+        orNumber: orNumber.trim()
       });
       onSuccess();
       onClose();
@@ -104,6 +107,19 @@ export default function RecordTransactionModal({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              OR Number (Optional)
+            </label>
+            <input
+              type="text"
+              value={orNumber}
+              onChange={(e) => setOrNumber(e.target.value)}
+              placeholder="e.g. OR-12345"
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>

@@ -284,3 +284,55 @@ export async function getDayTransactions(
   });
   return result.data;
 }
+export type Expense = {
+  expenseid: number;
+  description: string;
+  amount: number;
+  expensedate: string;
+  recordedby: string;
+};
+
+export async function getExpenses({
+  page = 1,
+  limit = 10,
+  sortBy = 'expensedate',
+  sortOrder = 'desc',
+  search,
+  signal,
+}: any = {}) {
+  const params = new URLSearchParams();
+  params.append('page', String(page));
+  params.append('limit', String(limit));
+  if (sortBy) params.append('sortBy', sortBy);
+  if (sortOrder) params.append('sortOrder', sortOrder);
+  if (search) params.append('search', search);
+
+  const result = await API.get(`/financial/expenses?${params}`, {
+    withCredentials: true,
+    signal,
+  });
+
+  const responseData = result.data || result;
+  const items = responseData.data || [];
+  const totalItems = items.length;
+  
+  const parsedPage = Number(page) || 1;
+  const parsedLimit = Number(limit) || 10;
+
+  // Provide the exact meta shape required by PaginatedResponse
+  return {
+    data: items,
+    meta: {
+      total: totalItems,
+      page: parsedPage,
+      limit: parsedLimit,
+      totalPages: Math.ceil(totalItems / parsedLimit) || 1,
+    },
+  };
+}
+export async function createExpense(data: { description: string; amount: number; recordedby?: string }) {
+  const result = await API.post(`/financial/expenses`, data, {
+    withCredentials: true,
+  });
+  return result.data || result;
+}
