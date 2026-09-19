@@ -74,7 +74,7 @@ function CasesPageContent() {
           <NewContract onCreated={() => changeTab('view')} />
         ) : (
           <CaseTable />
-        )}{' '}
+        )}
       </main>
     </div>
   );
