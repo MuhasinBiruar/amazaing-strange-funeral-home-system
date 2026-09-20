@@ -1,16 +1,14 @@
 'use client';
+
 import { useRouter } from 'next/navigation';
-import { getAllStaff, getStaff } from '@/services/staffService';
+import { getAllStaff } from '@/services/staffService';
 import { useState, useEffect } from 'react';
 import type { UpdateStaffQuery } from 'shared';
 import { RadioButton } from 'primereact/radiobutton';
 import EditStaffModal from './_components/edit_modal';
-/**
- * @todo do not allow access to edit button if user has not selected a staff member to edit.
- * Do not allow regular staff to access this page, only admin users should be able to access this page.
- *
- *
- */
+
+// TODO: Refactor UI to pull a side panel when selecting
+// TODO: Enforce access so ONLY admins can access
 
 export default function AdminPage() {
   const [staff, setStaff] = useState<UpdateStaffQuery[]>([]);
@@ -19,7 +17,7 @@ export default function AdminPage() {
     UpdateStaffQuery['username'] | null
   >(null);
   const [editClicked, setEditClicked] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -55,7 +53,7 @@ export default function AdminPage() {
           <p className="text-lg font-medium text-gray-900">Admin Actions</p>
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <button
-              onClick={() => router.push('/dashboard/create-account')}
+              onClick={() => router.push('/dashboard/admin/create-account')}
               className="bg-indigo-600 text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-indigo-700 transition hover:cursor-pointer"
             >
               Create Account

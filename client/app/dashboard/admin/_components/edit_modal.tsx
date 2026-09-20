@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { UpdateStaffQuery } from 'shared';
 import { getStaff } from '@/services/staffService';
-import { authClient } from '@/lib/auth-client';
 
 export interface StaffDetails {
   firstName: string;
