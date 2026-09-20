@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { isAxiosError } from 'axios';
 import { Loader2, X } from 'lucide-react';
 import { createCaseTransaction } from '@/services/financialService';
 import type { PaymentCategory, PaymentMethod } from 'shared';
@@ -11,7 +12,6 @@ const PAYMENT_CATEGORIES: PaymentCategory[] = [
   'Full Payment',
   'Refund',
 ];
-
 
 const PAYMENT_METHODS: PaymentMethod[] = [
   'Cash',
@@ -57,13 +57,16 @@ export default function RecordTransactionModal({
         amount: parsedAmount,
         paymentcategory: category,
         paymentmethod: method,
-        orNumber: orNumber.trim()
+        orNumber: orNumber.trim(),
       });
       onSuccess();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Transaction creation error:', err);
-      setErrorMsg(err.response?.data?.message || 'Failed to record transaction.');
+      const message = isAxiosError<{ message?: string }>(err)
+        ? err.response?.data?.message
+        : undefined;
+      setErrorMsg(message || 'Failed to record transaction.');
     } finally {
       setIsSubmitting(false);
     }
@@ -74,7 +77,9 @@ export default function RecordTransactionModal({
       <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
         <header className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Record Payment</h3>
+            <h3 className="text-base font-semibold text-gray-900">
+              Record Payment
+            </h3>
             <p className="text-xs text-gray-500">
               Case #{caseId} {deceasedName ? `· ${deceasedName}` : ''}
             </p>
