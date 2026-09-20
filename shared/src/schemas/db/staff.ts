@@ -53,6 +53,7 @@ export type CreateStaffQuery = z.infer<typeof createStaffQuerySchema>;
 
 export const updateStaffQuerySchema = staffSchema
   .omit({
+    id: true,
     name: true,
   })
   .partial({
