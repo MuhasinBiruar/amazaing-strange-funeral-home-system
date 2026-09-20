@@ -7,7 +7,7 @@ import {
 import pool from '@/db';
 import validate from '@/middleware/validate';
 import requireAuth from '@/middleware/require-auth';
-import { NotFoundError } from '@/errors';
+import { BadRequestError, NotFoundError } from '@/errors';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 import { getRepresentativeName, joinName } from '@/util/audit-log';
 import {
@@ -261,21 +261,20 @@ router.post(
 router.patch(
   '/:id',
   requireAuth,
+  validateParams(idParamSchema),
   validate(updateDeceasedRecordQuerySchema),
   async (
-    req: Request<{ id: string }, {}, UpdateDeceasedRecordQuery>,
+    req: Request<unknown, {}, UpdateDeceasedRecordQuery>,
     res: Response,
     next: NextFunction,
   ) => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as IdParam;
       const parsed = req.body;
       const userId = res.locals.session.user.id;
 
       if (Object.keys(parsed).length === 0) {
-        return res
-          .status(400)
-          .json({ error: 'No fields provided for update.' });
+        return new BadRequestError('No fields provided for update.');
       }
 
       const result = await pool.query(
