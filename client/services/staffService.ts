@@ -1,6 +1,7 @@
-import type { AppErrorResponse, CreateStaffQuery } from 'shared';
+import type { CreateStaffQuery } from 'shared';
 import { API } from './api';
 import axios from 'axios';
+import { extractErrorMessage } from './utils/extractErrorMessage';
 
 export const getStaff = async (username: string) => {
   try {
@@ -25,32 +26,6 @@ export const getAllStaff = async (): Promise<CreateStaffQuery[]> => {
     throw error;
   }
 };
-
-export function extractErrorMessage(data: AppErrorResponse): string {
-  const details = data.error.details;
-
-  // Format array of field-specific errors if available
-  if (Array.isArray(details) && details.length > 0) {
-    const map = new Map<string, string[]>();
-
-    for (const { field = '', message } of details) {
-      const existing = map.get(field);
-      if (existing) {
-        existing.push(message);
-      } else {
-        map.set(field, [message]);
-      }
-    }
-
-    return Array.from(map.entries())
-      .map(([field, messages]) =>
-        field ? `${field}: ${messages.join(', ')}` : messages.join(', '),
-      )
-      .join('; ');
-  }
-
-  return data.error.message;
-}
 
 export const createStaff = async (staffData: CreateStaffQuery) => {
   try {

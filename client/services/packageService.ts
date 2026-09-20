@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getPackagesResponseSchema, type CreatePackageQuery } from 'shared';
 import { API } from './api';
-import { extractErrorMessage } from './staffService';
+import { extractErrorMessage } from './utils/extractErrorMessage';
 
 /**
  * Fetches every service package.
