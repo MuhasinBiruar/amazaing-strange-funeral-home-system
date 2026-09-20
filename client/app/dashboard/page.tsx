@@ -38,7 +38,7 @@ const modules = [
     name: 'Inventory Audits',
     description: 'Check inventory records',
     icon: ClipboardCheck,
-    routeTo: null,
+    routeTo: '/dashboard/inventory',
   },
   {
     section: 'Finance',
