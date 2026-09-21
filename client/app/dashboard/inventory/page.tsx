@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-
+import CasketTable from './_components/casket-table';
 type Tab = 'inventory' | 'delivery';
 
 const TABS: { key: Tab; label: string }[] = [
@@ -44,6 +44,7 @@ export default function InventoryPage() {
             ))}
           </div>
         </div>
+        {activeTab === 'inventory' && <CasketTable />}
       </main>
     </div>
   );
