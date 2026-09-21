@@ -1,7 +1,6 @@
 import { betterAuth } from 'better-auth';
+import { username, admin } from 'better-auth/plugins';
 import { Pool } from 'pg';
-import { username } from 'better-auth/plugins';
-import { admin } from 'better-auth/plugins';
 
 /**
  * Better Auth server configuration for the funeral home system.
