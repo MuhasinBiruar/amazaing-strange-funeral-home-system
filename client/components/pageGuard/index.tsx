@@ -69,7 +69,7 @@ export default function PageGuard({ children }: { children: React.ReactNode }) {
 
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="grow flex items-center justify-center">
         <p className="text-gray-500 text-sm">Loading...</p>
       </div>
     );
