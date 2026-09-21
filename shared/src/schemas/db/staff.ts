@@ -27,15 +27,14 @@ export const staffSchema = z.object({
       .min(1)
       .max(255, 'Job role must be at most 255 characters'),
   ).default('staff'),
-  email: withNullDefault(
-    z
-      .email('Invalid email address')
-      .max(255, 'Email must be at most 255 characters'),
-  ),
   contactNumber: withNullDefault(contactNumberSchema),
-  /** Automatically generated from firstName + middleName + lastName */
+  /** Automatically generated from firstName + middleName + lastName. */
   name: z.string().trim().min(1),
-  username: withNullDefault(z.string().trim().min(3).max(50)),
+  /**
+   * @remarks
+   * Nullable in the database but user can't login without a username.
+   */
+  username: z.string().trim().min(3).max(50),
   role: withNullDefault(staffRoleEnum),
 });
 

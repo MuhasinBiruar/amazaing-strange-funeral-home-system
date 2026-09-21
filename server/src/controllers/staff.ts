@@ -68,11 +68,10 @@ export const createStaff = async (
         parsed.middleName?.toLowerCase()[0] || ''
       }${parsed.lastName.toLowerCase()}`,
     );
-    const email = parsed.email ?? `${username}@staff.internal`;
 
     const staff = await auth.api.createUser({
       body: {
-        email: email,
+        email: `${username}@staff.internal`,
         password: parsed.password,
         name: `${parsed.firstName} ${parsed.lastName}`,
         role: parsed.role,
@@ -169,16 +168,18 @@ export const updateStaff = async (
       'lastName',
       'isActive',
       'jobRole',
-      'email',
       'contactNumber',
       'username',
     ];
     const payload: Partial<
-      Record<(typeof fields)[number] | 'name', ValueOf<typeof parsed>>
+      Record<(typeof fields)[number] | 'name' | 'email', ValueOf<typeof parsed>>
     > = {};
     for (const field of fields) {
       if (parsed[field] !== existing[field]) {
         payload[field] = parsed[field];
+
+        if (field === 'username')
+          payload.email = `${parsed.username}@staff.internal`;
       }
     }
     const name = `${nextFirstName} ${nextLastName}`;
