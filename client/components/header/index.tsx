@@ -1,28 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Building2 } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
+import { useAuth } from '@/contexts/AuthProvider';
 import { useRouter } from 'next/navigation';
 
 export default function Header() {
-  const [role, setRole] = useState('');
+  const { jobRole } = useAuth();
   const [open, setOpen] = useState(false);
   const [clickLogOut, setClickLogOut] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    authClient
-      .getSession()
-      .then(({ data }) => {
-        console.log('Session data:', data); //remove later
-        const user = data?.user as unknown as { jobRole?: string } | undefined;
-        setRole(user?.jobRole ?? 'Unknown Role');
-      })
-      .catch(() => {
-        setRole('Unknown Role');
-      });
-  }, []);
 
   return (
     <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-700 gap-2 sticky top-0 bg-white/50 backdrop-blur-md z-50">
@@ -46,7 +34,7 @@ export default function Header() {
           onClick={() => setOpen(!open)}
           className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 cursor-pointer font-bold"
         >
-          Role: <span>{role}</span>
+          Role: <span>{jobRole ?? 'Unknown Role'}</span>
         </button>
         <button
           onClick={() => setClickLogOut(true)}
