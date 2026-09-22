@@ -91,7 +91,7 @@ export default function InfoModal({
           </button>
         </div>
 
-        <p className="text-sm text-gray-600">{message}</p>
+        <div className="text-sm text-gray-600">{message}</div>
 
         {items && items.length > 0 && (
           <ul className={`text-sm p-3 rounded-lg border ${styles.list}`}>
