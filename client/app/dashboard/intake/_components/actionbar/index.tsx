@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
-import ConfirmModal from '@/components/modals/confirmModal';
+import { useInfoModal } from '@/hooks/useInfoModal';
 
 export default function ActionBar({
   clearDraft,
@@ -11,7 +10,7 @@ export default function ActionBar({
   isSubmitting: boolean;
   submitStatus: string;
 }) {
-  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const { infoModal, showInfo } = useInfoModal();
 
   return (
     <>
@@ -37,7 +36,18 @@ export default function ActionBar({
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => setIsResetModalOpen(true)}
+              onClick={async () => {
+                const isConfirmed = await showInfo({
+                  title: 'Reset Form?',
+                  message:
+                    "This will clear everything you've entered and cannot be undone.",
+                  confirmLabel: 'Reset',
+                  closeLabel: 'Cancel',
+                  severity: 'error',
+                });
+
+                if (isConfirmed) clearDraft();
+              }}
               className="px-4 py-2 text-sm font-semibold text-gray-600 \
               bg-white border border-gray-300 rounded-lg hover:bg-gray-50 \
               transition in-disabled:opacity-50 in-disabled:cursor-not-allowed"
@@ -62,18 +72,7 @@ export default function ActionBar({
         </div>
       </div>
 
-      {isResetModalOpen && (
-        <ConfirmModal
-          title="Reset form?"
-          message="This will clear everything you've entered and cannot be undone."
-          confirmLabel="Reset Form"
-          onConfirm={() => {
-            clearDraft();
-            setIsResetModalOpen(false);
-          }}
-          onCancel={() => setIsResetModalOpen(false)}
-        />
-      )}
+      {infoModal}
     </>
   );
 }
