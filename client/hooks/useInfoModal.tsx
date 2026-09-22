@@ -3,6 +3,11 @@ import InfoModal, {
   type InfoModalOptions,
 } from '@/components/modals/infoModal';
 
+/**
+ * Provides an info modal and a function to open it.
+ *
+ * @returns The info modal element and the `showInfo` function.
+ */
 export function useInfoModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [opts, setOpts] = useState<InfoModalOptions>({
@@ -12,6 +17,18 @@ export function useInfoModal() {
 
   const resolverRef = useRef<(confirmed: boolean) => void>(null);
 
+  /**
+   * Opens the info modal.
+   *
+   * @param options The title, message, and other modal settings.
+   * @returns A promise that resolves to true if confirmed, or false if closed.
+   *
+   * @example
+   * const confirmed = await showInfo({
+   *   title: 'Information',
+   *   message: 'Your changes have been saved.',
+   * });
+   */
   const showInfo = useCallback((options: InfoModalOptions) => {
     setOpts(options);
     setIsOpen(true);
