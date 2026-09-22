@@ -3,34 +3,53 @@
 import { useState, useEffect } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
-import AlreadyLoggedInModal from '@/components/modals/already-logged-in';
+import { useInfoModal } from '@/hooks/useInfoModal';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [isPasswordShown, setIsPasswordShown] = useState(false);
   const [error, setError] = useState('');
-  const router = useRouter();
-  const [welcomeUser, setWelcomeUser] = useState<{
-    firstName: string;
-    lastName: string;
-    jobRole: string;
-  } | null>(null);
-  const [isAlreadyLoggedIn, setIsAlreadyLoggedIn] = useState(false);
+
+  const { infoModal, showInfo } = useInfoModal();
 
   useEffect(() => {
-    authClient
-      .getSession()
-      .then(({ data }) => {
-        if (data) {
-          setUsername(data.user?.username ?? '');
-          setIsAlreadyLoggedIn(true);
-        }
-      })
-      .catch(() => {
-        setIsAlreadyLoggedIn(false);
+    const checkSession = async () => {
+      const { data } = await authClient.getSession();
+
+      if (!data) return;
+
+      const isConfirmed = await showInfo({
+        title: 'Already Logged In',
+        message: (
+          <>
+            <div className="mb-4">
+              You are already logged in as:{' '}
+              <span className="text-base text-indigo-600 font-semibold">
+                {data.user?.username ?? ''}
+              </span>
+            </div>
+            <p className="text-gray-600">
+              Please log out first before logging in as someone else.
+            </p>
+          </>
+        ),
+        closeLabel: 'Cancel',
+        confirmLabel: 'Log Out',
+        severity: 'warning',
       });
-  }, []);
+
+      if (!isConfirmed) {
+        router.push('/dashboard');
+        return;
+      }
+
+      await authClient.signOut();
+    };
+
+    checkSession();
+  }, [router, showInfo, username]);
 
   /**
    * Handles the login form submission. Signs in via username/password,
@@ -40,54 +59,62 @@ export default function LoginPage() {
    *
    * @param e - The form submit event.
    */
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.SubmitEvent) {
     e.preventDefault();
-    await authClient.signIn
-      .username({ username, password })
-      .then((response) => {
-        console.log('Login Info:', response);
-        if (response.error) {
-          setError(response.error.message ?? 'log in failed, please try again');
-          return;
-        } else {
-          //show welcome message to user and redirect to dashboard after clicking ok button
-          const user = response.data.user as typeof response.data.user & {
-            firstName?: string;
-            lastName?: string;
-            jobRole?: string;
-          };
-          setError('');
-          setWelcomeUser({
-            firstName: user.firstName ?? '',
-            lastName: user.lastName ?? '',
-            jobRole: user.jobRole?.toUpperCase() ?? '',
-          });
-        }
-      });
-  }
 
-  async function handleLogOut() {
-    setWelcomeUser(null);
-    await authClient.signOut().then(() => {
-      setIsAlreadyLoggedIn(false);
-      setUsername('');
-      setPassword('');
+    const { data, error } = await authClient.signIn.username({
+      username,
+      password,
     });
-  }
 
-  /**
-   * Dismisses the welcome modal and signs the user back out, reverting
-   * the just-completed login rather than proceeding to the dashboard.
-   *
-   * @param e - The button click event.
-   */
+    console.log('Login Info:', data, error);
+    if (error) {
+      setError(error.message ?? 'log in failed, please try again');
+      return;
+    }
 
-  async function handleCancel(e: React.MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    setWelcomeUser(null);
-    await authClient.signOut().then((response) => {
-      console.log('Sign out Info:', response);
+    // Show welcome message to user and redirect to dashboard
+    const user = data.user as typeof data.user & {
+      firstName?: string;
+      lastName?: string;
+      jobRole?: string;
+    };
+
+    setError('');
+
+    const isConfirmed = await showInfo({
+      title: `Welcome`,
+      message: (
+        <div className="text-center">
+          <p className="text-base">
+            Welcome,{' '}
+            <span className="font-semibold text-indigo-600">
+              {user.firstName ?? ''} {user.lastName ?? ''}
+            </span>
+            !
+          </p>
+
+          <p className="mt-2 text-sm text-gray-500">
+            You have successfully logged in as{' '}
+            <span className="font-medium">
+              {user.jobRole?.toUpperCase() ?? ''}
+            </span>
+            .
+          </p>
+        </div>
+      ),
+      closeLabel: 'Cancel',
+      confirmLabel: 'Proceed',
+      severity: 'success',
     });
+
+    if (!isConfirmed) {
+      const res = await authClient.signOut();
+      console.log('Sign out Info:', res);
+      return;
+    }
+
+    router.push('/dashboard');
   }
 
   return (
@@ -132,7 +159,7 @@ export default function LoginPage() {
             <div className="relative mt-1">
               <input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
+                type={isPasswordShown ? 'text' : 'password'}
                 autoComplete="off"
                 value={password}
                 aria-describedby="password-help"
@@ -143,10 +170,10 @@ export default function LoginPage() {
               {password && (
                 <button
                   type="button"
-                  onClick={() => setShowPassword((visible) => !visible)}
+                  onClick={() => setIsPasswordShown((visible) => !visible)}
                   className="absolute inset-y-0 right-0 px-3 text-sm font-medium text-[#00236F] hover:text-blue-700 hover:cursor-pointer"
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  {isPasswordShown ? 'Hide' : 'Show'}
                 </button>
               )}
             </div>
@@ -160,36 +187,8 @@ export default function LoginPage() {
           </button>
         </form>
       </div>
-      {welcomeUser && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/60 bg-opacity-50 min-h-screen w-full">
-          <div className="bg-white p-10 rounded-lg shadow-md text-center border-black shadow-black">
-            <h2 className="text-4xl text-[#00236F] font-bold mb-4">
-              Welcome, {welcomeUser.firstName} {welcomeUser.lastName}
-            </h2>
-            <h3 className="text-2xl text-[#3a67c8] font-semibold mb-2">
-              {welcomeUser.jobRole}
-            </h3>
-            <p className="mb-4 text-gray-600 text-md">
-              You have successfully logged in.
-            </p>
-            <button
-              onClick={handleCancel}
-              className="bg-gray-300 text-gray-800 py-4 px-8 rounded-md font-medium hover:bg-gray-400 transition hover:cursor-pointer mr-2"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="bg-[#00236F] text-white py-4 px-8 rounded-md font-medium hover:bg-blue-700 transition hover:cursor-pointer"
-            >
-              Proceed
-            </button>
-          </div>
-        </div>
-      )}
-      {isAlreadyLoggedIn && (
-        <AlreadyLoggedInModal username={username} handleLogOut={handleLogOut} />
-      )}
+
+      {infoModal}
     </div>
   );
 }
