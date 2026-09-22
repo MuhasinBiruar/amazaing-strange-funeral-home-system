@@ -13,7 +13,7 @@ import ActionBar from './_components/actionbar';
 import { useDraft } from './_hooks/useDraft';
 import { useSubmitIntake } from './_hooks/useSubmitIntake';
 import { validateIntakeForm, getFirstErrorField } from './_lib/validateIntake';
-import isObjectEmpty from '@/utils/isObjectEmpty';
+import { isObjectEmpty } from 'shared/utils';
 import type { InfoModalOptions } from '@/components/modals/infoModal';
 import InfoModal from '@/components/modals/infoModal';
 import { useRouter } from 'next/navigation';
