@@ -1,5 +1,6 @@
 import { Loader2, Save } from 'lucide-react';
 import { useInfoModal } from '@/hooks/useInfoModal';
+import { createPortal } from 'react-dom';
 
 export default function ActionBar({
   clearDraft,
@@ -72,7 +73,7 @@ export default function ActionBar({
         </div>
       </div>
 
-      {infoModal}
+      {createPortal(infoModal, document.body)}
     </>
   );
 }
