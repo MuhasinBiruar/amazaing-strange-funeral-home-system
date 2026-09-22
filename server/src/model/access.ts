@@ -19,7 +19,6 @@ export async function upsertAccess(
   staffid: string,
   access?: Partial<Record<AccessPage, boolean>>,
 ) {
-  console.log(access);
   const columns = accessPageEnum.options.join(', ');
   const placeholders = accessPageEnum.options
     .map((_, i) => `$${i + 2}`)
