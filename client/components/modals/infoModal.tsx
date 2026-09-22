@@ -25,7 +25,10 @@ export interface InfoModalProps {
   onConfirm?: () => void;
 }
 
-export type InfoModalOptions = Omit<InfoModalProps, 'onClose'>;
+export type InfoModalOptions = Omit<
+  InfoModalProps,
+  ['onClose', 'onConfirm'][number]
+>;
 
 const severityStyles = {
   info: {
