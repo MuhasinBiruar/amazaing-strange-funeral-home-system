@@ -17,44 +17,42 @@ import AccessFields from './fields/accessFields';
 import CreatedCredentials from './createdCredentials';
 import {
   emptyForm,
-  type AdminValidationErrors,
+  type ValidationErrors,
   type FormState,
+  type PanelMode,
   type UpdateField,
 } from './types';
 import { toForm } from './toForm';
 import { validateFields } from './validateFields';
 import { isObjectEmpty } from 'shared/utils';
+import type { useInfoModal } from '@/hooks/useInfoModal';
 
-/**
- * Combined create/edit side panel for staff accounts. `mode="create"` starts
- * from a blank form; `mode="edit"` fetches the given `staffId`'s details and
- * prefills. On a fresh create, shows the generated username + entered
- * password once so it can be handed to the new staff member.
- */
 export default function StaffPanel({
   mode,
   staffId,
-  visible,
-  onHide,
-  onSaved,
+  isVisible,
+  onClose,
+  onSave,
+  showInfo,
 }: {
-  mode: 'create' | 'edit';
-  staffId?: string;
-  visible: boolean;
-  onHide: () => void;
-  onSaved: () => void;
+  mode: PanelMode;
+  staffId: string | null;
+  isVisible: boolean;
+  onClose: () => void;
+  onSave: () => void;
+  showInfo: ReturnType<typeof useInfoModal>['showInfo'];
 }) {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [isLoading, setIsLoading] = useState(mode === 'edit');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<AdminValidationErrors>({});
+  const [errors, setErrors] = useState<ValidationErrors>({});
   const [createdCreds, setCreatedCreds] = useState<{
     username: string;
     password: string;
   } | null>(null);
 
   useEffect(() => {
-    if (!visible) return;
+    if (!isVisible) return;
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setErrors({});
@@ -70,23 +68,29 @@ export default function StaffPanel({
     const controller = new AbortController();
     setIsLoading(true);
 
-    getStaffDetail(staffId)
-      .then((detail) => {
+    const loadStaffDetail = async () => {
+      try {
+        const detail = await getStaffDetail(staffId);
         if (controller.signal.aborted) return;
         setForm(toForm(detail));
-      })
-      .catch((err) => {
+      } catch (err) {
         if (controller.signal.aborted) return;
+
         console.error('Failed to load staff details:', err);
-        // TODO: Replace with InfoModal
-        // setError('Could not load this staff member.');
-      })
-      .finally(() => {
+        await showInfo({
+          title: 'Load Error',
+          message: 'Could not load this staff member.',
+          severity: 'error',
+        });
+      } finally {
         if (!controller.signal.aborted) setIsLoading(false);
-      });
+      }
+    };
+
+    loadStaffDetail();
 
     return () => controller.abort();
-  }, [visible, mode, staffId]);
+  }, [isVisible, mode, staffId, showInfo]);
 
   const updateField: UpdateField = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -133,17 +137,16 @@ export default function StaffPanel({
           password: form.password || undefined,
           access: form.access,
         });
-        onSaved();
-        onHide();
+        onSave();
+        onClose();
       }
     } catch (err) {
-      // TODO: Replace with InfoModal
-      console.log(err);
-      // setError(
-      //   err instanceof Error
-      //     ? err.message
-      //     : 'Something went wrong. Please try again.',
-      // );
+      console.error('Failed to submit form:', err);
+      await showInfo({
+        title: 'Submission Failed',
+        message: 'Something went wrong. Please try again.',
+        severity: 'error',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -151,8 +154,8 @@ export default function StaffPanel({
 
   return (
     <Sidebar
-      visible={visible}
-      onHide={onHide}
+      visible={isVisible}
+      onHide={onClose}
       position="right"
       className="w-full sm:w-md"
       maskClassName="inset-0 z-40 bg-black/30 backdrop-blur-[2px] transition-opacity duration-300"
@@ -181,8 +184,8 @@ export default function StaffPanel({
           username={createdCreds.username}
           password={createdCreds.password}
           onDone={() => {
-            onSaved();
-            onHide();
+            onSave();
+            onClose();
           }}
         />
       ) : (

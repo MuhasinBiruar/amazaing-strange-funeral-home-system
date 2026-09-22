@@ -1,5 +1,7 @@
 import { DEFAULT_ACCESS, type UpdateAccessQuery } from 'shared';
 
+export type PanelMode = 'create' | 'edit';
+
 export interface FormState {
   firstName: string;
   middleName: string;
@@ -36,4 +38,4 @@ export function emptyForm(): FormState {
   };
 }
 
-export type AdminValidationErrors = Partial<Record<keyof FormState, string>>;
+export type ValidationErrors = Partial<Record<keyof FormState, string>>;

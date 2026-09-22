@@ -1,5 +1,5 @@
-import { fieldClass, labelClass } from './fieldStyles';
-import type { AdminValidationErrors, UpdateField } from '../types';
+import { fieldClass, labelClass } from './constants';
+import type { ValidationErrors, UpdateField } from '../types';
 import InlineError from '@/components/inlineError';
 
 export default function RoleFields({
@@ -13,7 +13,7 @@ export default function RoleFields({
   role: 'admin' | 'user';
   isActive: boolean;
   onChange: UpdateField;
-  errors: AdminValidationErrors;
+  errors: ValidationErrors;
 }) {
   return (
     <>

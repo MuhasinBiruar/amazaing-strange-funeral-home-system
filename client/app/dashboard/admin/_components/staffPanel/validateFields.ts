@@ -1,5 +1,5 @@
 import { createStaffQuerySchema, updateStaffQuerySchema } from 'shared';
-import type { AdminValidationErrors, FormState } from './types';
+import type { ValidationErrors, FormState } from './types';
 
 export async function validateFields(
   state: FormState,
@@ -18,13 +18,13 @@ export async function validateFields(
 
   if (result.success) return {};
 
-  const errors: AdminValidationErrors = {};
+  const errors: ValidationErrors = {};
   for (const issue of result.error.issues) {
     const field = String(issue.path[0]);
 
     // Keep only the first failing rule per field
     if (!(field in errors))
-      errors[field as keyof AdminValidationErrors] = issue.message;
+      errors[field as keyof ValidationErrors] = issue.message;
   }
   return errors;
 }

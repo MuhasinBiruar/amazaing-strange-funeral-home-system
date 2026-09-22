@@ -4,7 +4,7 @@ import {
   type AccessPage,
   type UpdateAccessQuery,
 } from 'shared';
-import { labelClass } from './fieldStyles';
+import { labelClass } from './constants';
 
 export default function AccessFields({
   access,
