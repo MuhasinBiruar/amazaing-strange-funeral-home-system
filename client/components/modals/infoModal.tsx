@@ -10,7 +10,7 @@ import {
 
 export interface InfoModalProps {
   title: string;
-  message: string;
+  message: React.ReactNode;
   closeLabel?: string;
   onClose: () => void;
   severity?: 'info' | 'warning' | 'error' | 'success';
@@ -19,7 +19,7 @@ export interface InfoModalProps {
   /**
    * Adds a second, primary action button (e.g. "Assign a package") alongside
    * the close button, which becomes secondary/muted. Provide both or
-   * neither — omitting them keeps the original single-button layout.
+   * neither - missing either of them keeps the original single-button layout.
    */
   confirmLabel?: string;
   onConfirm?: () => void;
