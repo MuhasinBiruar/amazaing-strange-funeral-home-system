@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Request } from 'express';
 import { getPaginatedCasketInventoryQuerySchema } from 'shared';
 import pool from '@/db';
 import requireAuth from '@/middleware/require-auth';
@@ -67,6 +67,42 @@ router.get('/paginated', requireAuth, async (req, res, next) => {
     next(error);
   }
 });
+
+/**
+ * @description Get all packages for a specific casket
+ * @param casketid - The ID of the casket
+ * @returns A list of packages for the specified casket
+ **/
+router.get(
+  '/casket/:casketid/packages',
+  requireAuth,
+  async (req: Request<{ casketid: string }>, res, next) => {
+    try {
+      const casketId = parseInt(req.params.casketid, 10);
+      const result = await pool.query(
+        `
+      SELECT
+        p.packageid,
+        p.packagename,
+        p.packagetype,
+        p.price,
+        c.caskettype
+    FROM package AS p
+    JOIN casketinventory AS c
+      ON c.casketid = p.casketid
+      WHERE p.casketid = $1
+      ORDER BY p.packageid;
+      `,
+        [casketId],
+      );
+      res.json({
+        data: result.rows,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 router.get('/', requireAuth, async (_req, res, next) => {
   try {
