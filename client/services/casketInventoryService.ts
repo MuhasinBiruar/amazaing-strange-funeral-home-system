@@ -38,3 +38,14 @@ export async function getPaginatedCasketInventory({
 
   return getPaginatedCasketInventoryResponseSchema.parse(result.data);
 }
+
+export async function getCasketPackages(
+  casketid: number,
+  signal?: AbortSignal,
+) {
+  const result = await API.get(`/casketinventory/casket/${casketid}/packages`, {
+    withCredentials: true,
+    signal,
+  });
+  return result.data; //review if it makes sense
+}
