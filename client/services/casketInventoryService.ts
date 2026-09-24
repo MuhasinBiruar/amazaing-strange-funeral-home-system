@@ -39,6 +39,20 @@ export async function getPaginatedCasketInventory({
   return getPaginatedCasketInventoryResponseSchema.parse(result.data);
 }
 
+export async function getCasketInventoryById(
+  casketid: number,
+  signal?: AbortSignal,
+) {
+  const result = await API.get(
+    `/casketinventory/casket/${casketid}/deliveryhistory`,
+    {
+      withCredentials: true,
+      signal,
+    },
+  );
+  return result.data.data;
+}
+
 export async function getCasketPackages(
   casketid: number,
   signal?: AbortSignal,
@@ -47,5 +61,5 @@ export async function getCasketPackages(
     withCredentials: true,
     signal,
   });
-  return result.data; //review if it makes sense
+  return result.data.data;
 }
