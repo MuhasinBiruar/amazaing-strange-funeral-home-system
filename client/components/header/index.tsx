@@ -36,22 +36,28 @@ export default function Header() {
         </p>
         <button
           onClick={async () => {
-            const isConfirmed = await showInfo({
+            await showInfo({
               title: 'Log Out?',
               message: 'Are you sure you want to log out?',
               closeLabel: 'Cancel',
               confirmLabel: 'Log Out',
               severity: 'warning',
-            });
-
-            if (!isConfirmed) return;
-
-            authClient.signOut({
-              fetchOptions: {
-                onSuccess: () => {
-                  router.push('/');
-                },
-              },
+              onConfirmAction: () =>
+                new Promise<void>((resolve, reject) => {
+                  authClient.signOut({
+                    fetchOptions: {
+                      onSuccess: () => {
+                        router.push('/');
+                        resolve();
+                      },
+                      onError: ({ error }) =>
+                        reject(
+                          error ||
+                            new Error('Failed to sign out. Please try again.'),
+                        ),
+                    },
+                  });
+                }),
             });
           }}
           className="relative flex items-center gap-1 text-xs font-bold sm:text-sm text-gray-500 hover:cursor-pointer hover:text-indigo-600 transition-colors duration-500 after:content-[''] after:absolute after:left-0 after:bottom-0 after:h-px after:w-full after:bg-indigo-600 after:scale-x-0 after:origin-left hover:after:scale-x-100 after:transition-transform after:duration-500 after:ease-in-out"
