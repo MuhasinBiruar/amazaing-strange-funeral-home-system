@@ -1,6 +1,7 @@
 import { fieldClass, labelClass } from './constants';
 import type { ValidationErrors, UpdateField } from '../types';
 import InlineError from '@/components/inlineError';
+import PasswordInput from '@/components/passwordInput';
 
 export default function CredentialsFields({
   mode,
@@ -38,12 +39,10 @@ export default function CredentialsFields({
             Leave blank to keep the current password.
           </span>
         )}
-        <input
-          type="password"
+        <PasswordInput
           autoComplete="off"
           value={password}
           onChange={(e) => onChange('password', e.target.value)}
-          className={fieldClass}
         />
         <InlineError error={errors.password} />
       </div>
