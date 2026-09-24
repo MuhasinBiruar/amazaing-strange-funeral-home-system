@@ -37,15 +37,15 @@ export default function LoginPage() {
         ),
         closeLabel: 'Cancel',
         confirmLabel: 'Log Out',
+        onConfirmAction: async () => {
+          await authClient.signOut();
+        },
         severity: 'warning',
       });
 
-      if (!isConfirmed) {
-        router.push('/dashboard');
-        return;
-      }
+      if (isConfirmed) return;
 
-      await authClient.signOut();
+      router.push('/dashboard');
     };
 
     checkSession();
@@ -104,15 +104,15 @@ export default function LoginPage() {
         </div>
       ),
       closeLabel: 'Cancel',
+      onCloseAction: async () => {
+        const res = await authClient.signOut();
+        console.log('Sign out Info:', res);
+      },
       confirmLabel: 'Proceed',
       severity: 'success',
     });
 
-    if (!isConfirmed) {
-      const res = await authClient.signOut();
-      console.log('Sign out Info:', res);
-      return;
-    }
+    if (!isConfirmed) return;
 
     router.push('/dashboard');
   }
