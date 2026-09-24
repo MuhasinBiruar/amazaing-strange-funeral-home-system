@@ -23,10 +23,13 @@ export default function LoginPage() {
    * user whether to log out of it before continuing.
    */
   useEffect(() => {
+    let ignore = false;
+
     const checkSession = async () => {
       try {
-        const { data } = await authClient.getSession();
+        if (ignore) return;
 
+        const { data } = await authClient.getSession();
         if (!data) return;
 
         const isConfirmed = await showInfo({
@@ -64,6 +67,10 @@ export default function LoginPage() {
     };
 
     checkSession();
+
+    return () => {
+      ignore = true;
+    };
     // Intentionally runs once on mount only, read:
     // Previously this depended on `[router, showInfo, username]`, which meant
     // it re-ran on every keystroke in the username field (not just once), and
