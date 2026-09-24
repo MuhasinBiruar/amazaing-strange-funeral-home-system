@@ -15,7 +15,6 @@ import {
 } from './_components/staffTable/constants';
 import type { PanelMode } from './_components/staffPanel/types';
 import { useInfoModal } from '@/hooks/useInfoModal';
-import { createPortal } from 'react-dom';
 
 export default function AdminPage() {
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
@@ -92,7 +91,7 @@ export default function AdminPage() {
         showInfo={showInfo}
       />
 
-      {createPortal(infoModal, document.body)}
+      {infoModal}
     </div>
   );
 }

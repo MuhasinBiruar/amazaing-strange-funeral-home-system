@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { useInfoModal } from '@/hooks/useInfoModal';
-import { createPortal } from 'react-dom';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -189,7 +188,7 @@ export default function LoginPage() {
         </form>
       </div>
 
-      {createPortal(infoModal, document.body)}
+      {infoModal}
     </div>
   );
 }

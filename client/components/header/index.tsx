@@ -5,7 +5,6 @@ import { authClient } from '@/lib/auth-client';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { useInfoModal } from '@/hooks/useInfoModal';
-import { createPortal } from 'react-dom';
 
 export default function Header() {
   const router = useRouter();
@@ -66,7 +65,7 @@ export default function Header() {
         </button>
       </div>
 
-      {createPortal(infoModal, document.body)}
+      {infoModal}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import InfoModal, {
   type InfoModalOptions,
 } from '@/components/modals/infoModal';
+import { createPortal } from 'react-dom';
 
 type LoadingButton = 'confirm' | 'close' | null;
 
@@ -103,14 +104,17 @@ export function useInfoModal() {
     resolverRef.current = null;
   }, [opts]);
 
-  const infoModal = isOpen ? (
-    <InfoModal
-      {...opts}
-      onClose={close}
-      onConfirm={confirm}
-      loadingButton={loadingButton}
-    />
-  ) : null;
+  const infoModal = isOpen
+    ? createPortal(
+        <InfoModal
+          {...opts}
+          onClose={close}
+          onConfirm={confirm}
+          loadingButton={loadingButton}
+        />,
+        document.body,
+      )
+    : null;
 
   return {
     infoModal,
