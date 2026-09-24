@@ -16,36 +16,41 @@ export default function LoginPage() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await authClient.getSession();
+      try {
+        const { data } = await authClient.getSession();
 
-      if (!data) return;
+        if (!data) return;
 
-      const isConfirmed = await showInfo({
-        title: 'Already Logged In',
-        message: (
-          <>
-            <div className="mb-4">
-              You are already logged in as:{' '}
-              <span className="text-base text-indigo-600 font-semibold">
-                {data.user?.username ?? ''}
-              </span>
-            </div>
-            <p className="text-gray-600">
-              Please log out first before logging in as someone else.
-            </p>
-          </>
-        ),
-        closeLabel: 'Cancel',
-        confirmLabel: 'Log Out',
-        onConfirmAction: async () => {
-          await authClient.signOut();
-        },
-        severity: 'warning',
-      });
+        const isConfirmed = await showInfo({
+          title: 'Already Logged In',
+          message: (
+            <>
+              <div className="mb-4">
+                You are already logged in as:{' '}
+                <span className="text-base text-indigo-600 font-semibold">
+                  {data.user?.username ?? ''}
+                </span>
+              </div>
+              <p className="text-gray-600">
+                Please log out first before logging in as someone else.
+              </p>
+            </>
+          ),
+          closeLabel: 'Cancel',
+          confirmLabel: 'Log Out',
+          onConfirmAction: async () => {
+            await authClient.signOut();
+          },
+          severity: 'warning',
+        });
 
-      if (isConfirmed) return;
+        if (isConfirmed) return;
 
-      router.push('/dashboard');
+        router.push('/dashboard');
+      } catch (err) {
+        console.error('Failed to check session:', err);
+        setError('Unable to check login status. Please refresh.');
+      }
     };
 
     checkSession();
@@ -67,9 +72,9 @@ export default function LoginPage() {
       password,
     });
 
-    console.log('Login Info:', data, error);
+    console.log('Login info:', data, error);
     if (error) {
-      setError(error.message ?? 'log in failed, please try again');
+      setError(error.message ?? 'Login failed, please try again.');
       return;
     }
 
