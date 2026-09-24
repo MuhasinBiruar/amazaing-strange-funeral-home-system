@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
-import type { PackageWithCasket } from 'shared';
-import { getCasketPackages } from '@/services/casketInventoryService';
+import { getCasketInventoryById } from '@/services/casketInventoryService';
 import { formatCurrency, titleCase } from '@/utils/format';
+import type { DeliveryHistoryType } from './types';
 
 const PANEL_TRANSITION_MS = 300 as const;
 
-export default function PackagesPanel({
+export default function DeliveryHistoryPanel({
   casketid,
   caskettype,
   onClose,
@@ -20,7 +20,9 @@ export default function PackagesPanel({
   const [shown, setShown] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [packages, setPackages] = useState<PackageWithCasket[]>([]);
+  const [deliveryHistory, setDeliveryHistory] = useState<DeliveryHistoryType[]>(
+    [],
+  );
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setShown(true));
@@ -35,18 +37,18 @@ export default function PackagesPanel({
       setLoadError(null);
 
       try {
-        const allPackages = await getCasketPackages(
+        const history = await getCasketInventoryById(
           casketid,
           controller.signal,
         );
         if (controller.signal.aborted) return;
 
-        setPackages(allPackages);
+        setDeliveryHistory(history);
       } catch (error) {
         if (controller.signal.aborted) return;
 
-        console.error('Failed to load casket packages:', error);
-        setLoadError('Could not load packages. Try again.');
+        console.error('Failed to load casket deliveries:', error);
+        setLoadError('Could not load deliveries. Try again.');
       } finally {
         if (!controller.signal.aborted) setIsLoading(false);
       }
@@ -88,7 +90,7 @@ export default function PackagesPanel({
               {caskettype}
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              Packages that include this casket
+              Deliveries that include this casket
             </p>
           </div>
           <button
@@ -105,7 +107,7 @@ export default function PackagesPanel({
           {isLoading && (
             <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500">
               <Loader2 size={16} className="animate-spin" />
-              Loading packages...
+              Loading delivery history...
             </div>
           )}
 
@@ -113,54 +115,41 @@ export default function PackagesPanel({
             <p className="text-sm text-red-500">{loadError}</p>
           )}
 
-          {!isLoading && !loadError && packages.length === 0 && (
+          {!isLoading && !loadError && deliveryHistory.length === 0 && (
             <p className="py-10 text-center text-sm text-gray-500">
-              No packages currently use this casket.
+              No delivery history for this casket.
             </p>
           )}
 
-          {!isLoading && !loadError && packages.length > 0 && (
+          {!isLoading && !loadError && deliveryHistory.length > 0 && (
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                {packages.length}{' '}
-                {packages.length === 1 ? 'package' : 'packages'}
+                {deliveryHistory.length}{' '}
+                {deliveryHistory.length === 1 ? 'package' : 'packages'}
               </p>
-              {packages.map((pkg) => (
+              {deliveryHistory.map((dlv) => (
                 <article
-                  key={pkg.packageid}
+                  key={dlv.deliveryid}
                   className="rounded-lg border border-gray-200 bg-gray-50 p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="font-semibold text-gray-900">
-                        {pkg.packagename}
+                        {dlv.deliverydate instanceof Date
+                          ? dlv.deliverydate.toLocaleDateString()
+                          : new Date(
+                              dlv.deliverydate as string,
+                            ).toLocaleDateString()}
                       </h3>
                       <p className="mt-1 text-xs font-medium text-blue-700">
-                        {titleCase(pkg.packagetype)}
+                        Quantity: {titleCase(dlv.quantityreceived.toString())}{' '}
+                        received
                       </p>
                     </div>
                     <span className="shrink-0 font-semibold text-gray-900">
-                      {formatCurrency(pkg.price)}
+                      Total paid: {formatCurrency(dlv.totalamountpaid)}
                     </span>
                   </div>
-
-                  <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-gray-200 pt-3 text-sm">
-                    <div>
-                      <dt className="text-xs text-gray-500">Embalming</dt>
-                      <dd className="mt-0.5 font-medium text-gray-800">
-                        {pkg.embalmingperiod} days
-                      </dd>
-                    </div>
-                  </dl>
-
-                  {pkg.inclusions && (
-                    <div className="mt-3 border-t border-gray-200 pt-3">
-                      <dt className="text-xs text-gray-500">Inclusions</dt>
-                      <dd className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
-                        {pkg.inclusions}
-                      </dd>
-                    </div>
-                  )}
                 </article>
               ))}
             </div>

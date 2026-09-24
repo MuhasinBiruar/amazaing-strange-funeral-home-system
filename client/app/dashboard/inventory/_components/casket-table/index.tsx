@@ -5,19 +5,22 @@ import { type CasketInventoryTable } from 'shared';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import DataTable from '@/components/dataTable';
 import { getPaginatedCasketInventory } from '@/services/casketInventoryService';
+import PackagesPanel from './packages-panel';
+import DeliveryHistoryPanel from './delivery-history-panel';
 type ColumnKey = keyof CasketInventoryTable;
 
 /**
  *
  * @TODO add filter by package type
  *       add side panel for delivery history of casket
- *       add side panel for packages that use the casket
  *       add formalin inventory management
  */
 
 export default function CasketTable() {
-  const [, setHistoryFor] = useState<CasketInventoryTable[] | null>(null);
-  const [, setPackagesApartOf] = useState<
+  const [historyFor, setHistoryFor] = useState<CasketInventoryTable[] | null>(
+    null,
+  );
+  const [packagesApartOf, setPackagesApartOf] = useState<
     CasketInventoryTable[] | null
   >(null);
   const [refreshKey] = useState(0);
@@ -81,6 +84,20 @@ export default function CasketTable() {
         emptyMessage="No caskets in inventory match your search."
         loadErrorMessage="Could not load casket inventory. Try again."
       />
+      {packagesApartOf?.[0] && (
+        <PackagesPanel
+          casketid={packagesApartOf[0].casketid}
+          caskettype={packagesApartOf[0].caskettype}
+          onClose={() => setPackagesApartOf(null)}
+        />
+      )}
+      {historyFor?.[0] && (
+        <DeliveryHistoryPanel
+          casketid={historyFor[0].casketid}
+          caskettype={historyFor[0].caskettype}
+          onClose={() => setHistoryFor(null)}
+        />
+      )}
     </>
   );
 }
