@@ -5,6 +5,7 @@ import {
   TriangleAlert,
   CircleCheck,
   OctagonX,
+  Loader2,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -23,12 +24,28 @@ export interface InfoModalProps {
    */
   confirmLabel?: string;
   onConfirm?: () => void;
+  /**
+   * Which button, if any, is currently running its async action. While set,
+   * both buttons (and the X) are disabled and the active one shows a
+   * spinner in place of its label. Managed internally by `useInfoModal`.
+   */
+  loadingButton?: 'confirm' | 'close' | null;
 }
 
 export type InfoModalOptions = Omit<
   InfoModalProps,
-  ['onClose', 'onConfirm'][number]
->;
+  ['onClose', 'onConfirm', 'loadingButton'][number]
+> & {
+  /**
+   * Async work to run when the confirm button is clicked, before the modal
+   * closes and `showInfo`'s promise resolves. While it runs, both buttons
+   * disable and the confirm button shows a spinner. If it throws, the modal
+   * stays open (error logged to console) so the user can retry or cancel.
+   */
+  onConfirmAction?: () => void | Promise<void>;
+  /** Same as {@link onConfirmAction}, but for the close/cancel button. */
+  onCloseAction?: () => void | Promise<void>;
+};
 
 const severityStyles = {
   info: {
@@ -57,6 +74,24 @@ const severityStyles = {
   },
 };
 
+/** A button's label, swapped for a spinner + label while `isLoading`. */
+function ButtonContent({
+  label,
+  isLoading,
+}: {
+  label: string;
+  isLoading: boolean;
+}) {
+  if (!isLoading) return <>{label}</>;
+
+  return (
+    <span className="flex items-center justify-center gap-1.5">
+      <Loader2 size={14} className="animate-spin" />
+      {label}
+    </span>
+  );
+}
+
 export default function InfoModal({
   title,
   message,
@@ -67,9 +102,11 @@ export default function InfoModal({
   itemIcon: ItemIcon = FileText,
   confirmLabel,
   onConfirm,
+  loadingButton = null,
 }: InfoModalProps) {
   const hasConfirmAction = Boolean(confirmLabel && onConfirm);
   const styles = severityStyles[severity];
+  const isBusy = loadingButton !== null;
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -85,7 +122,8 @@ export default function InfoModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            disabled={isBusy}
+            className="text-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <X size={20} />
           </button>
@@ -107,21 +145,29 @@ export default function InfoModal({
           <button
             type="button"
             onClick={onClose}
+            disabled={isBusy}
             className={
               hasConfirmAction
-                ? 'flex-1 py-2 text-sm font-bold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition'
-                : `flex-1 py-2 text-sm font-bold text-white rounded-lg ${styles.button} transition`
+                ? 'flex-1 py-2 text-sm font-bold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed'
+                : `flex-1 py-2 text-sm font-bold text-white rounded-lg ${styles.button} transition disabled:opacity-50 disabled:cursor-not-allowed`
             }
           >
-            {closeLabel}
+            <ButtonContent
+              label={closeLabel}
+              isLoading={loadingButton === 'close'}
+            />
           </button>
           {hasConfirmAction && (
             <button
               type="button"
               onClick={onConfirm}
-              className={`flex-1 py-2 text-sm font-bold text-white rounded-lg ${styles.button} transition`}
+              disabled={isBusy}
+              className={`flex-1 py-2 text-sm font-bold text-white rounded-lg ${styles.button} transition disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              {confirmLabel}
+              <ButtonContent
+                label={confirmLabel!}
+                isLoading={loadingButton === 'confirm'}
+              />
             </button>
           )}
         </div>
