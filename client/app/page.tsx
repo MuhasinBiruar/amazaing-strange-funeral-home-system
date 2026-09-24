@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { useInfoModal } from '@/hooks/useInfoModal';
+import LoadingButton from '@/components/loadingButton';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,6 +15,13 @@ export default function LoginPage() {
 
   const { infoModal, showInfo } = useInfoModal();
 
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+
+  /**
+   * Checks for an existing session once, on mount, and if one exists, asks the
+   * user whether to log out of it before continuing.
+   */
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -50,11 +58,24 @@ export default function LoginPage() {
       } catch (err) {
         console.error('Failed to check session:', err);
         setError('Unable to check login status. Please refresh.');
+      } finally {
+        setIsCheckingSession(false);
       }
     };
 
     checkSession();
-  }, [router, showInfo, username]);
+    // Intentionally runs once on mount only, read:
+    // Previously this depended on `[router, showInfo, username]`, which meant
+    // it re-ran on every keystroke in the username field (not just once), and
+    // nothing stopped the user from submitting the login form while this
+    // check was still pending.
+    //
+    // That let both modals fire: this effect's
+    // "Already Logged In" warning, followed by `handleLogin`'s "Welcome"
+    // modal from a login that raced ahead of it. Running this once, and
+    // gating the Sign In button on `isCheckingSession` below, closes that gap.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * Handles the login form submission. Signs in via username/password,
@@ -66,10 +87,20 @@ export default function LoginPage() {
   async function handleLogin(e: React.SubmitEvent) {
     e.preventDefault();
 
-    const { data, error } = await authClient.signIn.username({
-      username,
-      password,
-    });
+    // Prevent an Enter-key implicit submit to slip through.
+    if (isCheckingSession || isSigningIn) return;
+
+    setIsSigningIn(true);
+    let result: Awaited<ReturnType<typeof authClient.signIn.username>>;
+    try {
+      result = await authClient.signIn.username({ username, password });
+    } finally {
+      // Only the network call itself is "signing in" — the modal below
+      // manages its own loading state independently.
+      setIsSigningIn(false);
+    }
+
+    const { data, error } = result;
 
     console.log('Login info:', data, error);
     if (error) {
@@ -183,12 +214,14 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <button
+          <LoadingButton
             type="submit"
-            className="w-full bg-[#00236F] text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 transition hover:cursor-pointer"
-          >
-            Sign In
-          </button>
+            isLoading={isSigningIn}
+            disabled={isCheckingSession}
+            label="Sign In"
+            loadingLabel="Signing In..."
+            className="w-full bg-[#00236F] text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed hover:cursor-pointer"
+          />
         </form>
       </div>
 
