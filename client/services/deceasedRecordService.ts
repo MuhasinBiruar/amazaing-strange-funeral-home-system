@@ -5,6 +5,7 @@ import {
   type UpdateDeceasedRecordQuery,
 } from 'shared';
 import { API } from './api';
+import { isAxiosError } from 'axios';
 
 /**
  * Fetches deceased records that do not have a contract yet — the candidates
@@ -51,7 +52,16 @@ export async function updateDeceasedRecord(
   caseid: number,
   payload: UpdateDeceasedRecordQuery,
 ) {
-  const response = await API.patch(`/deceasedrecords/${caseid}`, payload);
+  try {
+    const response = await API.patch(`/deceasedrecords/${caseid}`, payload);
 
-  return getDeceasedRecordResponseSchema.parse(response.data).data;
+    return getDeceasedRecordResponseSchema.parse(response.data).data;
+  } catch (err) {
+    if (isAxiosError(err)) {
+      const msg = err.response?.data?.error?.message;
+      if (typeof msg === 'string') throw new Error(msg);
+    }
+
+    throw err;
+  }
 }
