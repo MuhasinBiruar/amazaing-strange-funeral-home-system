@@ -10,14 +10,32 @@ import {
   UserStar,
   Wallet,
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthProvider';
+import type { AccessPage } from 'shared';
 
-const modules = [
+const modules: {
+  section: string;
+  name: string;
+  description: string;
+  icon: typeof UserPlus;
+  routeTo: string | null;
+  /**
+   * Access flag required to see this module. Omit for modules open to any
+   * signed-in staff.
+   */
+  accessPage?: AccessPage;
+  /**
+   * Restricted to admins regardless of `access` flags.
+   */
+  adminOnly?: boolean;
+}[] = [
   {
     section: 'Daily Work',
     name: 'Intake & Profiling',
     description: 'Start a new client profile',
     icon: UserPlus,
     routeTo: '/dashboard/intake',
+    accessPage: 'intake_page',
   },
   {
     section: 'Daily Work',
@@ -25,6 +43,7 @@ const modules = [
     description: 'Create or manage cases',
     icon: FileSignature,
     routeTo: '/dashboard/case-management',
+    accessPage: 'case_page',
   },
   {
     section: 'Operations',
@@ -32,6 +51,7 @@ const modules = [
     description: 'Review flagged cases',
     icon: AlertTriangle,
     routeTo: null,
+    accessPage: 'special_case_page',
   },
   {
     section: 'Operations',
@@ -39,6 +59,7 @@ const modules = [
     description: 'Check inventory records',
     icon: ClipboardCheck,
     routeTo: '/dashboard/inventory',
+    accessPage: 'inventory_page',
   },
   {
     section: 'Finance',
@@ -46,6 +67,7 @@ const modules = [
     description: 'View payments and balances',
     icon: Wallet,
     routeTo: null,
+    accessPage: 'financial_page',
   },
   {
     section: 'Admin',
@@ -53,11 +75,31 @@ const modules = [
     description: 'Manage accounts and view logs',
     icon: UserStar,
     routeTo: '/dashboard/admin',
+    adminOnly: true,
   },
 ];
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { isAdmin, access } = useAuth();
+
+  // Admins bypass every per-page access flag. Everyone else only sees a
+  // module if it's unrestricted, or they've been explicitly granted its
+  // access flag — mirrors the check PageGuard performs when a route is
+  // actually visited, so nothing shown here would 404 into "Access denied".
+  const visibleModules = modules.filter((module) => {
+    if (module.adminOnly) return isAdmin;
+    if (isAdmin) return true;
+    if (!module.accessPage) return true;
+    return !!access?.[module.accessPage];
+  });
+
+  const visibleSections = [
+    'Daily Work',
+    'Operations',
+    'Finance',
+    'Admin',
+  ].filter((section) => visibleModules.some((m) => m.section === section));
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -75,7 +117,7 @@ export default function DashboardPage() {
         </header>
 
         <div className="space-y-7">
-          {['Daily Work', 'Operations', 'Finance', 'Admin'].map((section) => (
+          {visibleSections.map((section) => (
             <section key={section} aria-labelledby={`${section}-heading`}>
               <h2
                 id={`${section}-heading`}
@@ -84,7 +126,7 @@ export default function DashboardPage() {
                 {section}
               </h2>
               <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-                {modules
+                {visibleModules
                   .filter((module) => module.section === section)
                   .map(
                     (

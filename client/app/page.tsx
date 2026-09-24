@@ -3,97 +3,169 @@
 import { useState, useEffect } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
-import AlreadyLoggedInModal from '@/components/modals/already-logged-in';
+import { useInfoModal } from '@/hooks/useInfoModal';
+import LoadingButton from '@/components/loadingButton';
+import PasswordInput from '@/components/passwordInput';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const router = useRouter();
-  const [welcomeUser, setWelcomeUser] = useState<{
-    firstName: string;
-    lastName: string;
-    jobRole: string;
-  } | null>(null);
-  const [isAlreadyLoggedIn, setIsAlreadyLoggedIn] = useState(false);
 
+  const { infoModal, showInfo } = useInfoModal();
+
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+
+  /**
+   * Checks for an existing session once, on mount, and if one exists, asks the
+   * user whether to log out of it before continuing.
+   */
   useEffect(() => {
-    authClient
-      .getSession()
-      .then(({ data }) => {
-        if (data) {
-          setUsername(data.user?.username ?? '');
-          setIsAlreadyLoggedIn(true);
-        }
-      })
-      .catch(() => {
-        setIsAlreadyLoggedIn(false);
-      });
+    let ignore = false;
+
+    const checkSession = async () => {
+      try {
+        if (ignore) return;
+
+        const { data } = await authClient.getSession();
+        if (!data) return;
+
+        const isConfirmed = await showInfo({
+          title: 'Already Logged In',
+          message: (
+            <>
+              <div className="mb-4">
+                You are already logged in as:{' '}
+                <span className="text-base text-indigo-600 font-semibold">
+                  {data.user?.username ?? ''}
+                </span>
+              </div>
+              <p className="text-gray-600">
+                Please log out first before logging in as someone else.
+              </p>
+            </>
+          ),
+          closeLabel: 'Cancel',
+          confirmLabel: 'Log Out',
+          onConfirmAction: async () => {
+            await authClient.signOut();
+          },
+          severity: 'warning',
+        });
+
+        if (isConfirmed) return;
+
+        router.push('/dashboard');
+      } catch (err) {
+        console.error('Failed to check session:', err);
+        setError('Unable to check login status. Please refresh.');
+      } finally {
+        setIsCheckingSession(false);
+      }
+    };
+
+    checkSession();
+
+    return () => {
+      ignore = true;
+    };
+    // Intentionally runs once on mount only, read:
+    // Previously this depended on `[router, showInfo, username]`, which meant
+    // it re-ran on every keystroke in the username field (not just once), and
+    // nothing stopped the user from submitting the login form while this
+    // check was still pending.
+    //
+    // That let both modals fire: this effect's
+    // "Already Logged In" warning, followed by `handleLogin`'s "Welcome"
+    // modal from a login that raced ahead of it. Running this once, and
+    // gating the Sign In button on `isCheckingSession` below, closes that gap.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
    * Handles the login form submission. Signs in via username/password,
-   * sets an error message on failure, or populates `welcomeUser` on
-   * success to trigger the welcome modal (redirect to dashboard happens
-   * when the user proceeds from the modal).
+   * sets an error message on failure, or opens the welcome `InfoModal` on
+   * success and redirects after confirmation.
    *
    * @param e - The form submit event.
    */
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.SubmitEvent) {
     e.preventDefault();
-    await authClient.signIn
-      .username({ username, password })
-      .then((response) => {
-        console.log('Login Info:', response);
-        if (response.error) {
-          setError(response.error.message ?? 'log in failed, please try again');
-          return;
-        } else {
-          //show welcome message to user and redirect to dashboard after clicking ok button
-          const user = response.data.user as typeof response.data.user & {
-            firstName?: string;
-            lastName?: string;
-            jobRole?: string;
-          };
-          setError('');
-          setWelcomeUser({
-            firstName: user.firstName ?? '',
-            lastName: user.lastName ?? '',
-            jobRole: user.jobRole?.toUpperCase() ?? '',
-          });
-        }
-      });
-  }
 
-  async function handleLogOut() {
-    setWelcomeUser(null);
-    await authClient.signOut().then(() => {
-      setIsAlreadyLoggedIn(false);
-      setUsername('');
-      setPassword('');
+    // Prevent an Enter-key implicit submit to slip through.
+    if (isCheckingSession || isSigningIn) return;
+
+    setIsSigningIn(true);
+    let result: Awaited<ReturnType<typeof authClient.signIn.username>>;
+    try {
+      result = await authClient.signIn.username({ username, password });
+    } catch (err) {
+      console.error('Login failed:', err);
+      setError('Login failed, please try again.');
+      return;
+    } finally {
+      // The open modal overlay physically blocks background clicks,
+      // so it's safe to re-enable the Sign In button here.
+      setIsSigningIn(false);
+      console.log('Login info:', result);
+    }
+
+    const { data, error } = result;
+    if (error) {
+      setError(error.message ?? 'Login failed, please try again.');
+      return;
+    }
+
+    // Show welcome message to user and redirect to dashboard
+    const user = data.user as typeof data.user & {
+      firstName?: string;
+      lastName?: string;
+      jobRole?: string;
+    };
+
+    setError('');
+
+    const isConfirmed = await showInfo({
+      title: `Welcome`,
+      message: (
+        <div className="text-center">
+          <p className="text-base">
+            Welcome,{' '}
+            <span className="font-semibold text-indigo-600">
+              {user.firstName ?? ''} {user.lastName ?? ''}
+            </span>
+            !
+          </p>
+
+          <p className="mt-2 text-sm text-gray-500">
+            You have successfully logged in as{' '}
+            <span className="font-medium">
+              {user.jobRole?.toUpperCase() ?? ''}
+            </span>
+            .
+          </p>
+        </div>
+      ),
+      closeLabel: 'Cancel',
+      onCloseAction: async () => {
+        const res = await authClient.signOut();
+        console.log('Sign out Info:', res);
+      },
+      confirmLabel: 'Proceed',
+      severity: 'success',
     });
-  }
 
-  /**
-   * Dismisses the welcome modal and signs the user back out, reverting
-   * the just-completed login rather than proceeding to the dashboard.
-   *
-   * @param e - The button click event.
-   */
+    if (!isConfirmed) return;
 
-  async function handleCancel(e: React.MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    setWelcomeUser(null);
-    await authClient.signOut().then((response) => {
-      console.log('Sign out Info:', response);
-    });
+    router.push('/dashboard');
   }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-2xl font-bold mb-6 text-[#00236F]">Login</h1>
+        <h1 className="text-2xl font-bold mb-6 text-indigo-600">Login</h1>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
@@ -129,67 +201,31 @@ export default function LoginPage() {
             <p id="password-help" className="mt-1 text-sm text-gray-500">
               Type your password here
             </p>
-            <div className="relative mt-1">
-              <input
+            <div className="mt-1">
+              <PasswordInput
                 id="password"
-                type={showPassword ? 'text' : 'password'}
                 autoComplete="off"
                 value={password}
                 aria-describedby="password-help"
                 onChange={(e) => setPassword(e.target.value)}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${password ? 'pr-20' : 'pr-3'}`}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 required
               />
-              {password && (
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((visible) => !visible)}
-                  className="absolute inset-y-0 right-0 px-3 text-sm font-medium text-[#00236F] hover:text-blue-700 hover:cursor-pointer"
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              )}
             </div>
           </div>
 
-          <button
+          <LoadingButton
             type="submit"
-            className="w-full bg-[#00236F] text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 transition hover:cursor-pointer"
-          >
-            Sign In
-          </button>
+            isLoading={isSigningIn}
+            disabled={isCheckingSession}
+            label="Sign In"
+            loadingLabel="Signing In..."
+            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed hover:cursor-pointer"
+          />
         </form>
       </div>
-      {welcomeUser && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/60 bg-opacity-50 min-h-screen w-full">
-          <div className="bg-white p-10 rounded-lg shadow-md text-center border-black shadow-black">
-            <h2 className="text-4xl text-[#00236F] font-bold mb-4">
-              Welcome, {welcomeUser.firstName} {welcomeUser.lastName}
-            </h2>
-            <h3 className="text-2xl text-[#3a67c8] font-semibold mb-2">
-              {welcomeUser.jobRole}
-            </h3>
-            <p className="mb-4 text-gray-600 text-md">
-              You have successfully logged in.
-            </p>
-            <button
-              onClick={handleCancel}
-              className="bg-gray-300 text-gray-800 py-4 px-8 rounded-md font-medium hover:bg-gray-400 transition hover:cursor-pointer mr-2"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="bg-[#00236F] text-white py-4 px-8 rounded-md font-medium hover:bg-blue-700 transition hover:cursor-pointer"
-            >
-              Proceed
-            </button>
-          </div>
-        </div>
-      )}
-      {isAlreadyLoggedIn && (
-        <AlreadyLoggedInModal username={username} handleLogOut={handleLogOut} />
-      )}
+
+      {infoModal}
     </div>
   );
 }

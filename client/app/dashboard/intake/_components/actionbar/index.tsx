@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
-import ConfirmModal from '@/components/modals/confirmModal';
+import { useInfoModal } from '@/hooks/useInfoModal';
+import LoadingButton from '@/components/loadingButton';
 
 export default function ActionBar({
   clearDraft,
@@ -11,7 +11,7 @@ export default function ActionBar({
   isSubmitting: boolean;
   submitStatus: string;
 }) {
-  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const { infoModal, showInfo } = useInfoModal();
 
   return (
     <>
@@ -37,7 +37,18 @@ export default function ActionBar({
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => setIsResetModalOpen(true)}
+              onClick={async () => {
+                const isConfirmed = await showInfo({
+                  title: 'Reset Form?',
+                  message:
+                    "This will clear everything you've entered and cannot be undone.",
+                  confirmLabel: 'Reset',
+                  closeLabel: 'Cancel',
+                  severity: 'error',
+                });
+
+                if (isConfirmed) clearDraft();
+              }}
               className="px-4 py-2 text-sm font-semibold text-gray-600 \
               bg-white border border-gray-300 rounded-lg hover:bg-gray-50 \
               transition in-disabled:opacity-50 in-disabled:cursor-not-allowed"
@@ -45,35 +56,22 @@ export default function ActionBar({
               Discard
             </button>
 
-            <button
+            <LoadingButton
               type="submit"
-              className="flex items-center gap-2 px-5 py-2 text-sm \
+              isLoading={isSubmitting}
+              icon={Save}
+              iconSize={16}
+              label="Save Record"
+              loadingLabel="Saving…"
+              className="px-5 py-2 text-sm \
               font-semibold text-white bg-indigo-950 rounded-lg \
               hover:bg-indigo-900 transition shadow-sm in-disabled:opacity-50 in-disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Save size={16} />
-              )}
-              {isSubmitting ? 'Saving…' : 'Save Record'}
-            </button>
+            />
           </div>
         </div>
       </div>
 
-      {isResetModalOpen && (
-        <ConfirmModal
-          title="Reset form?"
-          message="This will clear everything you've entered and cannot be undone."
-          confirmLabel="Reset Form"
-          onConfirm={() => {
-            clearDraft();
-            setIsResetModalOpen(false);
-          }}
-          onCancel={() => setIsResetModalOpen(false)}
-        />
-      )}
+      {infoModal}
     </>
   );
 }

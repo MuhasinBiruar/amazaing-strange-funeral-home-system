@@ -1,55 +1,36 @@
-import type { AppErrorResponse, CreateStaffQuery } from 'shared';
-import { API } from './api';
 import axios from 'axios';
+import {
+  getStaffDetailResponseSchema,
+  getStaffResponseSchema,
+  type CreateStaffQuery,
+  type GetStaffQuery,
+  type GetStaffResponse,
+  type StaffDetail,
+  type UpdateStaffQuery,
+} from 'shared';
+import { API } from './api';
+import { extractErrorMessage } from './utils/extractErrorMessage';
 
-export const getStaff = async (username: string) => {
-  try {
-    const res = await API.get(`/staff/${username}`);
-    return res.data;
-  } catch (error) {
-    console.error('Error fetching staff:', error);
-    throw error;
-  }
-};
+export async function getStaffList(
+  params: GetStaffQuery & { signal?: AbortSignal },
+): Promise<GetStaffResponse> {
+  const { signal, ...query } = params;
+  const search = new URLSearchParams();
+  search.append('page', String(query.page));
+  search.append('limit', String(query.limit));
+  search.append('sortBy', query.sortBy);
+  search.append('sortOrder', query.sortOrder);
+  if (query.search) search.append('search', query.search);
+  if (query.isActive !== undefined)
+    search.append('isActive', String(query.isActive));
 
-interface StaffListResponse {
-  data: CreateStaffQuery[];
+  const res = await API.get(`/staff?${search}`, { signal });
+  return getStaffResponseSchema.parse(res.data);
 }
 
-export const getAllStaff = async (): Promise<CreateStaffQuery[]> => {
-  try {
-    const res = await API.get<StaffListResponse>('/staff');
-    return res.data.data ?? [];
-  } catch (error) {
-    console.error('Error fetching all staff:', error);
-    throw error;
-  }
-};
-
-export function extractErrorMessage(data: AppErrorResponse): string {
-  const details = data.error.details;
-
-  // Format array of field-specific errors if available
-  if (Array.isArray(details) && details.length > 0) {
-    const map = new Map<string, string[]>();
-
-    for (const { field = '', message } of details) {
-      const existing = map.get(field);
-      if (existing) {
-        existing.push(message);
-      } else {
-        map.set(field, [message]);
-      }
-    }
-
-    return Array.from(map.entries())
-      .map(([field, messages]) =>
-        field ? `${field}: ${messages.join(', ')}` : messages.join(', '),
-      )
-      .join('; ');
-  }
-
-  return data.error.message;
+export async function getStaffDetail(id: string): Promise<StaffDetail> {
+  const res = await API.get(`/staff/${id}`);
+  return getStaffDetailResponseSchema.parse(res.data).data;
 }
 
 export const createStaff = async (staffData: CreateStaffQuery) => {
@@ -61,6 +42,19 @@ export const createStaff = async (staffData: CreateStaffQuery) => {
       throw new Error(extractErrorMessage(error.response.data));
 
     console.error('Error creating staff:', error);
+    throw error;
+  }
+};
+
+export const updateStaff = async (id: string, staffData: UpdateStaffQuery) => {
+  try {
+    const res = await API.patch(`/staff/${id}`, staffData);
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.error?.message)
+      throw new Error(extractErrorMessage(error.response.data));
+
+    console.error('Error updating staff:', error);
     throw error;
   }
 };

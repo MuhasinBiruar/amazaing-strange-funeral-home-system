@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { CreateContractQuery } from 'shared';
 import { API } from './api';
-import { extractErrorMessage } from './staffService';
+import { extractErrorMessage } from './utils/extractErrorMessage';
 
 /**
  * Creates a contract for a case.

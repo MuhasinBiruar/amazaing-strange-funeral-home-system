@@ -1,6 +1,4 @@
-export default function isObjectEmpty(
-  obj: unknown,
-): obj is Record<string, never> {
+export function isObjectEmpty(obj: unknown): obj is Record<string, never> {
   // Ensure it is a non-null object and a plain Object instance
   if (!obj || typeof obj !== 'object' || obj.constructor !== Object)
     return false;

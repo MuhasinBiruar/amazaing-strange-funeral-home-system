@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { FileText, Loader2, Upload, X } from 'lucide-react';
+import { FileText, Upload, X } from 'lucide-react';
 import type { DocumentWithUrl } from 'shared';
 import { uploadDocument } from '@/services/documentService';
 import { formatDate, titleCase } from '@/utils/format';
 import { fieldClass, labelClass } from '../fieldStyles';
+import LoadingButton from '@/components/loadingButton';
 
 const ACCEPTED_TYPES = 'image/*,application/pdf';
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // matches the bucket's own limit
@@ -191,19 +192,17 @@ export default function DocumentsSection({
             className="block w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer"
           />
           {error && <p className="text-xs text-red-500">{error}</p>}
-          <button
+          <LoadingButton
             type="button"
-            disabled={!documenttype.trim() || !file || isUploading}
+            disabled={!documenttype.trim() || !file}
+            isLoading={isUploading}
             onClick={handleUpload}
+            icon={Upload}
+            iconSize={14}
+            label="Upload"
+            loadingLabel="Uploading..."
             className="flex items-center gap-1.5 text-sm bg-indigo-600 text-white rounded-md px-3 py-1.5 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          >
-            {isUploading ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <Upload size={14} />
-            )}
-            {isUploading ? 'Uploading...' : 'Upload'}
-          </button>
+          />
         </div>
       </section>
 

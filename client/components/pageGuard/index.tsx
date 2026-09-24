@@ -1,83 +1,76 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { authClient } from '@/lib/auth-client';
+import { useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useInfoModal } from '@/hooks/useInfoModal';
+import { useAuth } from '@/contexts/AuthProvider';
+import type { AccessPage } from 'shared';
+
+/** Routes that require the `admin` role, independent of any `access` flag. */
+const ADMIN_ONLY_PATHS = ['/dashboard/admin'];
+
+/** Dashboard route prefix -> the `access` column that guards it. Routes not
+ * listed here (or in {@link ADMIN_ONLY_PATHS}) just require being logged in. */
+const PATH_ACCESS_MAP: Record<string, AccessPage> = {
+  '/dashboard/intake': 'intake_page',
+  '/dashboard/case-management': 'case_page',
+};
+
+function accessPageFor(pathname: string): AccessPage | null {
+  const match = Object.entries(PATH_ACCESS_MAP).find(([prefix]) =>
+    pathname.startsWith(prefix),
+  );
+  return match ? match[1] : null;
+}
 
 /**
- * Client-side route guard that verifies the current user has an active
- * session before rendering its children.
+ * Guards a dashboard route: redirects to `/` if not signed in, or to
+ * `/dashboard` if the route needs a role/access the user doesn't have.
+ * Admins skip all page-level access checks.
  *
- * On mount, checks the session via `authClient.getSession()`. While the check is in flight, renders a loading state. If no valid session is
- * found (or the check errors), redirects to `/` (login page). Only once a session is confirmed does it render `children` (the current protected page).
- *
- * This is a UX convenience, not a security boundary — it runs entirely in the browser after the page has already loaded. Every protected
- * server endpoint must independently verify the session; this guard only prevents the UI from flashing protected content to signed-out users and nudges them back to login.
- *
- * @remarks
- * Wrap any page that should require authentication:
- * ```tsx
- * export default function DashboardPage() {
- *   return (
- *     <PageGuard>
- *       <DashboardContent />
- *     </PageGuard>
- *   );
- * }
- * ```
- *
- * @todo Create a modal informing the user they are not logged in
- * (e.g. "You must be logged in to view this page") before routing
- * back to the login page, instead of redirecting silently.
- *
- * @param children - The protected content to render once a session is confirmed.
- * @returns A loading indicator while checking, `null` if unauthorized
- * (briefly, before redirect), or `children` once authorized.
+ * This is UX only, not security — the server independently enforces auth
+ * and access on every endpoint. Session/access come from `AuthProvider`
+ * (fetched once, cached) rather than a fresh request on every navigation.
  */
-
 export default function PageGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
-  const [authorized, setAuthorized] = useState(false);
+  const pathname = usePathname();
+  const { status, isAdmin, access } = useAuth();
+  const { infoModal, showInfo } = useInfoModal();
+
+  const isAdminOnlyPath = ADMIN_ONLY_PATHS.some((p) => pathname.startsWith(p));
+  const requiredPage = accessPageFor(pathname);
+  const denied =
+    status === 'authenticated' &&
+    ((isAdminOnlyPath && !isAdmin) ||
+      (!!requiredPage && !isAdmin && !access?.[requiredPage]));
 
   useEffect(() => {
-    let loggedOut = false;
+    if (status === 'unauthenticated') {
+      showInfo({
+        title: 'Not signed in',
+        message: 'You must be logged in to view this page.',
+        severity: 'error',
+      }).then(() => router.push('/'));
+      return;
+    }
 
-    authClient
-      .getSession()
-      .then(({ data, error }) => {
-        if (loggedOut) return;
+    if (denied) {
+      showInfo({
+        title: 'Access denied',
+        message: "You don't have permission to view this page.",
+        severity: 'error',
+      }).then(() => router.push('/dashboard'));
+    }
+  }, [status, denied, router, showInfo]);
 
-        if (!data || error) {
-          router.push('/');
-        } else {
-          setAuthorized(true);
-        }
-        setChecking(false);
-      })
-      .catch(() => {
-        if (loggedOut) return;
-
-        router.push('/');
-        setChecking(false);
-      });
-
-    return () => {
-      loggedOut = true;
-    };
-  }, [router]);
-
-  if (checking) {
+  if (status === 'loading' || status === 'unauthenticated' || denied)
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="grow flex items-center justify-center">
         <p className="text-gray-500 text-sm">Loading...</p>
+        {infoModal}
       </div>
     );
-  }
-
-  if (!authorized) {
-    return null;
-  }
 
   return <>{children}</>;
 }
