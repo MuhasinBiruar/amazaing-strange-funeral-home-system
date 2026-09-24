@@ -100,9 +100,9 @@ export default function LoginPage() {
       setIsSigningIn(false);
     }
 
-    const { data, error } = result;
+    console.log('Login info:', result);
 
-    console.log('Login info:', data, error);
+    const { data, error } = result;
     if (error) {
       setError(error.message ?? 'Login failed, please try again.');
       return;
