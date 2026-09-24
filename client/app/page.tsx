@@ -58,9 +58,8 @@ export default function LoginPage() {
 
   /**
    * Handles the login form submission. Signs in via username/password,
-   * sets an error message on failure, or populates `welcomeUser` on
-   * success to trigger the welcome modal (redirect to dashboard happens
-   * when the user proceeds from the modal).
+   * sets an error message on failure, or opens the welcome `InfoModal` on
+   * success and redirects after confirmation.
    *
    * @param e - The form submit event.
    */
