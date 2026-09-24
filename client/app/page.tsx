@@ -94,6 +94,10 @@ export default function LoginPage() {
     let result: Awaited<ReturnType<typeof authClient.signIn.username>>;
     try {
       result = await authClient.signIn.username({ username, password });
+    } catch (err) {
+      console.error('Login failed:', err);
+      setError('Login failed, please try again.');
+      return;
     } finally {
       // The open modal overlay physically blocks background clicks,
       // so it's safe to re-enable the Sign In button here.
