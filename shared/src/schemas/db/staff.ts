@@ -8,6 +8,7 @@ import {
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
 import { updateAccessQuerySchema, DEFAULT_ACCESS } from './access';
+import { withUndefinedDefault } from '@/utils/with-undefined-default';
 
 export const staffRoleEnum = z.enum(['admin', 'user']);
 
@@ -60,7 +61,7 @@ export const updateStaffQuerySchema = staffWithAccessSchema
   .omit({ id: true, name: true })
   .extend({
     access: updateAccessQuerySchema.partial(),
-    password: passwordSchema,
+    password: withUndefinedDefault(passwordSchema),
   })
   .partial();
 

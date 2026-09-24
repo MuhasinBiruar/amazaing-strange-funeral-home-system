@@ -8,3 +8,4 @@ export * from './utils/pagination-schema';
 export * from './utils/password-schema';
 export * from './utils/types';
 export * from './utils/with-null-default';
+export * from './utils/with-undefined-default';
