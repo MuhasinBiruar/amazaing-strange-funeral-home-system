@@ -7,7 +7,7 @@ import {
 import pool from '@/db';
 import validate from '@/middleware/validate';
 import requireAuth from '@/middleware/require-auth';
-import { BadRequestError, NotFoundError } from '@/errors';
+import { BadRequestError, ForbiddenError, NotFoundError } from '@/errors';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 import { getRepresentativeName, joinName } from '@/util/audit-log';
 import {
@@ -264,17 +264,32 @@ router.patch(
   validateParams(idParamSchema),
   validate(updateDeceasedRecordQuerySchema),
   async (
-    req: Request<unknown, {}, UpdateDeceasedRecordQuery>,
+    req: Request<IdParam, {}, UpdateDeceasedRecordQuery>,
     res: Response,
     next: NextFunction,
   ) => {
     try {
-      const { id } = req.params as IdParam;
+      const { id } = req.params;
       const parsed = req.body;
-      const userId = res.locals.session.user.id;
+      const userId = res.locals.session.user.id as string;
+      const role = res.locals.session.user.role as 'admin' | 'user';
 
-      if (Object.keys(parsed).length === 0) {
+      if (Object.keys(parsed).length === 0)
         return new BadRequestError('No fields provided for update.');
+
+      if (role !== 'admin') {
+        const checkResult = await pool.query(
+          `SELECT managedby FROM DeceasedRecord WHERE caseid = $1`,
+          [id],
+        );
+
+        if (checkResult.rows.length === 0)
+          throw new NotFoundError('Deceased record not found.');
+
+        if (checkResult.rows[0].managedby !== userId)
+          throw new ForbiddenError(
+            'You do not have permission to modify this record.',
+          );
       }
 
       const result = await pool.query(
@@ -311,7 +326,8 @@ router.patch(
         ],
       );
 
-      if (result.rows.length === 0) throw new NotFoundError();
+      if (result.rows.length === 0)
+        throw new NotFoundError('Deceased record not found.');
 
       const updated = result.rows[0];
       const deceasedName = joinName(
