@@ -1,5 +1,6 @@
 import { Loader2, Save } from 'lucide-react';
 import { useInfoModal } from '@/hooks/useInfoModal';
+import LoadingButton from '@/components/loadingButton';
 
 export default function ActionBar({
   clearDraft,
@@ -55,19 +56,17 @@ export default function ActionBar({
               Discard
             </button>
 
-            <button
+            <LoadingButton
               type="submit"
-              className="flex items-center gap-2 px-5 py-2 text-sm \
+              isLoading={isSubmitting}
+              icon={Save}
+              iconSize={16}
+              label="Save Record"
+              loadingLabel="Saving…"
+              className="px-5 py-2 text-sm \
               font-semibold text-white bg-indigo-950 rounded-lg \
               hover:bg-indigo-900 transition shadow-sm in-disabled:opacity-50 in-disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Save size={16} />
-              )}
-              {isSubmitting ? 'Saving…' : 'Save Record'}
-            </button>
+            />
           </div>
         </div>
       </div>

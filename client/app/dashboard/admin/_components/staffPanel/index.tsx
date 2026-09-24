@@ -26,6 +26,7 @@ import { toForm } from './toForm';
 import { validateFields } from './validateFields';
 import { isObjectEmpty } from 'shared/utils';
 import type { useInfoModal } from '@/hooks/useInfoModal';
+import LoadingButton from '@/components/loadingButton';
 
 export default function StaffPanel({
   mode,
@@ -220,17 +221,13 @@ export default function StaffPanel({
             }}
           />
 
-          <button
+          <LoadingButton
             type="submit"
-            disabled={isSubmitting}
+            isLoading={isSubmitting}
+            label={mode === 'create' ? 'Create Account' : 'Save Changes'}
+            loadingLabel="Saving..."
             className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 cursor-pointer"
-          >
-            {isSubmitting
-              ? 'Saving...'
-              : mode === 'create'
-                ? 'Create Account'
-                : 'Save Changes'}
-          </button>
+          />
         </form>
       )}
     </Sidebar>

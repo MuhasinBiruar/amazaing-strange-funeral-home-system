@@ -9,6 +9,7 @@ import { getRepresentative } from '@/services/representativeService';
 import { getDocumentsByCase } from '@/services/documentService';
 import { fieldClass, labelClass } from '../fieldStyles';
 import DocumentsSection from './documentsSection';
+import LoadingButton from '@/components/loadingButton';
 
 const PANEL_TRANSITION_MS = 300 as const;
 
@@ -420,17 +421,14 @@ export default function CaseDetailPanel({
                   <p className="text-xs text-emerald-600">Saved.</p>
                 )}
 
-                <button
+                <LoadingButton
                   type="button"
-                  disabled={isSavingDeceased}
+                  isLoading={isSavingDeceased}
                   onClick={handleSaveDeceased}
+                  label="Save changes"
+                  loadingLabel="Saving..."
                   className="flex items-center gap-1.5 text-sm bg-indigo-600 text-white rounded-md px-3 py-1.5 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {isSavingDeceased && (
-                    <Loader2 size={14} className="animate-spin" />
-                  )}
-                  {isSavingDeceased ? 'Saving...' : 'Save changes'}
-                </button>
+                />
               </section>
 
               <section className="space-y-3">

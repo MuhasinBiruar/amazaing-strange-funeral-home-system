@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Loader2, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { UncontractedDeceased } from 'shared';
 import { createPackage } from '@/services/packageService';
 import { createContract } from '@/services/contractService';
@@ -9,6 +9,7 @@ import { fieldClass, labelClass } from '../../fieldStyles';
 import DetailRow from './detailRow';
 import PackageSection from './packageSection';
 import type { ConfirmedPackage } from './packageSection/types';
+import LoadingButton from '@/components/loadingButton';
 
 const PANEL_TRANSITION_MS = 300 as const;
 
@@ -373,14 +374,14 @@ export default function ContractPanel({
               >
                 Cancel
               </button>
-              <button
+              <LoadingButton
                 type="submit"
-                disabled={isSubmitting || !confirmedPackage}
+                isLoading={isSubmitting}
+                disabled={!confirmedPackage}
+                label="Create contract"
+                loadingLabel="Creating..."
                 className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                {isSubmitting && <Loader2 size={14} className="animate-spin" />}
-                {isSubmitting ? 'Creating...' : 'Create contract'}
-              </button>
+              />
             </div>
           </footer>
         </form>

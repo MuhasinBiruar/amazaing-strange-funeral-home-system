@@ -5,9 +5,9 @@ import {
   TriangleAlert,
   CircleCheck,
   OctagonX,
-  Loader2,
   type LucideIcon,
 } from 'lucide-react';
+import LoadingButton from '@/components/loadingButton';
 
 export interface InfoModalProps {
   title: string;
@@ -74,24 +74,6 @@ const severityStyles = {
   },
 };
 
-/** A button's label, swapped for a spinner + label while `isLoading`. */
-function ButtonContent({
-  label,
-  isLoading,
-}: {
-  label: string;
-  isLoading: boolean;
-}) {
-  if (!isLoading) return <>{label}</>;
-
-  return (
-    <span className="flex items-center justify-center gap-1.5">
-      <Loader2 size={14} className="animate-spin" />
-      {label}
-    </span>
-  );
-}
-
 export default function InfoModal({
   title,
   message,
@@ -142,33 +124,27 @@ export default function InfoModal({
         )}
 
         <div className="flex gap-3 mt-6">
-          <button
+          <LoadingButton
             type="button"
             onClick={onClose}
+            isLoading={loadingButton === 'close'}
             disabled={isBusy}
+            label={closeLabel}
             className={
               hasConfirmAction
                 ? 'flex-1 py-2 text-sm font-bold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed'
                 : `flex-1 py-2 text-sm font-bold text-white rounded-lg ${styles.button} transition disabled:opacity-50 disabled:cursor-not-allowed`
             }
-          >
-            <ButtonContent
-              label={closeLabel}
-              isLoading={loadingButton === 'close'}
-            />
-          </button>
+          />
           {hasConfirmAction && (
-            <button
+            <LoadingButton
               type="button"
               onClick={onConfirm}
+              isLoading={loadingButton === 'confirm'}
               disabled={isBusy}
+              label={confirmLabel!}
               className={`flex-1 py-2 text-sm font-bold text-white rounded-lg ${styles.button} transition disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              <ButtonContent
-                label={confirmLabel!}
-                isLoading={loadingButton === 'confirm'}
-              />
-            </button>
+            />
           )}
         </div>
       </div>
