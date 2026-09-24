@@ -1,6 +1,6 @@
 import { fieldClass, labelClass } from './constants';
 import type { ValidationErrors, UpdateField } from '../types';
-import InlineError from '../../../../../../components/inlineError';
+import InlineError from '@/components/inlineError';
 
 export default function ContactFields({
   contactNumber,
