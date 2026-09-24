@@ -83,15 +83,51 @@ router.get(
         `
       SELECT
         p.packageid,
+        p.casketid,
         p.packagename,
         p.packagetype,
         p.price,
-        c.caskettype
+        p.embalmingperiod,
+        p.inclusions,
+        c.caskettype,
+        c.currentstock AS casket_currentstock
     FROM package AS p
     JOIN casketinventory AS c
       ON c.casketid = p.casketid
       WHERE p.casketid = $1
       ORDER BY p.packageid;
+      `,
+        [casketId],
+      );
+      res.json({
+        data: result.rows,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.get(
+  '/casket/:casketid/deliveryhistory',
+  requireAuth,
+  async (req: Request<{ casketid: string }>, res, next) => {
+    try {
+      const casketId = parseInt(req.params.casketid, 10);
+      const result = await pool.query(
+        `
+      SELECT
+        c.deliveryid,
+        c.deliverydate,
+        c.quantityreceived,
+        c.totalamountpaid,
+        c.deliverydate,
+        cc.caskettype
+      FROM casketdelivery AS c
+      JOIN casketinventory AS cc
+        ON c.casketid = cc.casketid
+      WHERE c.casketid = $1
+      ORDER BY c.deliverydate DESC;
       `,
         [casketId],
       );
