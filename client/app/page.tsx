@@ -5,12 +5,12 @@ import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { useInfoModal } from '@/hooks/useInfoModal';
 import LoadingButton from '@/components/loadingButton';
+import PasswordInput from '@/components/passwordInput';
 
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isPasswordShown, setIsPasswordShown] = useState(false);
   const [error, setError] = useState('');
 
   const { infoModal, showInfo } = useInfoModal();
@@ -201,26 +201,16 @@ export default function LoginPage() {
             <p id="password-help" className="mt-1 text-sm text-gray-500">
               Type your password here
             </p>
-            <div className="relative mt-1">
-              <input
+            <div className="mt-1">
+              <PasswordInput
                 id="password"
-                type={isPasswordShown ? 'text' : 'password'}
                 autoComplete="off"
                 value={password}
                 aria-describedby="password-help"
                 onChange={(e) => setPassword(e.target.value)}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${password ? 'pr-20' : 'pr-3'}`}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 required
               />
-              {password && (
-                <button
-                  type="button"
-                  onClick={() => setIsPasswordShown((visible) => !visible)}
-                  className="absolute inset-y-0 right-0 px-3 text-sm font-medium text-[#00236F] hover:text-blue-700 hover:cursor-pointer"
-                >
-                  {isPasswordShown ? 'Hide' : 'Show'}
-                </button>
-              )}
             </div>
           </div>
 
