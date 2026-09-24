@@ -95,12 +95,11 @@ export default function LoginPage() {
     try {
       result = await authClient.signIn.username({ username, password });
     } finally {
-      // Only the network call itself is "signing in" — the modal below
-      // manages its own loading state independently.
+      // The open modal overlay physically blocks background clicks,
+      // so it's safe to re-enable the Sign In button here.
       setIsSigningIn(false);
+      console.log('Login info:', result);
     }
-
-    console.log('Login info:', result);
 
     const { data, error } = result;
     if (error) {
