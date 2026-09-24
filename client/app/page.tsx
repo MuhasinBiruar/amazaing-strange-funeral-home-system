@@ -155,7 +155,7 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-2xl font-bold mb-6 text-[#00236F]">Login</h1>
+        <h1 className="text-2xl font-bold mb-6 text-indigo-600">Login</h1>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
@@ -220,7 +220,7 @@ export default function LoginPage() {
             disabled={isCheckingSession}
             label="Sign In"
             loadingLabel="Signing In..."
-            className="w-full bg-[#00236F] text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed hover:cursor-pointer"
+            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed hover:cursor-pointer"
           />
         </form>
       </div>
