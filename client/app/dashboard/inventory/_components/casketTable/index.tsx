@@ -83,6 +83,7 @@ export default function CasketTable() {
         }
         emptyMessage="No caskets in inventory match your search."
         loadErrorMessage="Could not load casket inventory. Try again."
+        bodyOffsetClassName="top-12"
       />
       {packagesApartOf?.[0] && (
         <PackagesPanel
