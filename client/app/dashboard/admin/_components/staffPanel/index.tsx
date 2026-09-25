@@ -8,11 +8,9 @@ import {
   updateStaff,
 } from '@/services/staffService';
 import emptyToNull from '@/utils/emptyToNull';
-import NameFields from './fields/nameFields';
-import ContactFields from './fields/contactFields';
-import CredentialsFields from './fields/credentialsFields';
-import RoleFields from './fields/roleFields';
-import AccessFields from './fields/accessFields';
+import CredentialsSection from './credentialsSection';
+import RoleAndStatusSection from './roleAndStatusSection';
+import PageAccessSection from './pageAccessSection';
 import CreatedCredentials from './createdCredentials';
 import {
   emptyForm,
@@ -28,6 +26,7 @@ import type { useInfoModal } from '@/components/infoModal/useInfoModal';
 import LoadingButton from '@/components/loadingButton';
 import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
+import PersonalInfoSection from './personalInfoSection';
 
 export default function StaffPanel({
   mode,
@@ -177,28 +176,27 @@ export default function StaffPanel({
             }}
           />
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <NameFields form={form} onChange={updateField} errors={errors} />
-            <ContactFields
-              contactNumber={form.contactNumber}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <PersonalInfoSection
+              form={form}
               onChange={updateField}
               errors={errors}
             />
-            <CredentialsFields
+            <CredentialsSection
               mode={mode}
               username={form.username}
               password={form.password}
               onChange={updateField}
               errors={errors}
             />
-            <RoleFields
+            <RoleAndStatusSection
               jobRole={form.jobRole}
               role={form.role}
               isActive={form.isActive}
               onChange={updateField}
               errors={errors}
             />
-            <AccessFields
+            <PageAccessSection
               access={form.access}
               onToggle={(key) => {
                 setForm((prev) => ({

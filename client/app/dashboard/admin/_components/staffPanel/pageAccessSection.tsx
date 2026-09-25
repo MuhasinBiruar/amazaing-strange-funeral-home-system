@@ -4,9 +4,8 @@ import {
   type AccessPage,
   type UpdateAccessQuery,
 } from 'shared';
-import { labelClass } from './constants';
 
-export default function AccessFields({
+export default function PageAccessSection({
   access,
   onToggle,
 }: {
@@ -14,9 +13,12 @@ export default function AccessFields({
   onToggle: (key: AccessPage) => void;
 }) {
   return (
-    <div>
-      <label className={`${labelClass} mb-2`}>Page access</label>
-      <div className="grid grid-cols-2 gap-2">
+    <section className="space-y-1.5">
+      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+        Page access
+      </h3>
+
+      <div className="grid grid-cols-2 gap-1.5">
         {accessPageEnum.options.map((key) => (
           <label
             key={key}
@@ -31,6 +33,6 @@ export default function AccessFields({
           </label>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
