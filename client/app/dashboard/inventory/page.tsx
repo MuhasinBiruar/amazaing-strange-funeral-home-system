@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import CasketTable from './_components/casket-table';
+import CasketTable from './_components/casketTable';
 type Tab = 'inventory' | 'delivery';
 
 const TABS: { key: Tab; label: string }[] = [

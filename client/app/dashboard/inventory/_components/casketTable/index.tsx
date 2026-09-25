@@ -5,8 +5,8 @@ import { type CasketInventoryTable } from 'shared';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import DataTable from '@/components/dataTable';
 import { getPaginatedCasketInventory } from '@/services/casketInventoryService';
-import PackagesPanel from './packages-panel';
-import DeliveryHistoryPanel from './delivery-history-panel';
+import PackagesPanel from './packagesPanel';
+import DeliveryHistoryPanel from './deliveryHistoryPanel';
 type ColumnKey = keyof CasketInventoryTable;
 
 /**
