@@ -1,17 +1,17 @@
-import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import { useState } from 'react';
 import type { UncontractedDeceased } from 'shared';
 import { createPackage } from '@/services/packageService';
 import { createContract } from '@/services/contractService';
 import emptyToNull from '@/utils/emptyToNull';
 import { formatDate, titleCase } from '@/utils/format';
 import { fieldClass, labelClass } from '../../fieldStyles';
+import SidePanel from '@/components/sidePanel';
+import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import DetailRow from './detailRow';
 import PackageSection from './packageSection';
 import type { ConfirmedPackage } from './packageSection/types';
 import LoadingButton from '@/components/loadingButton';
-
-const PANEL_TRANSITION_MS = 300 as const;
+import { useInfoModal } from '@/components/infoModal/useInfoModal';
 
 /** `<input type="date">` wants `yyyy-mm-dd` in the viewer's local time. */
 function toDateInputValue(date: Date) {
@@ -62,25 +62,14 @@ export default function ContractPanel({
   onClose: () => void;
   onCreated: () => void;
 }) {
-  const [shown, setShown] = useState(false);
+  const { isShown, requestClose } = useSidePanel(onClose);
+  const { infoModal, showInfo } = useInfoModal();
+
   const [confirmedPackage, setConfirmedPackage] =
     useState<ConfirmedPackage | null>(null);
   const [form, setForm] = useState<ContractForm>(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  // A conditionally mounted element has no previous style to transition from,
-  // so the open class has to land on a later frame than the mount.
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => setShown(true));
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
-  /** Plays the close transition before unmounting. */
-  function handleClose() {
-    setShown(false);
-    setTimeout(onClose, PANEL_TRANSITION_MS);
-  }
 
   /**
    * Confirming a package (new or existing) prefills the contract's own
@@ -109,7 +98,7 @@ export default function ContractPanel({
     setErrorMsg(null);
 
     try {
-      // A newly built package doesn't have an id yet — create it first. One
+      // A newly built package doesn't have an id yet - create it first. One
       // picked via the guided flow already has one; nothing to create.
       let packageid = confirmedPackage.packageid;
       if (packageid === null) {
@@ -141,11 +130,15 @@ export default function ContractPanel({
       });
 
       // Assigning the package's casket may have just brought its stock down
-      // to (or below) the minimum threshold — the contract still succeeded,
+      // to (or below) the minimum threshold - the contract still succeeded,
       // this is a heads-up, not an error.
-      if (contractResponse.casketWarning) {
-        alert(contractResponse.casketWarning);
-      }
+      if (contractResponse.casketWarning)
+        await showInfo({
+          title: 'Casket Warning',
+          message: contractResponse.casketWarning,
+          closeLabel: 'OK',
+          severity: 'warning',
+        });
 
       onCreated();
     } catch (error) {
@@ -159,233 +152,200 @@ export default function ContractPanel({
   }
 
   return (
-    <>
-      <div
-        onClick={handleClose}
-        aria-hidden
-        className={`fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] transition-opacity duration-300 ${
-          shown ? 'opacity-100' : 'opacity-0'
-        }`}
-      />
+    <SidePanel
+      shown={isShown}
+      onRequestClose={requestClose}
+      ariaLabel={`New contract for ${deceased.deceased_name}`}
+      badge="NEW CONTRACT"
+      badgeClassName="bg-indigo-100 text-indigo-800"
+      title={deceased.deceased_name}
+    >
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
+          <section>
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+              Deceased details
+            </h3>
+            <dl className="divide-y divide-gray-100">
+              <DetailRow
+                label="Service status"
+                value={titleCase(deceased.servicestatus)}
+              />
+              <DetailRow label="Plan type" value={deceased.plantype} />
+              <DetailRow
+                label="Matured life plan"
+                value={deceased.hasmaturedlifeplan ? 'Yes' : 'No'}
+              />
+              <DetailRow label="Cause of death" value={deceased.causeofdeath} />
+              <DetailRow label="Type of death" value={deceased.typeofdeath} />
+              <DetailRow
+                label="Physical description"
+                value={deceased.physicaldescription}
+              />
+              <DetailRow
+                label="Representative"
+                value={deceased.representative_name}
+              />
+              <DetailRow
+                label="Contact number"
+                value={deceased.representative_contact}
+              />
+              <DetailRow label="Managed by" value={deceased.managed_by_name} />
+              <DetailRow
+                label="Date created"
+                value={formatDate(deceased.datecreated)}
+              />
+            </dl>
+          </section>
 
-      <aside
-        role="dialog"
-        aria-modal="true"
-        aria-label={`New contract for ${deceased.deceased_name}`}
-        className={`fixed inset-y-0 right-0 z-50 w-full sm:w-md bg-white shadow-xl border-l border-gray-200 flex flex-col transition-transform duration-300 ease-out ${
-          shown ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        <header className="flex items-start justify-between gap-3 px-5 py-4 border-b border-gray-200 shrink-0">
-          <div>
-            <span className="inline-block bg-indigo-100 text-indigo-800 text-[10px] font-semibold px-2 py-0.5 rounded mb-1.5">
-              NEW CONTRACT
-            </span>
-            <h2 className="text-lg font-serif font-bold text-gray-900 wrap-break-word">
-              {deceased.deceased_name}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={handleClose}
-            aria-label="Close panel"
-            className="text-gray-400 hover:text-gray-600 cursor-pointer shrink-0"
-          >
-            <X size={20} />
-          </button>
-        </header>
+          <section className="space-y-3">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              Contract
+            </h3>
 
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
-            <section>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-                Deceased details
-              </h3>
-              <dl className="divide-y divide-gray-100">
-                <DetailRow
-                  label="Service status"
-                  value={titleCase(deceased.servicestatus)}
-                />
-                <DetailRow label="Plan type" value={deceased.plantype} />
-                <DetailRow
-                  label="Matured life plan"
-                  value={deceased.hasmaturedlifeplan ? 'Yes' : 'No'}
-                />
-                <DetailRow
-                  label="Cause of death"
-                  value={deceased.causeofdeath}
-                />
-                <DetailRow label="Type of death" value={deceased.typeofdeath} />
-                <DetailRow
-                  label="Physical description"
-                  value={deceased.physicaldescription}
-                />
-                <DetailRow
-                  label="Representative"
-                  value={deceased.representative_name}
-                />
-                <DetailRow
-                  label="Contact number"
-                  value={deceased.representative_contact}
-                />
-                <DetailRow
-                  label="Managed by"
-                  value={deceased.managed_by_name}
-                />
-                <DetailRow
-                  label="Date created"
-                  value={formatDate(deceased.datecreated)}
-                />
-              </dl>
-            </section>
+            <div>
+              <label className={labelClass}>Package</label>
+              <PackageSection
+                confirmed={confirmedPackage}
+                onConfirm={handlePackageConfirmed}
+                onEdit={() => setConfirmedPackage(null)}
+              />
+              {confirmedPackage && (
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Amount, embalming period and inclusions below were prefilled
+                  from it — feel free to adjust for this contract.
+                </p>
+              )}
+            </div>
 
-            <section className="space-y-3">
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                Contract
-              </h3>
-
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={labelClass}>Package</label>
-                <PackageSection
-                  confirmed={confirmedPackage}
-                  onConfirm={handlePackageConfirmed}
-                  onEdit={() => setConfirmedPackage(null)}
-                />
-                {confirmedPackage && (
-                  <p className="text-[11px] text-gray-400 mt-1">
-                    Amount, embalming period and inclusions below were prefilled
-                    from it — feel free to adjust for this contract.
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="signeddate" className={labelClass}>
-                    Signed date
-                  </label>
-                  <input
-                    id="signeddate"
-                    type="date"
-                    required
-                    value={form.signeddate}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        signeddate: e.target.value,
-                      }))
-                    }
-                    className={fieldClass}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="burialdatedeadline" className={labelClass}>
-                    Burial deadline
-                  </label>
-                  <input
-                    id="burialdatedeadline"
-                    type="date"
-                    required
-                    value={form.burialdatedeadline}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        burialdatedeadline: e.target.value,
-                      }))
-                    }
-                    className={fieldClass}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="totalamount" className={labelClass}>
-                    Total amount (PHP)
-                  </label>
-                  <input
-                    id="totalamount"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    required
-                    value={form.totalamount}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        totalamount: e.target.value,
-                      }))
-                    }
-                    className={fieldClass}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="embalmingperiod" className={labelClass}>
-                    Embalming period (days)
-                  </label>
-                  <input
-                    id="embalmingperiod"
-                    type="number"
-                    min="0"
-                    step="1"
-                    required
-                    value={form.embalmingperiod}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        embalmingperiod: e.target.value,
-                      }))
-                    }
-                    className={fieldClass}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="inclusions" className={labelClass}>
-                  Inclusions{' '}
-                  <span className="font-normal text-gray-400">(optional)</span>
+                <label htmlFor="signeddate" className={labelClass}>
+                  Signed date
                 </label>
-                <textarea
-                  id="inclusions"
-                  rows={3}
-                  value={form.inclusions}
+                <input
+                  id="signeddate"
+                  type="date"
+                  required
+                  value={form.signeddate}
                   onChange={(e) =>
-                    setForm((prev) => ({ ...prev, inclusions: e.target.value }))
+                    setForm((prev) => ({
+                      ...prev,
+                      signeddate: e.target.value,
+                    }))
                   }
-                  className={`${fieldClass} resize-y`}
+                  className={fieldClass}
                 />
               </div>
-            </section>
-          </div>
 
-          <footer className="px-5 py-4 border-t border-gray-200 shrink-0 space-y-3">
-            {errorMsg && (
-              <p role="alert" className="text-sm text-red-500">
-                {errorMsg}
-              </p>
-            )}
+              <div>
+                <label htmlFor="burialdatedeadline" className={labelClass}>
+                  Burial deadline
+                </label>
+                <input
+                  id="burialdatedeadline"
+                  type="date"
+                  required
+                  value={form.burialdatedeadline}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      burialdatedeadline: e.target.value,
+                    }))
+                  }
+                  className={fieldClass}
+                />
+              </div>
 
-            <div className="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="text-sm border border-gray-200 rounded-lg px-4 py-2 text-gray-600 hover:bg-gray-50 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <LoadingButton
-                type="submit"
-                isLoading={isSubmitting}
-                disabled={!confirmedPackage}
-                label="Create contract"
-                loadingLabel="Creating..."
-                className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              <div>
+                <label htmlFor="totalamount" className={labelClass}>
+                  Total amount (PHP)
+                </label>
+                <input
+                  id="totalamount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  required
+                  value={form.totalamount}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      totalamount: e.target.value,
+                    }))
+                  }
+                  className={fieldClass}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="embalmingperiod" className={labelClass}>
+                  Embalming period (days)
+                </label>
+                <input
+                  id="embalmingperiod"
+                  type="number"
+                  min="0"
+                  step="1"
+                  required
+                  value={form.embalmingperiod}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      embalmingperiod: e.target.value,
+                    }))
+                  }
+                  className={fieldClass}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="inclusions" className={labelClass}>
+                Inclusions{' '}
+                <span className="font-normal text-gray-400">(optional)</span>
+              </label>
+              <textarea
+                id="inclusions"
+                rows={3}
+                value={form.inclusions}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, inclusions: e.target.value }))
+                }
+                className={`${fieldClass} resize-y`}
               />
             </div>
-          </footer>
-        </form>
-      </aside>
-    </>
+          </section>
+        </div>
+
+        <footer className="px-5 py-4 border-t border-gray-200 shrink-0 space-y-3">
+          {errorMsg && (
+            <p role="alert" className="text-sm text-red-500">
+              {errorMsg}
+            </p>
+          )}
+
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={requestClose}
+              className="text-sm border border-gray-200 rounded-lg px-4 py-2 text-gray-600 hover:bg-gray-50 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <LoadingButton
+              type="submit"
+              isLoading={isSubmitting}
+              disabled={!confirmedPackage}
+              label="Create contract"
+              loadingLabel="Creating..."
+              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            />
+          </div>
+        </footer>
+      </form>
+
+      {infoModal}
+    </SidePanel>
   );
 }
