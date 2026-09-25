@@ -42,6 +42,7 @@ const FILTERS: FilterDef<Filters>[] = [
 ];
 
 export default function CaseTable() {
+  const [refreshKey, setRefreshKey] = useState<number>(0);
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
 
   const columns: DataTableColumn<Case, ColumnKey>[] = [
@@ -132,6 +133,7 @@ export default function CaseTable() {
             endDate: filters.dateRange.to ?? undefined,
           })
         }
+        refreshKey={refreshKey}
         emptyMessage="No contracts match your search."
         loadErrorMessage="Could not load contracts. Try again."
         bodyOffsetClassName="top-17.25"
@@ -143,6 +145,7 @@ export default function CaseTable() {
           caseid={selectedCase.caseid}
           representativeid={selectedCase.representativeid}
           onClose={() => setSelectedCase(null)}
+          setRefreshKey={setRefreshKey}
         />
       )}
     </>

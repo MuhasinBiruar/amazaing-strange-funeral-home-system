@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { Loader2, X } from 'lucide-react';
 import type { DeceasedRecord, DocumentWithUrl, Representative } from 'shared';
 import {
   getDeceasedRecord,
   updateDeceasedRecord,
 } from '@/services/deceasedRecordService';
-import { getRepresentative } from '@/services/representativeService';
+import {
+  getRepresentative,
+  updateRepresentative,
+} from '@/services/representativeService';
 import { getDocumentsByCase } from '@/services/documentService';
 import { fieldClass, labelClass } from '../fieldStyles';
 import DocumentsSection from './documentsSection';
@@ -13,7 +16,9 @@ import LoadingButton from '@/components/loadingButton';
 
 const PANEL_TRANSITION_MS = 300 as const;
 
-/** `<input type="date">` wants `yyyy-mm-dd`; the API gives back a Date (or null). */
+/**
+ * `<input type="date">` wants `yyyy-mm-dd`; the API gives back a Date (or null).
+ */
 function toDateInputValue(date: Date | string | null): string {
   if (!date) return '';
   const d = new Date(date);
@@ -74,35 +79,36 @@ function toRepresentativeForm(rep: Representative): RepresentativeForm {
  * Slide-in panel opened by clicking a deceased name in the case log. Shows
  * (and lets staff edit) the deceased record and representative info, plus
  * every document uploaded for the case.
- *
- * @remarks
- * Deceased edits save for real via `PATCH /deceasedrecords/:id`. Representative
- * edits do not — there is no `PATCH /representatives/:id` endpoint yet, so
- * that section's Save is disabled with an explanatory note rather than
- * pretending to persist something it can't.
  */
 export default function CaseDetailPanel({
   caseid,
   representativeid,
   onClose,
+  setRefreshKey,
 }: {
   caseid: number;
   representativeid: number | null;
   onClose: () => void;
+  setRefreshKey: Dispatch<SetStateAction<number>>;
 }) {
   const [shown, setShown] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [deceasedForm, setDeceasedForm] = useState<DeceasedForm | null>(null);
-  const [isSavingDeceased, setIsSavingDeceased] = useState(false);
   const [deceasedSaveError, setDeceasedSaveError] = useState<string | null>(
     null,
   );
-  const [deceasedSaved, setDeceasedSaved] = useState(false);
+  const [isSavingDeceased, setIsSavingDeceased] = useState(false);
+  const [isDeceasedSaved, setIsDeceasedSaved] = useState(false);
 
   const [representativeForm, setRepresentativeForm] =
     useState<RepresentativeForm | null>(null);
+  const [representativeSaveError, setRepresentativeSaveError] = useState<
+    string | null
+  >(null);
+  const [isSavingRepresentative, setIsSavingRepresentative] = useState(false);
+  const [isRepresentativeSaved, setIsRepresentativeSaved] = useState(false);
 
   const [documents, setDocuments] = useState<DocumentWithUrl[]>([]);
 
@@ -156,7 +162,7 @@ export default function CaseDetailPanel({
 
     setIsSavingDeceased(true);
     setDeceasedSaveError(null);
-    setDeceasedSaved(false);
+    setIsDeceasedSaved(false);
 
     try {
       await updateDeceasedRecord(caseid, {
@@ -173,7 +179,8 @@ export default function CaseDetailPanel({
           : null,
         hasmaturedlifeplan: deceasedForm.hasmaturedlifeplan,
       });
-      setDeceasedSaved(true);
+      setRefreshKey((v) => v + 1);
+      setIsDeceasedSaved(true);
     } catch (error) {
       setDeceasedSaveError(
         error instanceof Error
@@ -182,6 +189,35 @@ export default function CaseDetailPanel({
       );
     } finally {
       setIsSavingDeceased(false);
+    }
+  }
+
+  async function handleSaveRepresentative() {
+    if (!representativeForm || !representativeid) return;
+
+    setIsSavingRepresentative(true);
+    setRepresentativeSaveError(null);
+    setIsRepresentativeSaved(false);
+
+    try {
+      await updateRepresentative(representativeid, {
+        firstname: representativeForm.firstname,
+        middlename: representativeForm.middlename,
+        lastname: representativeForm.lastname,
+        relationship: representativeForm.relationship || null,
+        contactnumber: representativeForm.contactnumber,
+        address: representativeForm.address,
+      });
+      setRefreshKey((v) => v + 1);
+      setIsRepresentativeSaved(true);
+    } catch (error) {
+      setRepresentativeSaveError(
+        error instanceof Error
+          ? error.message
+          : 'Could not save changes. Try again.',
+      );
+    } finally {
+      setIsSavingRepresentative(false);
     }
   }
 
@@ -417,7 +453,7 @@ export default function CaseDetailPanel({
                 {deceasedSaveError && (
                   <p className="text-xs text-red-500">{deceasedSaveError}</p>
                 )}
-                {deceasedSaved && !deceasedSaveError && (
+                {isDeceasedSaved && !deceasedSaveError && (
                   <p className="text-xs text-emerald-600">Saved.</p>
                 )}
 
@@ -533,19 +569,23 @@ export default function CaseDetailPanel({
                       />
                     </div>
 
-                    <p className="text-[11px] text-gray-400">
-                      Editing representatives isn&apos;t available yet —
-                      there&apos;s no save endpoint for it. Changes here
-                      won&apos;t persist.
-                    </p>
-                    <button
+                    {representativeSaveError && (
+                      <p className="text-xs text-red-500">
+                        {representativeSaveError}
+                      </p>
+                    )}
+                    {isRepresentativeSaved && !representativeSaveError && (
+                      <p className="text-xs text-emerald-600">Saved.</p>
+                    )}
+
+                    <LoadingButton
                       type="button"
-                      disabled
-                      title="Not available yet"
-                      className="flex items-center gap-1.5 text-sm bg-gray-200 text-gray-500 rounded-md px-3 py-1.5 cursor-not-allowed"
-                    >
-                      Save changes
-                    </button>
+                      isLoading={isSavingRepresentative}
+                      onClick={handleSaveRepresentative}
+                      label="Save changes"
+                      loadingLabel="Saving..."
+                      className="flex items-center gap-1.5 text-sm bg-indigo-600 text-white rounded-md px-3 py-1.5 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    />
                   </>
                 )}
               </section>
