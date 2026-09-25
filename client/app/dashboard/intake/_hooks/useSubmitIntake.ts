@@ -10,7 +10,7 @@ import type {
 } from 'shared';
 import type { SubmitEvent } from 'react';
 import type { StagedDocument } from '../_components/documentchecklist';
-import type { InfoModalOptions } from '@/components/modals/infoModal';
+import type { InfoModalOptions } from '@/components/infoModal/types';
 
 function getPlantype(
   rawPlantype: string,

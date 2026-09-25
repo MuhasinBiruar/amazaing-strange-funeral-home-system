@@ -14,8 +14,8 @@ import { useDraft } from './_hooks/useDraft';
 import { useSubmitIntake } from './_hooks/useSubmitIntake';
 import { validateIntakeForm, getFirstErrorField } from './_lib/validateIntake';
 import { isObjectEmpty } from 'shared/utils';
-import type { InfoModalOptions } from '@/components/modals/infoModal';
-import InfoModal from '@/components/modals/infoModal';
+import type { InfoModalOptions } from '@/components/infoModal/types';
+import InfoModal from '@/components/infoModal';
 import { useRouter } from 'next/navigation';
 
 export default function IntakePage() {

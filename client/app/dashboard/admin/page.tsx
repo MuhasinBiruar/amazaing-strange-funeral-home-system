@@ -14,7 +14,7 @@ import {
   ColumnKey,
 } from './_components/staffTable/constants';
 import type { PanelMode } from './_components/staffPanel/types';
-import { useInfoModal } from '@/hooks/useInfoModal';
+import { useInfoModal } from '@/components/infoModal/useInfoModal';
 
 export default function AdminPage() {
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);

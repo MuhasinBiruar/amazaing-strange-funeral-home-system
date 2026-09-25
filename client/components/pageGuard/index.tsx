@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useInfoModal } from '@/hooks/useInfoModal';
+import { useInfoModal } from '@/components/infoModal/useInfoModal';
 import { useAuth } from '@/contexts/AuthProvider';
 import type { AccessPage } from 'shared';
 

@@ -4,7 +4,7 @@ import { Building2 } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useRouter } from 'next/navigation';
-import { useInfoModal } from '@/hooks/useInfoModal';
+import { useInfoModal } from '@/components/infoModal/useInfoModal';
 
 export default function Header() {
   const router = useRouter();

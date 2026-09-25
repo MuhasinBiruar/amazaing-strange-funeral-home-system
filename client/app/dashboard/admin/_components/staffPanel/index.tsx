@@ -25,7 +25,7 @@ import {
 import { toForm } from './toForm';
 import { validateFields } from './validateFields';
 import { isObjectEmpty } from 'shared/utils';
-import type { useInfoModal } from '@/hooks/useInfoModal';
+import type { useInfoModal } from '@/components/infoModal/useInfoModal';
 import LoadingButton from '@/components/loadingButton';
 
 export default function StaffPanel({

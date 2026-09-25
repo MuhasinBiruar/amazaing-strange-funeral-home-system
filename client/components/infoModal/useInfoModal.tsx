@@ -1,8 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
-import InfoModal, {
-  type InfoModalOptions,
-} from '@/components/modals/infoModal';
+import InfoModal from './index';
 import { createPortal } from 'react-dom';
+import type { InfoModalOptions } from './types';
 
 type LoadingButton = 'confirm' | 'close' | null;
 

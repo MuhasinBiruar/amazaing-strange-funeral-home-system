@@ -1,5 +1,5 @@
 import { Loader2, Save } from 'lucide-react';
-import { useInfoModal } from '@/hooks/useInfoModal';
+import { useInfoModal } from '@/components/infoModal/useInfoModal';
 import LoadingButton from '@/components/loadingButton';
 
 export default function ActionBar({

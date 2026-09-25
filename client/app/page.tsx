@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
-import { useInfoModal } from '@/hooks/useInfoModal';
+import { useInfoModal } from '@/components/infoModal/useInfoModal';
 import LoadingButton from '@/components/loadingButton';
 import PasswordInput from '@/components/passwordInput';
 
