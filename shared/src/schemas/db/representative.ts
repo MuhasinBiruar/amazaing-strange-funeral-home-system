@@ -3,7 +3,8 @@ import { withNullDefault } from '@/utils/with-null-default';
 import { nameSchema } from '@/utils/name-schema';
 import { contactNumberSchema } from '@/utils/contact-number-schema';
 
-export const createRepresentativeQuerySchema = z.object({
+export const representativeSchema = z.object({
+  representativeid: z.int32(),
   firstname: nameSchema('First name'),
   middlename: nameSchema('Middle name'),
   lastname: nameSchema('Last name'),
@@ -13,15 +14,22 @@ export const createRepresentativeQuerySchema = z.object({
   datecreated: z.coerce.date(),
 });
 
+export type Representative = z.infer<typeof representativeSchema>;
+
+export const createRepresentativeQuerySchema = representativeSchema.omit({
+  representativeid: true,
+});
+
 export type CreateRepresentativeQuery = z.infer<
   typeof createRepresentativeQuerySchema
 >;
 
-export const representativeSchema = createRepresentativeQuerySchema.extend({
-  representativeid: z.int32(),
-});
+export const updateRepresentativeQuerySchema =
+  createRepresentativeQuerySchema.partial();
 
-export type Representative = z.infer<typeof representativeSchema>;
+export type UpdateRepresentativeQuery = z.infer<
+  typeof updateRepresentativeQuerySchema
+>;
 
 export const getRepresentativeResponseSchema = z.object({
   data: representativeSchema,

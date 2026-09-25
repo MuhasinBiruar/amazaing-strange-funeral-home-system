@@ -306,7 +306,7 @@ router.patch(
           datecreated = COALESCE($10, datecreated),
           dateofdeath = COALESCE($11, dateofdeath),
           representedby = COALESCE($12, representedby)
-        WHERE caseid = $13 AND managedby = $14
+        WHERE caseid = $13
         RETURNING *`,
         [
           parsed.firstname ?? null,
@@ -322,7 +322,6 @@ router.patch(
           parsed.dateofdeath ?? null,
           parsed.representedby ?? null,
           id,
-          userId,
         ],
       );
 
