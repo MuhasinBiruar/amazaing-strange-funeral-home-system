@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { getCasketInventoryById } from '@/services/casketInventoryService';
 import { formatCurrency, titleCase } from '@/utils/format';
+import SidePanel from '@/components/sidePanel';
+import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import type { DeliveryHistoryType } from './types';
-
-const PANEL_TRANSITION_MS = 300 as const;
 
 export default function DeliveryHistoryPanel({
   casketid,
@@ -17,17 +17,12 @@ export default function DeliveryHistoryPanel({
   caskettype: string;
   onClose: () => void;
 }) {
-  const [shown, setShown] = useState(false);
+  const { isShown, requestClose } = useSidePanel(onClose);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [deliveryHistory, setDeliveryHistory] = useState<DeliveryHistoryType[]>(
     [],
   );
-
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => setShown(true));
-    return () => cancelAnimationFrame(frame);
-  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -58,104 +53,68 @@ export default function DeliveryHistoryPanel({
     return () => controller.abort();
   }, [casketid]);
 
-  function handleClose() {
-    setShown(false);
-    setTimeout(onClose, PANEL_TRANSITION_MS);
-  }
-
   return (
-    <>
-      <div
-        onClick={handleClose}
-        aria-hidden
-        className={`fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] transition-opacity duration-300 ${
-          shown ? 'opacity-100' : 'opacity-0'
-        }`}
-      />
-
-      <aside
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Packages using ${caskettype}`}
-        className={`fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-gray-200 bg-white shadow-xl transition-transform duration-300 ease-out sm:w-md ${
-          shown ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        <header className="flex shrink-0 items-start justify-between gap-3 border-b border-gray-200 px-5 py-4">
-          <div>
-            <span className="mb-1.5 inline-block rounded bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
-              CASKET PACKAGES
-            </span>
-            <h2 className="font-serif text-lg font-bold text-gray-900">
-              {caskettype}
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Deliveries that include this casket
-            </p>
+    <SidePanel
+      shown={isShown}
+      onRequestClose={requestClose}
+      ariaLabel={`Delivery history for ${caskettype}`}
+      badge="CASKET PACKAGES"
+      badgeClassName="bg-blue-100 text-blue-800"
+      title={caskettype}
+      subtitle="Deliveries that include this casket"
+    >
+      <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+        {isLoading && (
+          <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500">
+            <Loader2 size={16} className="animate-spin" />
+            Loading delivery history...
           </div>
-          <button
-            type="button"
-            onClick={handleClose}
-            aria-label="Close panel"
-            className="shrink-0 cursor-pointer text-gray-400 hover:text-gray-600"
-          >
-            <X size={20} />
-          </button>
-        </header>
+        )}
 
-        <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
-          {isLoading && (
-            <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500">
-              <Loader2 size={16} className="animate-spin" />
-              Loading delivery history...
-            </div>
-          )}
+        {!isLoading && loadError && (
+          <p className="text-sm text-red-500">{loadError}</p>
+        )}
 
-          {!isLoading && loadError && (
-            <p className="text-sm text-red-500">{loadError}</p>
-          )}
+        {!isLoading && !loadError && deliveryHistory.length === 0 && (
+          <p className="py-10 text-center text-sm text-gray-500">
+            No delivery history for this casket.
+          </p>
+        )}
 
-          {!isLoading && !loadError && deliveryHistory.length === 0 && (
-            <p className="py-10 text-center text-sm text-gray-500">
-              No delivery history for this casket.
+        {!isLoading && !loadError && deliveryHistory.length > 0 && (
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+              {deliveryHistory.length}{' '}
+              {deliveryHistory.length === 1 ? 'package' : 'packages'}
             </p>
-          )}
-
-          {!isLoading && !loadError && deliveryHistory.length > 0 && (
-            <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                {deliveryHistory.length}{' '}
-                {deliveryHistory.length === 1 ? 'package' : 'packages'}
-              </p>
-              {deliveryHistory.map((dlv) => (
-                <article
-                  key={dlv.deliveryid}
-                  className="rounded-lg border border-gray-200 bg-gray-50 p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">
-                        {dlv.deliverydate instanceof Date
-                          ? dlv.deliverydate.toLocaleDateString()
-                          : new Date(
-                              dlv.deliverydate as string,
-                            ).toLocaleDateString()}
-                      </h3>
-                      <p className="mt-1 text-xs font-medium text-blue-700">
-                        Quantity: {titleCase(dlv.quantityreceived.toString())}{' '}
-                        received
-                      </p>
-                    </div>
-                    <span className="shrink-0 font-semibold text-gray-900">
-                      Total paid: {formatCurrency(dlv.totalamountpaid)}
-                    </span>
+            {deliveryHistory.map((dlv) => (
+              <article
+                key={dlv.deliveryid}
+                className="rounded-lg border border-gray-200 bg-gray-50 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold text-gray-900">
+                      {dlv.deliverydate instanceof Date
+                        ? dlv.deliverydate.toLocaleDateString()
+                        : new Date(
+                            dlv.deliverydate as string,
+                          ).toLocaleDateString()}
+                    </h3>
+                    <p className="mt-1 text-xs font-medium text-blue-700">
+                      Quantity: {titleCase(dlv.quantityreceived.toString())}{' '}
+                      received
+                    </p>
                   </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </div>
-      </aside>
-    </>
+                  <span className="shrink-0 font-semibold text-gray-900">
+                    Total paid: {formatCurrency(dlv.totalamountpaid)}
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </SidePanel>
   );
 }
