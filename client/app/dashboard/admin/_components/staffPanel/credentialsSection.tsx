@@ -1,5 +1,5 @@
-import { fieldClass, labelClass } from './constants';
-import type { ValidationErrors, UpdateField } from '../types';
+import { fieldClass, labelClass } from './fieldStyles';
+import type { ValidationErrors, UpdateField } from './types';
 import InlineError from '@/components/inlineError';
 import PasswordInput from '@/components/passwordInput';
 
@@ -17,7 +17,11 @@ export default function CredentialsFields({
   errors: ValidationErrors;
 }) {
   return (
-    <>
+    <section className="space-y-1.5">
+      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+        Credentials
+      </h3>
+
       {mode === 'edit' && (
         <div>
           <label className={labelClass}>Username</label>
@@ -46,6 +50,6 @@ export default function CredentialsFields({
         />
         <InlineError error={errors.password} />
       </div>
-    </>
+    </section>
   );
 }

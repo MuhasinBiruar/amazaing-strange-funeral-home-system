@@ -1,8 +1,8 @@
-import { fieldClass, labelClass } from './constants';
-import type { ValidationErrors, UpdateField } from '../types';
+import { fieldClass, labelClass } from './fieldStyles';
+import type { ValidationErrors, UpdateField } from './types';
 import InlineError from '@/components/inlineError';
 
-export default function RoleFields({
+export default function RoleAndStatusSection({
   jobRole,
   role,
   isActive,
@@ -16,7 +16,11 @@ export default function RoleFields({
   errors: ValidationErrors;
 }) {
   return (
-    <>
+    <section className="space-y-1.5">
+      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+        Role & Status
+      </h3>
+
       <div>
         <label className={labelClass}>Job role</label>
         <input
@@ -56,6 +60,6 @@ export default function RoleFields({
         />
         Active
       </label>
-    </>
+    </section>
   );
 }
