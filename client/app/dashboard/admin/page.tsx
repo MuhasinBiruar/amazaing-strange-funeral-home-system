@@ -80,17 +80,15 @@ export default function AdminPage() {
         />
       </main>
 
-      <StaffPanel
-        mode={panelMode}
-        staffId={selectedStaffId}
-        isVisible={isPanelOpen}
-        onClose={() => {
-          setIsPanelOpen(false);
-        }}
-        onSave={() => setRefreshKey((k) => k + 1)}
-        showInfo={showInfo}
-      />
-
+      {isPanelOpen && (
+        <StaffPanel
+          mode={panelMode}
+          staffId={selectedStaffId}
+          onClose={() => setIsPanelOpen(false)}
+          onSave={() => setRefreshKey((k) => k + 1)}
+          showInfo={showInfo}
+        />
+      )}
       {infoModal}
     </div>
   );

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, type SubmitEvent } from 'react';
-import { Sidebar } from 'primereact/sidebar';
 import { Loader2 } from 'lucide-react';
 import {
   createStaff,
@@ -27,24 +26,26 @@ import { validateFields } from './validateFields';
 import { isObjectEmpty } from 'shared/utils';
 import type { useInfoModal } from '@/components/infoModal/useInfoModal';
 import LoadingButton from '@/components/loadingButton';
+import SidePanel from '@/components/sidePanel';
+import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 
 export default function StaffPanel({
   mode,
   staffId,
-  isVisible,
   onClose,
   onSave,
   showInfo,
 }: {
   mode: PanelMode;
   staffId: string | null;
-  isVisible: boolean;
   onClose: () => void;
   onSave: () => void;
   showInfo: ReturnType<typeof useInfoModal>['showInfo'];
 }) {
+  const { isShown, requestClose } = useSidePanel(onClose);
+
   const [form, setForm] = useState<FormState>(emptyForm);
-  const [isLoading, setIsLoading] = useState(mode === 'edit');
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [createdCreds, setCreatedCreds] = useState<{
@@ -53,8 +54,6 @@ export default function StaffPanel({
   } | null>(null);
 
   useEffect(() => {
-    if (!isVisible) return;
-
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setErrors({});
     setCreatedCreds(null);
@@ -91,7 +90,7 @@ export default function StaffPanel({
     loadStaffDetail();
 
     return () => controller.abort();
-  }, [isVisible, mode, staffId, showInfo]);
+  }, [mode, staffId, showInfo]);
 
   const updateField: UpdateField = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -154,82 +153,71 @@ export default function StaffPanel({
   }
 
   return (
-    <Sidebar
-      visible={isVisible}
-      onHide={onClose}
-      position="right"
-      className="w-full sm:w-md"
-      maskClassName="inset-0 z-40 bg-black/30 backdrop-blur-[2px] transition-opacity duration-300"
-      transitionOptions={{
-        timeout: 300,
-        classNames: {
-          enter:
-            'transform transition-transform duration-300 ease-out -translate-x-full',
-          enterActive: 'transform translate-x-0',
-          exit: 'transform transition-transform duration-300 ease-in translate-x-0',
-          exitActive: 'transform -translate-x-full',
-        },
-      }}
+    <SidePanel
+      shown={isShown}
+      onRequestClose={requestClose}
+      ariaLabel={
+        mode === 'create' ? 'Create staff account' : 'Edit staff account'
+      }
+      title={mode === 'create' ? 'Create Staff Account' : 'Edit Staff Account'}
     >
-      <h2 className="text-lg font-bold text-gray-900 mb-4">
-        {mode === 'create' ? 'Create Staff Account' : 'Edit Staff Account'}
-      </h2>
-
-      {isLoading ? (
-        <div className="flex items-center justify-center gap-2 text-sm text-gray-500 py-10">
-          <Loader2 size={16} className="animate-spin" />
-          Loading...
-        </div>
-      ) : createdCreds ? (
-        <CreatedCredentials
-          username={createdCreds.username}
-          password={createdCreds.password}
-          onDone={() => {
-            onSave();
-            onClose();
-          }}
-        />
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <NameFields form={form} onChange={updateField} errors={errors} />
-          <ContactFields
-            contactNumber={form.contactNumber}
-            onChange={updateField}
-            errors={errors}
-          />
-          <CredentialsFields
-            mode={mode}
-            username={form.username}
-            password={form.password}
-            onChange={updateField}
-            errors={errors}
-          />
-          <RoleFields
-            jobRole={form.jobRole}
-            role={form.role}
-            isActive={form.isActive}
-            onChange={updateField}
-            errors={errors}
-          />
-          <AccessFields
-            access={form.access}
-            onToggle={(key) => {
-              setForm((prev) => ({
-                ...prev,
-                access: { ...prev.access, [key]: !prev.access[key] },
-              }));
+      <div className="flex-1 overflow-y-auto px-5 py-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-500 py-10">
+            <Loader2 size={16} className="animate-spin" />
+            Loading...
+          </div>
+        ) : createdCreds ? (
+          <CreatedCredentials
+            username={createdCreds.username}
+            password={createdCreds.password}
+            onDone={() => {
+              onSave();
+              onClose();
             }}
           />
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <NameFields form={form} onChange={updateField} errors={errors} />
+            <ContactFields
+              contactNumber={form.contactNumber}
+              onChange={updateField}
+              errors={errors}
+            />
+            <CredentialsFields
+              mode={mode}
+              username={form.username}
+              password={form.password}
+              onChange={updateField}
+              errors={errors}
+            />
+            <RoleFields
+              jobRole={form.jobRole}
+              role={form.role}
+              isActive={form.isActive}
+              onChange={updateField}
+              errors={errors}
+            />
+            <AccessFields
+              access={form.access}
+              onToggle={(key) => {
+                setForm((prev) => ({
+                  ...prev,
+                  access: { ...prev.access, [key]: !prev.access[key] },
+                }));
+              }}
+            />
 
-          <LoadingButton
-            type="submit"
-            isLoading={isSubmitting}
-            label={mode === 'create' ? 'Create Account' : 'Save Changes'}
-            loadingLabel="Saving..."
-            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 cursor-pointer"
-          />
-        </form>
-      )}
-    </Sidebar>
+            <LoadingButton
+              type="submit"
+              isLoading={isSubmitting}
+              label={mode === 'create' ? 'Create Account' : 'Save Changes'}
+              loadingLabel="Saving..."
+              className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 cursor-pointer"
+            />
+          </form>
+        )}
+      </div>
+    </SidePanel>
   );
 }
