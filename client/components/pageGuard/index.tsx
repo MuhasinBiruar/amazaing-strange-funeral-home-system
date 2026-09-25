@@ -9,11 +9,14 @@ import type { AccessPage } from 'shared';
 /** Routes that require the `admin` role, independent of any `access` flag. */
 const ADMIN_ONLY_PATHS = ['/dashboard/admin'];
 
-/** Dashboard route prefix -> the `access` column that guards it. Routes not
- * listed here (or in {@link ADMIN_ONLY_PATHS}) just require being logged in. */
+/**
+ * Dashboard route prefix -> the `access` column that guards it. Routes not
+ * listed here (or in {@link ADMIN_ONLY_PATHS}) just require being logged in.
+ */
 const PATH_ACCESS_MAP: Record<string, AccessPage> = {
   '/dashboard/intake': 'intake_page',
   '/dashboard/case-management': 'case_page',
+  '/dashboard/inventory': 'inventory_page',
 };
 
 function accessPageFor(pathname: string): AccessPage | null {
@@ -26,11 +29,8 @@ function accessPageFor(pathname: string): AccessPage | null {
 /**
  * Guards a dashboard route: redirects to `/` if not signed in, or to
  * `/dashboard` if the route needs a role/access the user doesn't have.
- * Admins skip all page-level access checks.
  *
- * This is UX only, not security — the server independently enforces auth
- * and access on every endpoint. Session/access come from `AuthProvider`
- * (fetched once, cached) rather than a fresh request on every navigation.
+ * Admins skip all page-level access checks.
  */
 export default function PageGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
