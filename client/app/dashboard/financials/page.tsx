@@ -16,6 +16,14 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'expenses', label: 'Expenses' },
 ];
 
+/**
+ * Financial dashboard: money-in/money-out summary over time, plus separate
+ * logs for Direct, LGU, Life Plan payment types, and general Expenses.
+ *
+ * @remarks
+ * Mirrors the case-management page shell (category pill, serif heading,
+ * subtitle) and reuses the shared `DataTable` for each log.
+ */
 export default function FinancialsPage() {
   const [tab, setTab] = useState<Tab>('direct');
 

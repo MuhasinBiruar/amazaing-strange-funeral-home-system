@@ -6,7 +6,7 @@ import DataTable from '@/components/dataTable';
 import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import { getExpenses, type Expense } from '@/services/financialService';
-import RecordExpenseModal from './recordExpenseModal.tsx';
+import RecordExpenseModal from './recordExpenseModal';
 
 type ColumnKey = keyof Expense;
 
@@ -30,7 +30,7 @@ export default function ExpenseTable() {
       key: 'description',
       label: 'Description',
       widthClassName: 'w-full',
-      cellClassName: 'px-5 py-3 text-gray-900 font-medium wrap-break-word',
+      cellClassName: 'px-5 py-3 wrap-break-word font-medium text-gray-900',
       render: (e) => e.description,
     },
     {
@@ -44,7 +44,7 @@ export default function ExpenseTable() {
       key: 'amount',
       label: 'Amount',
       widthClassName: 'w-40',
-      cellClassName: 'text-red-600 font-medium',
+      cellClassName: 'text-red-500 font-medium',
       render: (e) => formatCurrency(e.amount),
     },
   ];
@@ -70,16 +70,7 @@ export default function ExpenseTable() {
         rowKey={(e) => e.expenseid}
         defaultSortBy="expensedate"
         defaultSortOrder="desc"
-        fetchData={({ filters: _filters, sortBy, sortOrder, search, signal }) =>
-          getExpenses({
-            page: 1,
-            limit: 10,
-            sortBy: sortBy as string,
-            sortOrder: sortOrder as 'asc' | 'desc',
-            search,
-            signal,
-          })
-        }
+        fetchData={({ filters: _filters, ...params }) => getExpenses(params)}
         emptyMessage="No expenses recorded yet."
         loadErrorMessage="Could not load expenses."
         refreshKey={refreshKey}
