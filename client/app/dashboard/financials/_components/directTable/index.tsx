@@ -6,11 +6,14 @@ import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import { getDirectPlans, type DirectPlan } from '@/services/financialService';
 import TransactionHistoryPanel from './transactionHistoryPanel';
+import RecordTransactionModal from '../directTable/recordTransactionModal';
 
 type ColumnKey = keyof DirectPlan;
 
 export default function DirectTable() {
   const [historyFor, setHistoryFor] = useState<DirectPlan | null>(null);
+  const [paymentFor, setPaymentFor] = useState<DirectPlan | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const columns: DataTableColumn<DirectPlan, ColumnKey>[] = [
     {
@@ -31,7 +34,8 @@ export default function DirectTable() {
       key: 'totalamount',
       label: 'Total amount',
       widthClassName: 'w-32.5',
-      render: (d) => (d.totalamount != null ? formatCurrency(d.totalamount) : '—'),
+      render: (d) =>
+        d.totalamount != null ? formatCurrency(d.totalamount) : '—',
     },
     {
       key: 'totalamountpaid',
@@ -41,16 +45,25 @@ export default function DirectTable() {
     },
     {
       key: 'caseid',
-      label: 'History',
-      widthClassName: 'w-25',
-      render: (d) => (
-        <button
-          type="button"
-          onClick={() => setHistoryFor(d)}
-          className="text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer text-sm"
-        >
-          View history
-        </button>
+      label: 'Actions',
+      widthClassName: 'w-48',
+      render: (row) => (
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => setPaymentFor(row)}
+            className="text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer text-sm font-medium"
+          >
+            Record payment
+          </button>
+          <button
+            type="button"
+            onClick={() => setHistoryFor(row)}
+            className="text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer text-sm"
+          >
+            View history
+          </button>
+        </div>
       ),
     },
   ];
@@ -68,6 +81,7 @@ export default function DirectTable() {
         fetchData={({ filters: _filters, ...params }) => getDirectPlans(params)}
         emptyMessage="No direct payment plans match your search."
         loadErrorMessage="Could not load direct payment plans. Try again."
+        refreshKey={refreshKey}
       />
 
       {historyFor && (
@@ -76,6 +90,15 @@ export default function DirectTable() {
           caseid={historyFor.caseid}
           deceasedName={historyFor.deceased_name}
           onClose={() => setHistoryFor(null)}
+        />
+      )}
+      {paymentFor && (
+        <RecordTransactionModal
+          key={`payment-${paymentFor.caseid}`}
+          caseId={paymentFor.caseid}
+          deceasedName={paymentFor.deceased_name}
+          onClose={() => setPaymentFor(null)}
+          onSuccess={() => setRefreshKey((k) => k + 1)}
         />
       )}
     </>

@@ -21,22 +21,40 @@ export function drillRangeFor(level: DrillLevel, bucketStartDate: string) {
 
   if (level === 'year') {
     const end = new Date(Date.UTC(start.getUTCFullYear() + 1, 0, 1));
-    return { startDate: toIsoDate(start), endDate: toIsoDate(end), nextLevel: 'month' as DrillLevel };
+    return {
+      startDate: toIsoDate(start),
+      endDate: toIsoDate(end),
+      nextLevel: 'month' as DrillLevel,
+    };
   }
 
   if (level === 'month') {
-    const end = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1));
-    return { startDate: toIsoDate(start), endDate: toIsoDate(end), nextLevel: 'week' as DrillLevel };
+    const end = new Date(
+      Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1),
+    );
+    return {
+      startDate: toIsoDate(start),
+      endDate: toIsoDate(end),
+      nextLevel: 'week' as DrillLevel,
+    };
   }
 
   if (level === 'week') {
     const end = new Date(start);
     end.setUTCDate(end.getUTCDate() + 7);
-    return { startDate: toIsoDate(start), endDate: toIsoDate(end), nextLevel: 'day' as DrillLevel };
+    return {
+      startDate: toIsoDate(start),
+      endDate: toIsoDate(end),
+      nextLevel: 'day' as DrillLevel,
+    };
   }
 
   // day has no further drill-down
-  return { startDate: toIsoDate(start), endDate: toIsoDate(start), nextLevel: null };
+  return {
+    startDate: toIsoDate(start),
+    endDate: toIsoDate(start),
+    nextLevel: null,
+  };
 }
 
 /**
@@ -64,15 +82,46 @@ export function isPartialWeek(
   return !(startsInMonth && endsInMonth);
 }
 
-export function formatBucketLabel(level: DrillLevel, startDate: string) {
-  const d = new Date(startDate);
-  if (level === 'year') return d.toLocaleDateString(undefined, { year: 'numeric' });
-  if (level === 'month') return d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
-  if (level === 'week') return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+export function formatBucketLabel(
+  level: DrillLevel,
+  startDate: string,
+  viewStartDate?: string,
+) {
+  // Use pure string comparison to clamp the display label
+  let displayDateStr = startDate.slice(0, 10);
+
+  if (level === 'week' && viewStartDate) {
+    const viewStartStr = viewStartDate.slice(0, 10);
+    if (displayDateStr < viewStartStr) {
+      displayDateStr = viewStartStr;
+    }
+  }
+
+  // Safely force UTC midnight so the browser cannot shift it
+  const d = new Date(`${displayDateStr}T00:00:00Z`);
+
+  if (level === 'year')
+    return d.toLocaleDateString(undefined, {
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
+  if (level === 'month')
+    return d.toLocaleDateString(undefined, {
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
+  return d.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
 }
 
-export function chooseUnitForRange(startDate: string, endDate: string): DrillLevel {
+export function chooseUnitForRange(
+  startDate: string,
+  endDate: string,
+): DrillLevel {
   const spanDays =
     (new Date(endDate).getTime() - new Date(startDate).getTime()) / 86_400_000;
 

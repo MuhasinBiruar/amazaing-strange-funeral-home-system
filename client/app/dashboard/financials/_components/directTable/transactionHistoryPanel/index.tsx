@@ -117,7 +117,10 @@ export default function TransactionHistoryPanel({
           {!isLoading && !errorMsg && transactions.length > 0 && (
             <ul className="divide-y divide-gray-100">
               {transactions.map((t) => (
-                <li key={t.transactionid} className="py-3 flex flex-col gap-0.5">
+                <li
+                  key={t.transactionid}
+                  className="py-3 flex flex-col gap-0.5"
+                >
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-900">
                       {formatCurrency(Number(t.amount))}

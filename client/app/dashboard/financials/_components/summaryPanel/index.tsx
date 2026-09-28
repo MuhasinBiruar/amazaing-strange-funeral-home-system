@@ -49,7 +49,24 @@ export default function SummaryPanel() {
           endDate: current.endDate,
           signal: controller.signal,
         });
-        setBuckets(res.data);
+
+        let fetchedBuckets = res.data as FinancialSummaryBucket[];
+
+        // FIX: Bulletproof String-Based Overlap Filter (Timezone Safe)
+        if (current.startDate) {
+          const startLimit = current.startDate.slice(0, 10);
+          fetchedBuckets = fetchedBuckets.filter(
+            (b) => b.endDate.slice(0, 10) > startLimit,
+          );
+        }
+        if (current.endDate) {
+          const endLimit = current.endDate.slice(0, 10);
+          fetchedBuckets = fetchedBuckets.filter(
+            (b) => b.startDate.slice(0, 10) < endLimit,
+          );
+        }
+
+        setBuckets(fetchedBuckets);
         setTotalIn(Number(res.meta.totalIn));
         setTotalOut(Number(res.meta.totalOut));
       } catch (error) {
@@ -74,11 +91,38 @@ export default function SummaryPanel() {
       setSelectedDay(b.startDate.slice(0, 10));
       return;
     }
-    const { startDate, endDate, nextLevel } = drillRangeFor(current.level, b.startDate);
+
+    const { startDate, endDate, nextLevel } = drillRangeFor(
+      current.level,
+      b.startDate,
+    );
     if (!nextLevel) return;
+
+    // FIX: Bulletproof String-Based Clamping
+    let clampedStart = startDate.slice(0, 10);
+    let clampedEnd = endDate.slice(0, 10);
+
+    if (current.startDate) {
+      const vStart = current.startDate.slice(0, 10);
+      if (clampedStart < vStart) clampedStart = vStart;
+    }
+    if (current.endDate) {
+      const vEnd = current.endDate.slice(0, 10);
+      if (clampedEnd > vEnd) clampedEnd = vEnd;
+    }
+
     setCrumbs((prev) => [
       ...prev,
-      { level: nextLevel, label: formatBucketLabel(current.level, b.startDate), startDate, endDate },
+      {
+        level: nextLevel,
+        label: formatBucketLabel(
+          current.level,
+          clampedStart,
+          current.startDate,
+        ),
+        startDate: clampedStart,
+        endDate: clampedEnd,
+      },
     ]);
   }
 
@@ -86,12 +130,6 @@ export default function SummaryPanel() {
     setCrumbs((prev) => prev.slice(0, index + 1));
   }
 
-  /**
-   * Applying a custom range picks the granularity automatically (day/week/
-   * month/year, based on span) and replaces the drill trail with a single
-   * "Custom range" crumb at that level — drilling and breadcrumbs continue
-   * to work normally from there.
-   */
   function handleApplyRange(startDate: string, endDate: string) {
     const level = chooseUnitForRange(startDate, endDate);
     setCrumbs([
@@ -111,72 +149,116 @@ export default function SummaryPanel() {
         <div className="flex gap-6">
           <div>
             <p className="text-xs text-gray-500">Total In</p>
-            <p className="text-xl font-bold text-gray-900">{formatCurrency(totalIn)}</p>
+            <p className="text-xl font-bold text-gray-900">
+              {formatCurrency(totalIn)}
+            </p>
           </div>
           <div>
             <p className="text-xs text-gray-500">Total Out</p>
-            <p className="text-xl font-bold text-gray-900">{formatCurrency(totalOut)}</p>
+            <p className="text-xl font-bold text-gray-900">
+              {formatCurrency(totalOut)}
+            </p>
           </div>
         </div>
 
         <DateRangePicker onApply={handleApplyRange} />
       </div>
 
-      <nav className="flex items-center gap-1 text-xs text-gray-500 flex-wrap">
-        {crumbs.map((c, i) => (
-          <span key={i} className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => handleCrumbClick(i)}
-              disabled={i === crumbs.length - 1}
-              className={
-                i === crumbs.length - 1
-                  ? 'font-medium text-gray-900'
-                  : 'text-indigo-600 hover:underline cursor-pointer'
-              }
-            >
-              {c.label}
-            </button>
-            {i < crumbs.length - 1 && <ChevronRight size={12} />}
-          </span>
-        ))}
-      </nav>
+      <div className="border-b border-gray-100 pb-3">
+        <h3 className="text-sm font-semibold text-gray-900">
+          Viewing: {current.label}
+        </h3>
+        <nav className="flex items-center gap-1 text-xs text-gray-500 flex-wrap mt-1">
+          {crumbs.map((c, i) => (
+            <span key={i} className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => handleCrumbClick(i)}
+                disabled={i === crumbs.length - 1}
+                className={
+                  i === crumbs.length - 1
+                    ? 'font-medium text-gray-900'
+                    : 'text-indigo-600 hover:underline cursor-pointer'
+                }
+              >
+                {c.label}
+              </button>
+              {i < crumbs.length - 1 && <ChevronRight size={12} />}
+            </span>
+          ))}
+        </nav>
+      </div>
 
       {isLoading ? (
         <p className="text-sm text-gray-400">Loading chart...</p>
       ) : buckets.length === 0 ? (
         <p className="text-sm text-gray-400">No data for this period.</p>
       ) : (
-        <div className="flex items-end gap-2 h-40 overflow-x-auto">
+        <div className="flex items-end gap-3 h-40 overflow-x-auto pb-2">
           {buckets.map((b, i) => {
-            const inHeight = Number(b.totalIn) > 0 ? Math.max(4, (Number(b.totalIn) / maxValue) * 100) : 0;
-            const outHeight = Number(b.totalOut) > 0 ? Math.max(4, (Number(b.totalOut) / maxValue) * 100) : 0;
+            const inHeight =
+              Number(b.totalIn) > 0
+                ? Math.max(4, (Number(b.totalIn) / maxValue) * 100)
+                : 0;
+            const outHeight =
+              Number(b.totalOut) > 0
+                ? Math.max(4, (Number(b.totalOut) / maxValue) * 100)
+                : 0;
             const partial =
               current.level === 'week' && current.startDate
                 ? isPartialWeek(b.startDate, b.endDate, current.startDate)
                 : false;
 
+            // FIX: String-based tooltip clamping
+            let clampedEndStr = b.endDate.slice(0, 10);
+            if (
+              current.endDate &&
+              clampedEndStr > current.endDate.slice(0, 10)
+            ) {
+              clampedEndStr = current.endDate.slice(0, 10);
+            }
+            const displayEndDate = new Date(`${clampedEndStr}T00:00:00Z`);
+            displayEndDate.setUTCDate(displayEndDate.getUTCDate() - 1);
+            const formattedTooltipEnd = displayEndDate.toLocaleDateString(
+              undefined,
+              { month: 'short', day: 'numeric', timeZone: 'UTC' },
+            );
+
             return (
-              <div key={`${b.startDate}-${i}`} className="flex flex-col items-center gap-1 min-w-14">
+              <div
+                key={`${b.startDate}-${i}`}
+                className="flex flex-col items-center gap-1 min-w-14"
+              >
                 <button
                   type="button"
                   onClick={() => handleBarClick(b)}
-                  className="flex items-end gap-0.5 h-32 cursor-pointer"
+                  className="flex items-end gap-1 h-32 cursor-pointer group"
+                  title="Click to see more"
                 >
                   <div
-                    className="w-3 bg-indigo-500 rounded-t hover:opacity-80 transition"
+                    className="w-4 border-2 border-indigo-500 bg-transparent group-hover:bg-indigo-500 rounded-t transition-all"
                     style={{ height: `${inHeight}%` }}
-                    title={`In: ${formatCurrency(Number(b.totalIn))}`}
                   />
                   <div
-                    className="w-3 bg-red-400 rounded-t hover:opacity-80 transition"
+                    className="w-4 border-2 border-red-500 bg-transparent group-hover:bg-red-500 rounded-t transition-all"
                     style={{ height: `${outHeight}%` }}
-                    title={`Out: ${formatCurrency(Number(b.totalOut))}`}
                   />
                 </button>
-                <span className="text-[10px] text-gray-400 whitespace-nowrap text-center">
-                  {formatBucketLabel(current.level, b.startDate)}
-                  {partial && <span className="block text-amber-500">(partial)</span>}
+
+                <span className="text-[10px] text-gray-600 whitespace-nowrap text-center flex items-center justify-center gap-1">
+                  {formatBucketLabel(
+                    current.level,
+                    b.startDate,
+                    current.startDate,
+                  )}
+                  {partial && (
+                    <span
+                      title={`${formatBucketLabel(current.level, b.startDate, current.startDate)} - ${formattedTooltipEnd}`}
+                      className="text-amber-500 text-sm leading-none cursor-help"
+                    >
+                      ◐
+                    </span>
+                  )}
                 </span>
               </div>
             );
@@ -185,7 +267,10 @@ export default function SummaryPanel() {
       )}
 
       {selectedDay && (
-        <DayTransactionsPanel date={selectedDay} onClose={() => setSelectedDay(null)} />
+        <DayTransactionsPanel
+          date={selectedDay}
+          onClose={() => setSelectedDay(null)}
+        />
       )}
     </div>
   );
