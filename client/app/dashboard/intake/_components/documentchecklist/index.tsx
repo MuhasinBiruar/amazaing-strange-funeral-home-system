@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Upload, Trash2, CheckCircle2, Plus, X } from 'lucide-react';
+import { useInfoModal } from '@/components/infoModal/useInfoModal';
 
 export interface StagedDocument {
   documenttype: string;
@@ -45,6 +46,8 @@ export default function DocumentChecklist({
   documents: StagedDocument[];
   onChange: (documents: StagedDocument[]) => void;
 }) {
+  const { infoModal, showInfo } = useInfoModal();
+
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [newRequirement, setNewRequirement] = useState('');
 
@@ -54,19 +57,39 @@ export default function DocumentChecklist({
       ? 0
       : Math.round((stagedCount / documents.length) * 100);
 
-  function handleFileSelected(documenttype: string, fileList: FileList | null) {
+  async function handleFileSelected(
+    documenttype: string,
+    fileList: FileList | null,
+  ) {
     const file = fileList?.[0] ?? null;
     if (!file) return;
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      alert(`${file.name} is larger than 20MB — choose a smaller file.`);
+      await showInfo({
+        title: 'File Too Large',
+        message: (
+          <>
+            <b>{file.name}</b> is larger than 20MB — choose a smaller file.
+          </>
+        ),
+        severity: 'error',
+      });
       return;
     }
 
     const isAllowed =
       file.type.startsWith('image/') || file.type === 'application/pdf';
     if (!isAllowed) {
-      alert('Only images and PDF files are accepted.');
+      await showInfo({
+        title: 'Unsupported File Type',
+        message: (
+          <>
+            <b>{file.name}</b> is not a supported file type. Please choose an
+            image or PDF.
+          </>
+        ),
+        severity: 'error',
+      });
       return;
     }
 
@@ -92,7 +115,7 @@ export default function DocumentChecklist({
     onChange(documents.filter((d) => d.documenttype !== documenttype));
   }
 
-  function handleAddRequirement() {
+  async function handleAddRequirement() {
     const name = newRequirement.trim();
     if (!name) return;
 
@@ -100,7 +123,15 @@ export default function DocumentChecklist({
       (d) => d.documenttype.toLowerCase() === name.toLowerCase(),
     );
     if (alreadyExists) {
-      alert(`"${name}" is already on the checklist.`);
+      await showInfo({
+        title: 'Document Already Exists',
+        message: (
+          <>
+            <b>{name}</b> is already on the checklist.
+          </>
+        ),
+        severity: 'error',
+      });
       return;
     }
 
@@ -237,6 +268,8 @@ export default function DocumentChecklist({
           ></div>
         </div>
       </div>
+
+      {infoModal}
     </section>
   );
 }
