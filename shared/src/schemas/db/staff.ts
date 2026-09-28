@@ -10,6 +10,12 @@ import {
 import { updateAccessQuerySchema, DEFAULT_ACCESS } from './access';
 import { withUndefinedDefault } from '@/utils/with-undefined-default';
 
+const jobRoleString = z
+  .string()
+  .trim()
+  .min(1)
+  .max(255, 'Job role must be at most 255 characters');
+
 export const staffRoleEnum = z.enum(['admin', 'user']);
 
 /**
@@ -21,13 +27,7 @@ export const staffSchema = z.object({
   middleName: withNullDefault(nameSchema('Middle name')),
   lastName: nameSchema('Last name'),
   isActive: z.boolean().default(true),
-  jobRole: withNullDefault(
-    z
-      .string()
-      .trim()
-      .min(1)
-      .max(255, 'Job role must be at most 255 characters'),
-  ).default('staff'),
+  jobRole: withNullDefault(jobRoleString).default('staff'),
   contactNumber: withNullDefault(contactNumberSchema),
   /** Automatically generated from firstName + middleName + lastName. */
   name: z.string().trim().min(1),
@@ -35,7 +35,7 @@ export const staffSchema = z.object({
    * @remarks
    * Nullable in the database but user can't login without a username.
    */
-  username: z.string().trim().min(3).max(50),
+  username: z.string().trim().toLowerCase().min(3).max(50),
   role: withNullDefault(staffRoleEnum),
 });
 
@@ -60,6 +60,8 @@ export type CreateStaffQuery = z.infer<typeof createStaffQuerySchema>;
 export const updateStaffQuerySchema = staffWithAccessSchema
   .omit({ id: true, name: true })
   .extend({
+    isActive: z.boolean(),
+    jobRole: jobRoleString,
     access: updateAccessQuerySchema.partial(),
     password: withUndefinedDefault(passwordSchema),
   })

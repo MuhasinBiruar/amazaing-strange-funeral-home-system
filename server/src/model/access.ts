@@ -1,5 +1,6 @@
 import pool from '@/db';
 import { NotFoundError } from '@/errors';
+import type { Pool, PoolClient } from 'pg';
 import { accessPageEnum, type Access, type AccessPage } from 'shared';
 
 export async function getAccess(staffid: string) {
@@ -18,6 +19,7 @@ export async function getAccess(staffid: string) {
 export async function upsertAccess(
   staffid: string,
   access?: Partial<Record<AccessPage, boolean>>,
+  db: Pool | PoolClient = pool,
 ) {
   const columns = accessPageEnum.options.join(', ');
   const placeholders = accessPageEnum.options
@@ -27,7 +29,7 @@ export async function upsertAccess(
     .map((key) => `${key} = EXCLUDED.${key}`)
     .join(', ');
 
-  await pool.query(
+  await db.query(
     `INSERT INTO access (staffid, ${columns})
       VALUES ($1, ${placeholders})
       ON CONFLICT (staffid) DO UPDATE SET ${updates}`,

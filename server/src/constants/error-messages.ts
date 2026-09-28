@@ -77,4 +77,12 @@ export const UNIQUE_CONSTRAINTS: Record<
     field: 'caseid',
     message: 'An LGU case for this case already exists.',
   },
+  staff_username_key: {
+    field: 'username',
+    message: 'That username is already taken.',
+  },
+  staff_email_key: {
+    field: 'username',
+    message: 'That username is already taken.',
+  },
 };
