@@ -61,6 +61,10 @@ export const UNIQUE_CONSTRAINTS: Record<
   string,
   { field: string; message: string }
 > = {
+  burialrecord_caseid_key: {
+    field: 'caseid',
+    message: 'A burial record for this case already exists.',
+  },
   contract_caseid_key: {
     field: 'caseid',
     message: 'A contract for this case already exists.',
