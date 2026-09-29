@@ -14,20 +14,18 @@ import {
 } from 'shared';
 import { foldPeriods } from '@/util/financial';
 import validate from '@/middleware/validate';
-import {
-  createLguCase,
-  getLguCases,
-  createLifeplan,
-  getLifeplan,
-  getDirect,
-  createLifeplanCompany,
-  getLifeplanCompanies,
-  getLifeplanCompany,
-  deleteLifeplanCompany,
-} from '@/controllers/financial';
+import { getDirect } from '@/controllers/financial/direct';
 import { idParamSchema } from 'shared/utils';
 import validateParams from '@/middleware/validate-params';
 import { toExclusiveEndBound } from '@/util/date';
+import { createLguCase, getLguCases } from '@/controllers/lgucase';
+import { createLifeplan, getLifeplan } from '@/controllers/lifeplan';
+import {
+  createLifeplanCompany,
+  getLifeplanCompany,
+  getLifeplanCompanies,
+  deleteLifeplanCompany,
+} from '@/controllers/lifeplancompany';
 
 const router = Router();
 
