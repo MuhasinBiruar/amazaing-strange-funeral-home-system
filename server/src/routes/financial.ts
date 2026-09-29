@@ -83,6 +83,7 @@ router.get(
       ];
 
       const deliveryWhereConditions: string[] = [];
+      const expenseWhereConditions: string[] = [];
 
       const queryParams: unknown[] = [];
       let paramIndex = 1;
@@ -90,6 +91,7 @@ router.get(
       if (startDate) {
         transactionWhereConditions.push(`paymentdatetime >= $${paramIndex}`);
         deliveryWhereConditions.push(`deliverydate >= $${paramIndex}`);
+        expenseWhereConditions.push(`expensedate >= $${paramIndex}`);
 
         queryParams.push(startDate);
         paramIndex++;
@@ -98,13 +100,14 @@ router.get(
       if (endDate) {
         transactionWhereConditions.push(`paymentdatetime < $${paramIndex}`);
         deliveryWhereConditions.push(`deliverydate < $${paramIndex}`);
+        expenseWhereConditions.push(`expensedate < $${paramIndex}`);
 
         queryParams.push(toExclusiveEndBound(endDate));
         paramIndex++;
       }
 
       if (caseid !== undefined) {
-        // Deliveries do not have a caseid column, so this filter
+        // Deliveries and expenses do not have a caseid column, so this filter
         // only applies to transactions.
         transactionWhereConditions.push(`caseid = $${paramIndex}`);
         queryParams.push(caseid);
@@ -115,6 +118,10 @@ router.get(
 
       const deliveryWhereClause = deliveryWhereConditions.length
         ? `WHERE ${deliveryWhereConditions.join(' AND ')}`
+        : '';
+
+      const expenseWhereClause = expenseWhereConditions.length
+        ? `WHERE ${expenseWhereConditions.join(' AND ')}`
         : '';
 
       const result = await pool.query(
@@ -175,6 +182,20 @@ router.get(
           ${deliveryWhereClause}
 
           GROUP BY period
+
+          UNION ALL
+
+          -- General Expenses
+          SELECT
+            date_trunc('${unit}', expensedate::timestamp AT TIME ZONE 'UTC') AS period,
+            COALESCE(SUM(amount), 0) AS totalout,
+            0::double precision AS totalin,
+            0::bigint AS transactioncount
+            
+          FROM public.expense
+          ${expenseWhereClause}
+
+          GROUP BY period
         )
 
         SELECT
@@ -208,6 +229,75 @@ router.get(
           totalOut,
         },
       });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+/**
+ * Expenses Routes
+ */
+router.get(
+  '/expenses',
+  requireAuth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = (page - 1) * limit;
+      const search = req.query.search as string;
+
+      const params: any[] = [limit, offset];
+      let whereClause = '';
+
+      if (search) {
+        whereClause = `WHERE description ILIKE $3`;
+        params.push(`%${search}%`);
+      }
+
+      const countResult = await pool.query(
+        `SELECT COUNT(*) FROM public.expense ${whereClause}`,
+        search ? [params[2]] : [],
+      );
+      const total = parseInt(countResult.rows[0].count);
+
+      const result = await pool.query(
+        `
+      SELECT * FROM public.expense
+      ${whereClause}
+      ORDER BY expensedate DESC
+      LIMIT $1 OFFSET $2
+    `,
+        params,
+      );
+
+      res.json({
+        data: result.rows,
+        meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.post(
+  '/expenses',
+  requireAuth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { description, amount, recordedby } = req.body;
+      const result = await pool.query(
+        `
+      INSERT INTO public.expense (description, amount, expensedate, recordedby)
+      VALUES ($1, $2, NOW(), $3)
+      RETURNING *
+    `,
+        [description, amount, recordedby || 'Staff'],
+      );
+
+      res.json(result.rows[0]);
     } catch (error) {
       next(error);
     }
