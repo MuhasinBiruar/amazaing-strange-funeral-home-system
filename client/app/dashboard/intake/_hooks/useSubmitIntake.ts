@@ -81,7 +81,7 @@ export function useSubmitIntake(
           contactinfo: null,
         };
         const companyResponse = await API.post(
-          '/financial/lifeplans/companies',
+          '/lifeplans/companies',
           companyPayload,
         );
         generatedCompanyId = companyResponse.data.data.companyid as number;
@@ -95,7 +95,7 @@ export function useSubmitIntake(
           caseid: generatedCaseId,
           companyid: generatedCompanyId,
         };
-        await API.post('/financial/lifeplans', lifeplanPayload);
+        await API.post('/lifeplans', lifeplanPayload);
       } else if (formData.plantype === 'LGU') {
         setStatus('Saving LGU case…');
         // STEP 3: LGU CASE
@@ -151,9 +151,7 @@ export function useSubmitIntake(
 
       if (generatedCompanyId) {
         try {
-          await API.delete(
-            `/financial/lifeplans/companies/${generatedCompanyId}`,
-          );
+          await API.delete(`/lifeplans/companies/${generatedCompanyId}`);
         } catch (err) {
           rollbackFailures.push(`life plan company (ID ${generatedCompanyId})`);
           console.error('Failed to clean up orphaned lifeplan company:', err);
