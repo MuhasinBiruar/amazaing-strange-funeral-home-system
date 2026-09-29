@@ -19,6 +19,7 @@ export type Lifeplan = z.infer<typeof lifeplanSchema>;
 
 export const getLifeplansQueryRowSchema = lifeplanSchema.extend({
   deceased_name: z.string(),
+  representative_name: z.string(),
   companyname: z.string(),
 });
 
@@ -26,6 +27,7 @@ export type getLifeplansQueryRow = z.infer<typeof getLifeplansQueryRowSchema>;
 
 export const getLifeplansQuerySchema = paginationQuerySchema.extend({
   search: z.string().optional(),
+  companyid: z.coerce.number().int().positive().optional(),
   sortBy: z.keyof(getLifeplansQueryRowSchema).default('planid'),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
 });

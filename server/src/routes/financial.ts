@@ -19,7 +19,7 @@ import { idParamSchema } from 'shared/utils';
 import validateParams from '@/middleware/validate-params';
 import { toExclusiveEndBound } from '@/util/date';
 import { createLguCase, getLguCases } from '@/controllers/lgucase';
-import { createLifeplan, getLifeplan } from '@/controllers/lifeplan';
+import { createLifeplan, getLifeplans } from '@/controllers/lifeplan';
 import {
   createLifeplanCompany,
   getLifeplanCompany,
@@ -71,7 +71,7 @@ router.post(
  * `http://localhost:4000/financial/lifeplans?search=Dela%20Cruz`
  * `http://localhost:4000/financial/lifeplans?search=ABC%20Life&sortBy=totalamount&sortOrder=desc&page=1&limit=20`
  */
-router.get('/lifeplans', requireAuth, getLifeplan);
+router.get('/lifeplans', requireAuth, getLifeplans);
 
 router.post(
   '/lifeplans/companies',

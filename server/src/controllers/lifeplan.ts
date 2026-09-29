@@ -2,9 +2,13 @@ import pool from '@/db';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 import { getDeceasedName } from '@/util/audit-log';
 import type { NextFunction, Request, Response } from 'express';
-import { getLifeplansQuerySchema, type CreateLifeplanQuery } from 'shared';
+import {
+  getLifeplansQuerySchema,
+  type CreateLifeplanQuery,
+  type getLifeplansQueryRow,
+} from 'shared';
 
-const SORT_COLUMNS: Record<string, string> = {
+const SORT_COLUMNS: Record<keyof getLifeplansQueryRow, string> = {
   planid: 'l.planid',
   plannumber: 'l.plannumber',
   planholdername: 'l.planholdername',
@@ -12,6 +16,7 @@ const SORT_COLUMNS: Record<string, string> = {
   totalamount: 'l.totalamount',
   caseid: 'l.caseid',
   deceased_name: 'deceased_name',
+  representative_name: 'representative_name',
   companyid: 'l.companyid',
   companyname: 'lc.companyname',
 };
@@ -54,13 +59,13 @@ export async function createLifeplan(
   }
 }
 
-export async function getLifeplan(
+export async function getLifeplans(
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    const { page, limit, search, sortBy, sortOrder } =
+    const { page, limit, search, companyid, sortBy, sortOrder } =
       getLifeplansQuerySchema.parse(req.query);
 
     const selectClause = `
@@ -72,6 +77,7 @@ export async function getLifeplan(
         l.totalamount,
         l.caseid,
         CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
+        CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
         l.companyid,
         lc.companyname
     `;
@@ -79,6 +85,7 @@ export async function getLifeplan(
     const fromAndJoins = `
       FROM public.lifeplan l
       LEFT JOIN public.deceasedrecord dr ON l.caseid = dr.caseid
+      LEFT JOIN public.representative r ON dr.representedby = r.representativeid
       LEFT JOIN public.lifeplancompany lc ON l.companyid = lc.companyid
     `;
 
@@ -87,16 +94,22 @@ export async function getLifeplan(
     const queryParams: unknown[] = [];
     let paramIndex = 1;
 
+    if (companyid !== undefined) {
+      whereConditions.push(`l.companyid = $${paramIndex}`);
+      queryParams.push(companyid);
+      paramIndex++;
+    }
+
     if (search) {
       // Searches through: lifeplan.plannumber, lifeplan.planholdername,
-      // lifeplan.caseid, deceasedrecord.name, lifeplancompany.companyname
+      // deceasedrecord.name, representative.name, lifeplancompany.companyname
       whereConditions.push(`(
-          l.plannumber ILIKE $${paramIndex} OR
-          l.planholdername ILIKE $${paramIndex} OR
-          l.caseid::text ILIKE $${paramIndex} OR
-          CONCAT_WS(' ', dr.firstname, dr.middlename, dr.lastname) ILIKE $${paramIndex} OR
-          lc.companyname ILIKE $${paramIndex}
-        )`);
+        l.plannumber ILIKE $${paramIndex} OR
+        l.planholdername ILIKE $${paramIndex} OR
+        CONCAT_WS(' ', dr.firstname, dr.middlename, dr.lastname) ILIKE $${paramIndex} OR
+        CONCAT_WS(' ', r.firstname, r.middlename, r.lastname) ILIKE $${paramIndex} OR
+        lc.companyname ILIKE $${paramIndex}
+      )`);
       queryParams.push(`%${search}%`);
       paramIndex++;
     }
