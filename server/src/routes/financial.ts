@@ -6,26 +6,12 @@ import {
 } from 'express';
 import pool from '@/db';
 import requireAuth from '@/middleware/require-auth';
-import {
-  createLguCaseQuery,
-  createLifeplanCompanyQuerySchema,
-  createLifeplanQuery,
-  getFinancialSummaryQuerySchema,
-} from 'shared';
+import { createLguCaseQuery, getFinancialSummaryQuerySchema } from 'shared';
 import { foldPeriods } from '@/util/financial';
 import validate from '@/middleware/validate';
 import { getDirect } from '@/controllers/financial/direct';
-import { idParamSchema } from 'shared/utils';
-import validateParams from '@/middleware/validate-params';
 import { toExclusiveEndBound } from '@/util/date';
 import { createLguCase, getLguCases } from '@/controllers/lgucase';
-import { createLifeplan, getLifeplans } from '@/controllers/lifeplan';
-import {
-  createLifeplanCompany,
-  getLifeplanCompany,
-  getLifeplanCompanies,
-  deleteLifeplanCompany,
-} from '@/controllers/lifeplancompany';
 
 const router = Router();
 
@@ -45,6 +31,7 @@ const router = Router();
  */
 router.get('/direct', requireAuth, getDirect);
 
+// TODO: Move out of financial/lgucases and into /lgucases
 router.post(
   '/lgucases',
   requireAuth,
@@ -58,46 +45,6 @@ router.post(
  * `http://localhost:6543/financial/lgucases?search=Dela%20Cruz&sortBy=reimbursementamount&sortOrder=desc&page=1&limit=20`
  */
 router.get('/lgucases', requireAuth, getLguCases);
-
-router.post(
-  '/lifeplans',
-  requireAuth,
-  validate(createLifeplanQuery),
-  createLifeplan,
-);
-/**
- * Sample URLs
- * `http://localhost:4000/financial/lifeplans`
- * `http://localhost:4000/financial/lifeplans?search=Dela%20Cruz`
- * `http://localhost:4000/financial/lifeplans?search=ABC%20Life&sortBy=totalamount&sortOrder=desc&page=1&limit=20`
- */
-router.get('/lifeplans', requireAuth, getLifeplans);
-
-router.post(
-  '/lifeplans/companies',
-  requireAuth,
-  validate(createLifeplanCompanyQuerySchema),
-  createLifeplanCompany,
-);
-router.get(
-  '/lifeplans/companies/:id',
-  requireAuth,
-  validateParams(idParamSchema),
-  getLifeplanCompany,
-);
-/**
- * Sample URLs
- * `http://localhost:4000/financial/lifeplans/companies`
- * `http://localhost:4000/financial/lifeplans/companies?search=Corporation`
- * `http://localhost:4000/financial/lifeplans/companies?search=Company&sortBy=companyname&sortOrder=desc&page=1&limit=20`
- */
-router.get('/lifeplans/companies', requireAuth, getLifeplanCompanies);
-router.delete(
-  '/lifeplans/companies/:id',
-  requireAuth,
-  validateParams(idParamSchema),
-  deleteLifeplanCompany,
-);
 
 /**
  * Sample URLs
