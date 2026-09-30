@@ -7,13 +7,14 @@ import DataTable from '@/components/dataTable';
 import { getPaginatedCasketInventory } from '@/services/casketInventoryService';
 import PackagesPanel from './packagesPanel';
 import DeliveryHistoryPanel from './deliveryHistoryPanel';
+import FormalinArea from './formalinArea';
 type ColumnKey = keyof CasketInventoryTable;
 
 /**
  *
- * @TODO add filter by package type
- *       add side panel for delivery history of casket
- *       add formalin inventory management
+ * @returns
+ * @TODO FIX TABLES FOR FORMALIN TABLES THAT STILL USE DATABASE IDS SUCH AS CASE COLUMN
+ *       add total amount paid in payload for formalin delivery and show total amount paid
  */
 
 export default function CasketTable() {
@@ -63,12 +64,7 @@ export default function CasketTable() {
 
   return (
     <>
-      <section className="space-y-2 rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="text-base font-semibold text-gray-900">Formalin Area</h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Formalin Inventory management will be available here.
-        </p>
-      </section>
+      <FormalinArea />
       <DataTable<CasketInventoryTable, ColumnKey>
         key={refreshKey}
         title="Casket Inventory"
