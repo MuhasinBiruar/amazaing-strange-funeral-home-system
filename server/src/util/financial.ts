@@ -24,8 +24,13 @@ function buildEmptyBuckets(
   return buckets;
 }
 
-const InternalGetBucketsQuerySchema = z.array(
+export const GetBucketsQuerySchema = z.array(
   z.object({
+    /**
+     * If unit is day, this will be the day at `00:00:00.000Z`.
+     * If unit is month, this will be the first day of the month at `00:00:00.000Z`.
+     * If unit is year, this will be the first day of the year at `00:00:00.000Z`.
+     */
     period: z.coerce.date(),
     totalout: z.string().transform((s) => new BigNumber(s)),
     totalin: z.string().transform((s) => new BigNumber(s)),
@@ -33,21 +38,21 @@ const InternalGetBucketsQuerySchema = z.array(
   }),
 );
 
+export type GetBucketsQuery = z.infer<typeof GetBucketsQuerySchema>;
+
 /**
  * Folds per-period aggregates (e.g. day, week, etc.) into buckets of
  * `interval` * `unit` (e.g. every 3 days, every 2 months, every 5
  * years).
  */
 export function foldPeriods(
-  rows: unknown[],
+  rows: GetBucketsQuery,
   unit: DateUnit,
   interval: number,
   startDate: Date | null,
   endDate: Date | null,
 ) {
-  const periods = InternalGetBucketsQuerySchema.parse(rows);
-
-  const periodDates = periods.map((p) => new Date(p.period));
+  const periodDates = rows.map((p) => new Date(p.period));
   const oldestPeriodDate = periodDates.length
     ? periodDates.reduce((min, d) => (d < min ? d : min), periodDates[0])
     : null;
@@ -77,19 +82,19 @@ export function foldPeriods(
 
   let totalIn = new BigNumber(0);
   let totalOut = new BigNumber(0);
-  for (let i = 0; i < periods.length; i++) {
-    const period = periods[i];
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
     const diff = calcUnitsBetween(start, periodDates[i], unit);
     const bucketIndex = Math.floor(diff / interval);
 
     const bucket = buckets[bucketIndex];
 
-    const rowIn = BigNumber(period.totalin ?? 0);
-    const rowOut = BigNumber(period.totalout ?? 0);
+    const rowIn = BigNumber(row.totalin ?? 0);
+    const rowOut = BigNumber(row.totalout ?? 0);
 
     bucket.totalIn = bucket.totalIn.plus(rowIn);
     bucket.totalOut = bucket.totalOut.plus(rowOut);
-    bucket.transactionCount += Number(period.transactioncount);
+    bucket.transactionCount += Number(row.transactioncount);
 
     totalIn = totalIn.plus(rowIn);
     totalOut = totalOut.plus(rowOut);
