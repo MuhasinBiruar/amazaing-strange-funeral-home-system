@@ -1,6 +1,7 @@
 import {
   getDirectPlansResponseSchema,
   getDirectTransactionsResponseSchema,
+  getFinancialDetailsResponseSchema,
   getFinancialSummaryResponseSchema,
   type GetDirectPlansQuery,
   type GetFinancialSummaryQuery,
@@ -66,26 +67,15 @@ export async function getDirectTransactions(
   return getDirectTransactionsResponseSchema.parse(result.data);
 }
 
-export interface DayTransaction {
-  id: string;
-  source: 'transaction' | 'casket' | 'formalin';
-  amount: string;
-  direction: 'in' | 'out';
-  caseid: number | null;
-  deceased_name: string | null;
-  category: string;
-  datetime: string;
-}
-
-export async function getDayTransactions(
+export async function getFinancialDetails(
   startDate: string,
   endDate: string,
   signal?: AbortSignal,
-): Promise<{ data: DayTransaction[] }> {
+) {
   const params = new URLSearchParams({ startDate, endDate });
-  const result = await API.get(`/financial/transactions?${params}`, {
+  const result = await API.get(`/financial/details?${params}`, {
     withCredentials: true,
     signal,
   });
-  return result.data;
+  return getFinancialDetailsResponseSchema.parse(result.data);
 }

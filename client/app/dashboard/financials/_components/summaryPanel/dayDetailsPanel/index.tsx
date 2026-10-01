@@ -3,14 +3,12 @@
 import { useEffect, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
 import { formatCurrency, formatDate, titleCase } from '@/utils/format';
-import {
-  getDayTransactions,
-  type DayTransaction,
-} from '@/services/financialService';
+import { getFinancialDetails } from '@/services/financialService';
+import type { FinancialDetail } from 'shared';
 
 const PANEL_TRANSITION_MS = 300 as const;
 
-export default function DayTransactionsPanel({
+export default function DayDetailsPanel({
   date,
   onClose,
 }: {
@@ -18,7 +16,7 @@ export default function DayTransactionsPanel({
   onClose: () => void;
 }) {
   const [shown, setShown] = useState(false);
-  const [items, setItems] = useState<DayTransaction[]>([]);
+  const [items, setItems] = useState<FinancialDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -29,10 +27,11 @@ export default function DayTransactionsPanel({
 
   useEffect(() => {
     const controller = new AbortController();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
     setErrorMsg(null);
 
-    getDayTransactions(date, date, controller.signal)
+    getFinancialDetails(date, date, controller.signal)
       .then((res) => setItems(res.data))
       .catch((error) => {
         if (controller.signal.aborted) return;
@@ -105,7 +104,9 @@ export default function DayTransactionsPanel({
                   <div className="flex items-center justify-between">
                     <span
                       className={`text-sm font-medium ${
-                        t.direction === 'in' ? 'text-emerald-600' : 'text-red-500'
+                        t.direction === 'in'
+                          ? 'text-emerald-600'
+                          : 'text-red-500'
                       }`}
                     >
                       {t.direction === 'in' ? '+' : '-'}
@@ -120,6 +121,7 @@ export default function DayTransactionsPanel({
                   </div>
                   <div className="text-xs text-gray-500">
                     {titleCase(t.category)}
+                    {t.description && <> &middot; {t.description}</>}
                     {t.deceased_name && <> &middot; {t.deceased_name}</>}
                     {t.caseid && <> &middot; Case #{t.caseid}</>}
                   </div>

@@ -3,10 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { formatCurrency } from '@/utils/format';
-import {
-  getFinancialSummary,
-  type FinancialSummaryBucket,
-} from '@/services/financialService';
+import { getFinancialSummary } from '@/services/financialService';
 import {
   chooseUnitForRange,
   drillRangeFor,
@@ -16,7 +13,8 @@ import {
   type DrillLevel,
 } from './dateHelpers';
 import DateRangePicker from './dateRangePicker';
-import DayTransactionsPanel from './dayTransactionsPanel';
+import DayDetailsPanel from './dayDetailsPanel';
+import type { FinancialBucket } from 'shared';
 
 interface Crumb {
   level: DrillLevel;
@@ -31,7 +29,7 @@ export default function SummaryPanel() {
   const [crumbs, setCrumbs] = useState<Crumb[]>([ROOT_CRUMB]);
   const current = crumbs[crumbs.length - 1];
 
-  const [buckets, setBuckets] = useState<FinancialSummaryBucket[]>([]);
+  const [buckets, setBuckets] = useState<FinancialBucket[]>([]);
   const [totalIn, setTotalIn] = useState(0);
   const [totalOut, setTotalOut] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,7 +48,7 @@ export default function SummaryPanel() {
           signal: controller.signal,
         });
 
-        let fetchedBuckets = res.data as FinancialSummaryBucket[];
+        let fetchedBuckets = res.data;
 
         // FIX: Bulletproof String-Based Overlap Filter (Timezone Safe)
         if (current.startDate) {
@@ -267,7 +265,7 @@ export default function SummaryPanel() {
       )}
 
       {selectedDay && (
-        <DayTransactionsPanel
+        <DayDetailsPanel
           date={selectedDay}
           onClose={() => setSelectedDay(null)}
         />
