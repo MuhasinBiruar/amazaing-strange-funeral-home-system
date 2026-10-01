@@ -1,7 +1,12 @@
 import pool from '@/db';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 import type { NextFunction, Request, Response } from 'express';
-import { getDirectPlansQuerySchema } from 'shared';
+import {
+  DirectPlan,
+  getDirectPlansQuerySchema,
+  type GetDirectPlansResponse,
+} from 'shared';
+import type { IdParam } from 'shared/utils';
 
 const SORT_COLUMNS: Record<string, string> = {
   caseid: 'dr.caseid',
@@ -14,12 +19,12 @@ const SORT_COLUMNS: Record<string, string> = {
 };
 
 export async function getCaseTransactions(
-  req: Request,
+  req: Request<IdParam>,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    const { id } = req.params as unknown as { id: string };
+    const { id } = req.params;
 
     const result = await pool.query(
       `
@@ -48,6 +53,7 @@ export async function getDirect(
   next: NextFunction,
 ) {
   try {
+    // TODO: Add a function like validateParams but for query params
     const { page, limit, search, sortBy, sortOrder } =
       getDirectPlansQuerySchema.parse(req.query);
 
@@ -118,11 +124,11 @@ export async function getDirect(
         `;
 
         return await Promise.all([
-          client.query(dataQuery, [
+          client.query<DirectPlan>(dataQuery, [
             ...queryParams,
             ...[limit, (page - 1) * limit],
           ]),
-          client.query(countQuery, queryParams),
+          client.query<{ total: string }>(countQuery, queryParams),
         ]);
       },
     );
@@ -136,7 +142,7 @@ export async function getDirect(
         limit,
         totalPages: Math.ceil(totalRecords / limit),
       },
-    });
+    } satisfies GetDirectPlansResponse);
   } catch (error) {
     next(error);
   }
