@@ -5,7 +5,7 @@ import DataTable from '@/components/dataTable';
 import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import TransactionHistoryPanel from './transactionHistoryPanel';
-import RecordTransactionModal from '../directTable/recordTransactionModal';
+import RecordTransactionModal from './recordTransactionModal';
 import type { DirectPlan } from 'shared';
 import { getDirectPlans } from '@/services/financialService';
 
