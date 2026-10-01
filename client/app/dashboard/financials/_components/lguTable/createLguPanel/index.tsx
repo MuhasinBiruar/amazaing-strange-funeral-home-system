@@ -91,7 +91,10 @@ export default function CreateLguPanel({
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-            <CaseSearchSelect selected={selectedCase} onSelect={setSelectedCase} />
+            <CaseSearchSelect
+              selected={selectedCase}
+              onSelect={setSelectedCase}
+            />
 
             <div>
               <label htmlFor="reimbursementstatus" className={labelClass}>
@@ -106,7 +109,7 @@ export default function CreateLguPanel({
                 <option value="pending">Pending</option>
                 <option value="approved">Approved</option>
                 <option value="released">Released</option>
-                <option value="denied">Denied</option>
+                <option value="rejected">Rejected</option>
               </select>
             </div>
 
