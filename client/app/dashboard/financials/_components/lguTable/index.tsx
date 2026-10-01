@@ -5,20 +5,21 @@ import { Plus } from 'lucide-react';
 import DataTable from '@/components/dataTable';
 import { formatCurrency, titleCase } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
-import { getLguCases, type LguCase } from '@/services/financialService';
+import { getLguCases } from '@/services/financialService';
 import CreateLguPanel from './createLguPanel';
 import TransactionHistoryPanel from '../directTable/transactionHistoryPanel';
 import RecordTransactionModal from '../directTable/recordTransactionModal';
+import type { GetLguCasesRow } from 'shared';
 
-type ColumnKey = keyof LguCase;
+type ColumnKey = keyof GetLguCasesRow;
 
 export default function LguTable() {
   const [isCreating, setIsCreating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [historyFor, setHistoryFor] = useState<LguCase | null>(null);
-  const [paymentFor, setPaymentFor] = useState<LguCase | null>(null);
+  const [historyFor, setHistoryFor] = useState<GetLguCasesRow | null>(null);
+  const [paymentFor, setPaymentFor] = useState<GetLguCasesRow | null>(null);
 
-  const columns: DataTableColumn<LguCase, ColumnKey>[] = [
+  const columns: DataTableColumn<GetLguCasesRow, ColumnKey>[] = [
     {
       key: 'lgucaseid',
       label: 'Actions',
@@ -117,7 +118,7 @@ export default function LguTable() {
         </button>
       </div>
 
-      <DataTable<LguCase, ColumnKey>
+      <DataTable<GetLguCasesRow, ColumnKey>
         title="LGU reimbursement log"
         countLabel={(total) => `${total} cases`}
         searchPlaceholder="Search by deceased name or case ID..."
@@ -129,7 +130,7 @@ export default function LguTable() {
           getLguCases({
             page: 1,
             limit: 10,
-            sortBy: sortBy as string,
+            sortBy: sortBy,
             sortOrder: sortOrder as 'asc' | 'desc',
             search,
             signal,
