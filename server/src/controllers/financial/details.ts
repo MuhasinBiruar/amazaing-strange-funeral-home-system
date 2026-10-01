@@ -22,6 +22,8 @@ export async function getFinancialDetails(
     );
     const exclusiveEnd = toExclusiveEndBound(endDate);
 
+    // Technically, we should add AT TIME ZONE 'UTC' but timestamp set in the
+    // database is already in UTC so it's fine for now.
     const result = await pool.query(
       `
       SELECT * FROM (

@@ -61,6 +61,8 @@ export const getFinancialSummary = async (
       ? `WHERE ${expenseWhereConditions.join(' AND ')}`
       : '';
 
+    // Technically, we should add AT TIME ZONE 'UTC' but timestamp set in the
+    // database is already in UTC so it's fine for now.
     const result = await pool.query(
       `
       WITH combined_financials AS (
