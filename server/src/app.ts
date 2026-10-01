@@ -20,6 +20,7 @@ import deliveriesRouter from './routes/deliveries';
 import casketDeliveriesRouter from './routes/casketdeliveries';
 import formalinDeliveriesRouter from './routes/formalindeliveries';
 import lifeplansRouter from './routes/lifeplans';
+import expensesRouter from './routes/expenses';
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use('/burialrecords', burialrecordsRouter);
 app.use('/deceasedrecords', deceasedRecordsRouter);
 app.use('/staff', staffRouter);
 app.use('/documents', documentsRouter);
+app.use('/expenses', expensesRouter);
 app.use('/financial', financialRouter);
 app.use('/representatives', representativesRouter);
 app.use('/contracts', contractsRouter);

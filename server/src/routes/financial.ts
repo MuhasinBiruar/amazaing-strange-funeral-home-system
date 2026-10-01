@@ -6,11 +6,7 @@ import {
 } from 'express';
 import pool from '@/db';
 import requireAuth from '@/middleware/require-auth';
-import {
-  createExpenseQuerySchema,
-  createLguCaseQuery,
-  getFinancialSummaryQuerySchema,
-} from 'shared';
+import { createLguCaseQuery, getFinancialSummaryQuerySchema } from 'shared';
 import { foldPeriods, GetBucketsQuerySchema } from '@/util/financial';
 import {
   getDirectTransactions,
@@ -20,7 +16,6 @@ import { toExclusiveEndBound } from '@/util/date';
 import { createLguCase, getLguCases } from '@/controllers/lgucase';
 import { getDayTransactions } from '@/controllers/financial/transactions';
 import validate from '@/middleware/validate';
-import { createExpense, getExpenses } from '@/controllers/expense';
 
 const router = Router();
 
@@ -42,15 +37,6 @@ router.get('/direct', requireAuth, getDirect);
 router.get('/direct/:id/transactions', requireAuth, getDirectTransactions);
 
 router.get('/transactions', requireAuth, getDayTransactions);
-
-// TODO: Move out of financial/expenses and into /expenses
-router.get('/expenses', requireAuth, getExpenses);
-router.post(
-  '/expenses',
-  requireAuth,
-  validate(createExpenseQuerySchema),
-  createExpense,
-);
 
 // TODO: Move out of financial/lgucases and into /lgucases
 router.post(

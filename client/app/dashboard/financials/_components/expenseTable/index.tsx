@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react';
 import DataTable from '@/components/dataTable';
 import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
-import { getExpenses } from '@/services/financialService';
+import { getExpenses } from '@/services/expensesService';
 import type { GetExpensesRow } from 'shared';
 import RecordExpenseModal from './recordExpenseModal';
 

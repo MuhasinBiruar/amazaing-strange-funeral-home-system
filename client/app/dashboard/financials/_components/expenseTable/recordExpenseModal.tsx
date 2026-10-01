@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { createExpense } from '@/services/financialService';
+import { createExpense } from '@/services/expensesService';
 import { createExpenseQuerySchema } from 'shared';
 
 interface Props {
