@@ -9,11 +9,7 @@ export const getFinancialSummaryQuerySchema = z
     startDate: z.coerce
       .date()
       .optional()
-      .default(() => {
-        const d = new Date();
-        d.setFullYear(d.getFullYear() - 1);
-        return d;
-      }),
+      .default(() => new Date(0)),
     endDate: z.iso.datetime().or(z.iso.date()).optional(),
     caseid: z.coerce.number().int().positive().optional(),
   })
