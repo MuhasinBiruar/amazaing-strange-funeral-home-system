@@ -5,20 +5,25 @@ import { Plus } from 'lucide-react';
 import DataTable from '@/components/dataTable';
 import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
-import { getLifeplans, type Lifeplan } from '@/services/financialService';
 import CreateLifeplanPanel from './createLifeplanPanel';
 import TransactionHistoryPanel from '../directTable/transactionHistoryPanel';
-import RecordTransactionModal from '../directTable/recordTransactionModal'; // <-- Fixed lowercase 'r'
+import RecordTransactionModal from '../directTable/recordTransactionModal';
+import type { GetLifeplansQueryRow } from 'shared';
+import { getLifeplans } from '@/services/lifeplansService';
 
-type ColumnKey = keyof Lifeplan;
+type ColumnKey = keyof GetLifeplansQueryRow;
 
 export default function LifeplanTable() {
   const [isCreating, setIsCreating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [historyFor, setHistoryFor] = useState<Lifeplan | null>(null);
-  const [paymentFor, setPaymentFor] = useState<Lifeplan | null>(null);
+  const [historyFor, setHistoryFor] = useState<GetLifeplansQueryRow | null>(
+    null,
+  );
+  const [paymentFor, setPaymentFor] = useState<GetLifeplansQueryRow | null>(
+    null,
+  );
 
-  const columns: DataTableColumn<Lifeplan, ColumnKey>[] = [
+  const columns: DataTableColumn<GetLifeplansQueryRow, ColumnKey>[] = [
     {
       key: 'planholdername',
       label: 'Plan holder',
@@ -96,7 +101,7 @@ export default function LifeplanTable() {
         </button>
       </div>
 
-      <DataTable<Lifeplan, ColumnKey>
+      <DataTable<GetLifeplansQueryRow, ColumnKey>
         title="Life plan log"
         countLabel={(total) => `${total} plans`}
         searchPlaceholder="Search by plan holder, number, or company..."
@@ -108,7 +113,7 @@ export default function LifeplanTable() {
           getLifeplans({
             page: 1,
             limit: 10,
-            sortBy: sortBy as string,
+            sortBy: sortBy,
             sortOrder: sortOrder as 'asc' | 'desc',
             search,
             signal,
