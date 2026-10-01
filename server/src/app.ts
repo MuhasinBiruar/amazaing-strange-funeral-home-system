@@ -21,6 +21,7 @@ import casketDeliveriesRouter from './routes/casketdeliveries';
 import formalinDeliveriesRouter from './routes/formalindeliveries';
 import lifeplansRouter from './routes/lifeplans';
 import expensesRouter from './routes/expenses';
+import lguCasesRouter from './routes/lgucases';
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use('/representatives', representativesRouter);
 app.use('/contracts', contractsRouter);
 app.use('/packages', packagesRouter);
 app.use('/cases', casesRouter);
+app.use('/lgucases', lguCasesRouter);
 app.use('/lifeplans', lifeplansRouter);
 app.use('/casketinventory', casketInventoryRouter);
 app.use('/deliveries/casket', casketDeliveriesRouter);

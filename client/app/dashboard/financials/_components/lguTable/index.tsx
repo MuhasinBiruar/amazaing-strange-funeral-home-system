@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react';
 import DataTable from '@/components/dataTable';
 import { formatCurrency, titleCase } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
-import { getLguCases } from '@/services/financialService';
+import { getLguCases } from '@/services/lguCasesService';
 import CreateLguPanel from './createLguPanel';
 import TransactionHistoryPanel from '../directTable/transactionHistoryPanel';
 import RecordTransactionModal from '../directTable/recordTransactionModal';

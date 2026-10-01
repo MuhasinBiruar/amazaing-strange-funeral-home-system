@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
 import type { Case, CreateLguCaseQuery } from 'shared';
-import { createLguCase } from '@/services/financialService';
+import { createLguCase } from '@/services/lguCasesService';
 import { fieldClass, labelClass } from '../../fieldStyles';
 import CaseSearchSelect from '../../caseSearchSelect';
 

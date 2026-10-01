@@ -6,16 +6,14 @@ import {
 } from 'express';
 import pool from '@/db';
 import requireAuth from '@/middleware/require-auth';
-import { createLguCaseQuery, getFinancialSummaryQuerySchema } from 'shared';
 import { foldPeriods, GetBucketsQuerySchema } from '@/util/financial';
 import {
   getDirectTransactions,
   getDirect,
 } from '@/controllers/financial/direct';
 import { toExclusiveEndBound } from '@/util/date';
-import { createLguCase, getLguCases } from '@/controllers/lgucase';
 import { getDayTransactions } from '@/controllers/financial/transactions';
-import validate from '@/middleware/validate';
+import { getFinancialSummaryQuerySchema } from 'shared';
 
 const router = Router();
 
@@ -37,21 +35,6 @@ router.get('/direct', requireAuth, getDirect);
 router.get('/direct/:id/transactions', requireAuth, getDirectTransactions);
 
 router.get('/transactions', requireAuth, getDayTransactions);
-
-// TODO: Move out of financial/lgucases and into /lgucases
-router.post(
-  '/lgucases',
-  requireAuth,
-  validate(createLguCaseQuery),
-  createLguCase,
-);
-/**
- * Sample URLs
- * `http://localhost:6543/financial/lgucases`
- * `http://localhost:6543/financial/lgucases?search=Juan`
- * `http://localhost:6543/financial/lgucases?search=Dela%20Cruz&sortBy=reimbursementamount&sortOrder=desc&page=1&limit=20`
- */
-router.get('/lgucases', requireAuth, getLguCases);
 
 /**
  * Sample URLs
