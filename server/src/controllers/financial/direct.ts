@@ -5,8 +5,8 @@ import {
   DirectPlan,
   getDirectPlansQuerySchema,
   type GetDirectPlansResponse,
+  type Transaction,
 } from 'shared';
-import type { IdParam } from 'shared/utils';
 
 const SORT_COLUMNS: Record<string, string> = {
   caseid: 'dr.caseid',
@@ -18,42 +18,12 @@ const SORT_COLUMNS: Record<string, string> = {
   totalamountpaid: 'totalamountpaid',
 };
 
-export async function getCaseTransactions(
-  req: Request<IdParam>,
-  res: Response,
-  next: NextFunction,
-) {
-  try {
-    const { id } = req.params;
-
-    const result = await pool.query(
-      `
-      SELECT
-        transactionid,
-        amount,
-        paymentcategory,
-        transactionstatus,
-        paymentdatetime
-      FROM public.transaction
-      WHERE caseid = $1
-      ORDER BY paymentdatetime DESC
-      `,
-      [id],
-    );
-
-    res.json({ data: result.rows });
-  } catch (error) {
-    next(error);
-  }
-}
-
 export async function getDirect(
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    // TODO: Add a function like validateParams but for query params
     const { page, limit, search, sortBy, sortOrder } =
       getDirectPlansQuerySchema.parse(req.query);
 
@@ -143,6 +113,27 @@ export async function getDirect(
         totalPages: Math.ceil(totalRecords / limit),
       },
     } satisfies GetDirectPlansResponse);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getDirectTransactions(
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query<Transaction>(
+      `SELECT * FROM public.transaction
+      WHERE caseid = $1
+      ORDER BY paymentdatetime DESC`,
+      [id],
+    );
+
+    res.json({ data: result.rows });
   } catch (error) {
     next(error);
   }
