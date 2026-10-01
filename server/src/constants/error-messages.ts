@@ -69,10 +69,6 @@ export const UNIQUE_CONSTRAINTS: Record<
     field: 'caseid',
     message: 'A contract for this case already exists.',
   },
-  contract_packageid_key: {
-    field: 'packageid',
-    message: 'A contract with this package already exists.',
-  },
   lifeplan_caseid_key: {
     field: 'caseid',
     message: 'A lifeplan for this case already exists.',
