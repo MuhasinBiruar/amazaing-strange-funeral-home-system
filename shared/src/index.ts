@@ -12,7 +12,7 @@ export interface AppErrorResponse {
 export * from './schemas/cte/case';
 export * from './schemas/cte/delivery';
 export * from './schemas/cte/direct';
-export * from './schemas/cte/financial';
+export * from './schemas/cte/financialsummary';
 export * from './schemas/cte/staffdetail';
 export * from './schemas/cte/uncontracteddeceased';
 export * from './schemas/db/access';
