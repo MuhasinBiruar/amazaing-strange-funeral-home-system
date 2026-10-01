@@ -6,12 +6,21 @@ import {
 } from 'express';
 import pool from '@/db';
 import requireAuth from '@/middleware/require-auth';
-import { createLguCaseQuery, getFinancialSummaryQuerySchema } from 'shared';
-import { foldPeriods } from '@/util/financial';
-import validate from '@/middleware/validate';
-import { getDirect } from '@/controllers/financial/direct';
+import {
+  createExpenseQuerySchema,
+  createLguCaseQuery,
+  getFinancialSummaryQuerySchema,
+} from 'shared';
+import { foldPeriods, GetBucketsQuerySchema } from '@/util/financial';
+import {
+  getDirectTransactions,
+  getDirect,
+} from '@/controllers/financial/direct';
 import { toExclusiveEndBound } from '@/util/date';
 import { createLguCase, getLguCases } from '@/controllers/lgucase';
+import { getDayTransactions } from '@/controllers/financial/transactions';
+import validate from '@/middleware/validate';
+import { createExpense, getExpenses } from '@/controllers/expense';
 
 const router = Router();
 
@@ -30,6 +39,18 @@ const router = Router();
  * `http://localhost:4000/financial/direct?sortBy=caseid&sortOrder=desc&page=2&limit=10`
  */
 router.get('/direct', requireAuth, getDirect);
+router.get('/direct/:id/transactions', requireAuth, getDirectTransactions);
+
+router.get('/transactions', requireAuth, getDayTransactions);
+
+// TODO: Move out of financial/expenses and into /expenses
+router.get('/expenses', requireAuth, getExpenses);
+router.post(
+  '/expenses',
+  requireAuth,
+  validate(createExpenseQuerySchema),
+  createExpense,
+);
 
 // TODO: Move out of financial/lgucases and into /lgucases
 router.post(
@@ -211,7 +232,7 @@ router.get(
       );
 
       const { buckets, totalIn, totalOut } = foldPeriods(
-        result.rows,
+        GetBucketsQuerySchema.parse(result.rows),
         unit,
         interval,
         startDate ?? null,
@@ -229,75 +250,6 @@ router.get(
           totalOut,
         },
       });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-/**
- * Expenses Routes
- */
-router.get(
-  '/expenses',
-  requireAuth,
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
-      const offset = (page - 1) * limit;
-      const search = req.query.search as string;
-
-      const params: any[] = [limit, offset];
-      let whereClause = '';
-
-      if (search) {
-        whereClause = `WHERE description ILIKE $3`;
-        params.push(`%${search}%`);
-      }
-
-      const countResult = await pool.query(
-        `SELECT COUNT(*) FROM public.expense ${whereClause}`,
-        search ? [params[2]] : [],
-      );
-      const total = parseInt(countResult.rows[0].count);
-
-      const result = await pool.query(
-        `
-      SELECT * FROM public.expense
-      ${whereClause}
-      ORDER BY expensedate DESC
-      LIMIT $1 OFFSET $2
-    `,
-        params,
-      );
-
-      res.json({
-        data: result.rows,
-        meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-router.post(
-  '/expenses',
-  requireAuth,
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { description, amount, recordedby } = req.body;
-      const result = await pool.query(
-        `
-      INSERT INTO public.expense (description, amount, expensedate, recordedby)
-      VALUES ($1, $2, NOW(), $3)
-      RETURNING *
-    `,
-        [description, amount, recordedby || 'Staff'],
-      );
-
-      res.json(result.rows[0]);
     } catch (error) {
       next(error);
     }
