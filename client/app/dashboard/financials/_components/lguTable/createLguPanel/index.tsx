@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
-import type { Case } from 'shared';
+import type { Case, CreateLguCaseQuery } from 'shared';
 import { createLguCase } from '@/services/financialService';
 import { fieldClass, labelClass } from '../../fieldStyles';
 import CaseSearchSelect from '../../caseSearchSelect';
@@ -18,7 +18,8 @@ export default function CreateLguPanel({
 }) {
   const [shown, setShown] = useState(false);
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
-  const [reimbursementstatus, setReimbursementstatus] = useState('pending');
+  const [reimbursementstatus, setReimbursementstatus] =
+    useState<CreateLguCaseQuery['reimbursementstatus']>('pending');
   const [reimbursementamount, setReimbursementamount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -103,7 +104,12 @@ export default function CreateLguPanel({
               <select
                 id="reimbursementstatus"
                 value={reimbursementstatus}
-                onChange={(e) => setReimbursementstatus(e.target.value)}
+                onChange={(e) =>
+                  setReimbursementstatus(
+                    e.target
+                      .value as unknown as CreateLguCaseQuery['reimbursementstatus'],
+                  )
+                }
                 className={`${fieldClass} cursor-pointer`}
               >
                 <option value="pending">Pending</option>
