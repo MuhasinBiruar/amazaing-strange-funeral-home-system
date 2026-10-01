@@ -2,15 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { Loader2, X, Plus } from 'lucide-react';
-import type { Case } from 'shared';
+import type { Case, LifeplanCompany } from 'shared';
+import { fieldClass, labelClass } from '../../fieldStyles';
+import CaseSearchSelect from '../../caseSearchSelect';
 import {
   createLifeplan,
   createLifeplanCompany,
   getLifeplanCompanies,
-  type LifeplanCompany,
-} from '@/services/financialService';
-import { fieldClass, labelClass } from '../../fieldStyles';
-import CaseSearchSelect from '../../caseSearchSelect';
+} from '@/services/lifeplansService';
 
 const PANEL_TRANSITION_MS = 300 as const;
 
@@ -145,7 +144,10 @@ export default function CreateLifeplanPanel({
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-            <CaseSearchSelect selected={selectedCase} onSelect={setSelectedCase} />
+            <CaseSearchSelect
+              selected={selectedCase}
+              onSelect={setSelectedCase}
+            />
 
             <div>
               <label htmlFor="plannumber" className={labelClass}>
