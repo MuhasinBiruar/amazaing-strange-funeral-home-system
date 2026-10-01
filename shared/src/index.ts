@@ -30,3 +30,4 @@ export * from './schemas/db/lifeplancompany';
 export * from './schemas/db/package';
 export * from './schemas/db/representative';
 export * from './schemas/db/staff';
+export * from './schemas/db/transaction';
