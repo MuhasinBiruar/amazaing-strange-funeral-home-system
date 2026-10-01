@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { createExpense } from '@/services/financialService';
+import { createExpenseQuerySchema } from 'shared';
 
 interface Props {
   onClose: () => void;
@@ -15,23 +16,24 @@ export default function RecordExpenseModal({ onClose, onSuccess }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
-    const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      setError('Please enter a valid amount.');
+    const result = createExpenseQuerySchema.safeParse({
+      description,
+      amount: parseFloat(amount),
+    });
+
+    if (!result.success) {
+      setError(result.error.issues[0].message);
       setIsSubmitting(false);
       return;
     }
 
     try {
-      await createExpense({
-        description: description.trim(),
-        amount: parsedAmount,
-      });
+      await createExpense(result.data);
       onSuccess();
       onClose();
     } catch (err) {
