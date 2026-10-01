@@ -3,10 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
 import { formatCurrency, formatDate, titleCase } from '@/utils/format';
-import {
-  getCaseTransactions,
-  type CaseTransaction,
-} from '@/services/financialService';
+import { getDirectTransactions } from '@/services/financialService';
+import type { Transaction } from 'shared';
 
 const PANEL_TRANSITION_MS = 300 as const;
 
@@ -23,7 +21,7 @@ export default function TransactionHistoryPanel({
   onClose: () => void;
 }) {
   const [shown, setShown] = useState(false);
-  const [transactions, setTransactions] = useState<CaseTransaction[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -39,7 +37,7 @@ export default function TransactionHistoryPanel({
       setIsLoading(true);
       setErrorMsg(null);
       try {
-        const res = await getCaseTransactions(caseid, controller.signal);
+        const res = await getDirectTransactions(caseid, controller.signal);
         setTransactions(res.data);
       } catch (error) {
         if (controller.signal.aborted) return;
