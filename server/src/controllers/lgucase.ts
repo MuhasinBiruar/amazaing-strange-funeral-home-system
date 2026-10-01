@@ -2,9 +2,14 @@ import pool from '@/db';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 import { getDeceasedName } from '@/util/audit-log';
 import type { NextFunction, Request, Response } from 'express';
-import { getLguCasesQuerySchema, type CreateLguCaseQuery } from 'shared';
+import {
+  getLguCasesQuerySchema,
+  type CreateLguCaseQuery,
+  type GetLguCasesResponse,
+  type GetLguCasesRow,
+} from 'shared';
 
-const SORT_COLUMNS: Record<string, string> = {
+const SORT_COLUMNS: Record<keyof GetLguCasesRow, string> = {
   lgucaseid: 'lc.lgucaseid',
   reimbursementstatus: 'lc.reimbursementstatus',
   reimbursementamount: 'lc.reimbursementamount',
@@ -106,11 +111,11 @@ export async function getLguCases(
           `;
 
         return await Promise.all([
-          client.query(dataQuery, [
+          client.query<GetLguCasesRow>(dataQuery, [
             ...queryParams,
             ...[limit, (page - 1) * limit],
           ]),
-          client.query(countQuery, queryParams),
+          client.query<{ total: string }>(countQuery, queryParams),
         ]);
       },
     );
@@ -124,7 +129,7 @@ export async function getLguCases(
         limit,
         totalPages: Math.ceil(totalRecords / limit),
       },
-    });
+    } satisfies GetLguCasesResponse);
   } catch (error) {
     next(error);
   }
