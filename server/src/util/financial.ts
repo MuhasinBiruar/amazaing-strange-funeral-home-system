@@ -60,8 +60,15 @@ export function foldPeriods(
     ? periodDates.reduce((max, d) => (d > max ? d : max), periodDates[0])
     : null;
 
-  const startRaw = startDate ?? oldestPeriodDate ?? endDate;
-  if (!startRaw) return { buckets: [], totalIn: 0, totalOut: 0 };
+  // Without an explicit start, begin at the oldest period in the data. If
+  // there is no data either, there is nothing to bucket.
+  const startRaw = startDate ?? oldestPeriodDate;
+  if (!startRaw)
+    return {
+      buckets: [],
+      totalIn: new BigNumber(0),
+      totalOut: new BigNumber(0),
+    };
   const start = truncToUnit(startRaw, unit);
 
   const endCandidates = [
