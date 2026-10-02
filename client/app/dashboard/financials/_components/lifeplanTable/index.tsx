@@ -1,27 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
 import DataTable from '@/components/dataTable';
 import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
-import CreateLifeplanPanel from './createLifeplanPanel';
-import TransactionHistoryPanel from '../directTable/transactionHistoryPanel';
-import RecordTransactionModal from '../directTable/recordTransactionModal';
 import type { GetLifeplansQueryRow } from 'shared';
 import { getLifeplans } from '@/services/lifeplansService';
 
 type ColumnKey = keyof GetLifeplansQueryRow;
 
 export default function LifeplanTable() {
-  const [isCreating, setIsCreating] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [historyFor, setHistoryFor] = useState<GetLifeplansQueryRow | null>(
-    null,
-  );
-  const [paymentFor, setPaymentFor] = useState<GetLifeplansQueryRow | null>(
-    null,
-  );
+  const [refreshKey, _setRefreshKey] = useState(0);
 
   const columns: DataTableColumn<GetLifeplansQueryRow, ColumnKey>[] = [
     {
@@ -63,44 +52,10 @@ export default function LifeplanTable() {
       widthClassName: 'w-32.5',
       render: (l) => formatCurrency(l.minimumthreshold),
     },
-    {
-      key: 'planid',
-      label: 'Actions',
-      widthClassName: 'w-48',
-      render: (l) => (
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => setPaymentFor(l)}
-            className="text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer text-sm font-medium"
-          >
-            Record payment
-          </button>
-          <button
-            type="button"
-            onClick={() => setHistoryFor(l)}
-            className="text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer text-sm"
-          >
-            View history
-          </button>
-        </div>
-      ),
-    },
   ];
 
   return (
     <>
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={() => setIsCreating(true)}
-          className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition cursor-pointer"
-        >
-          <Plus size={16} />
-          New life plan
-        </button>
-      </div>
-
       <DataTable<GetLifeplansQueryRow, ColumnKey>
         title="Life plan log"
         countLabel={(total) => `${total} plans`}
@@ -123,33 +78,6 @@ export default function LifeplanTable() {
         loadErrorMessage="Could not load life plans. Try again."
         refreshKey={refreshKey}
       />
-
-      {isCreating && (
-        <CreateLifeplanPanel
-          onClose={() => setIsCreating(false)}
-          onCreated={() => {
-            setIsCreating(false);
-            setRefreshKey((k) => k + 1);
-          }}
-        />
-      )}
-      {historyFor && (
-        <TransactionHistoryPanel
-          key={`history-${historyFor.planid}`}
-          caseid={historyFor.caseid}
-          deceasedName={historyFor.deceased_name}
-          onClose={() => setHistoryFor(null)}
-        />
-      )}
-      {paymentFor && (
-        <RecordTransactionModal
-          key={`payment-${paymentFor.planid}`}
-          caseId={paymentFor.caseid}
-          deceasedName={paymentFor.deceased_name}
-          onClose={() => setPaymentFor(null)}
-          onSuccess={() => setRefreshKey((k) => k + 1)}
-        />
-      )}
     </>
   );
 }
