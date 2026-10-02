@@ -74,7 +74,8 @@ export default function FormalinDeliveryHistoryPanel({
                   </p>
                 </div>
                 <span className="text-sm text-gray-500">
-                  Inventory #{row.formalinid ?? '—'}
+                  Inventory #{row.formalinid ?? '—'}{' '}
+                  {/*remove this later as id is not needed*/}
                 </span>
               </div>
             </article>
