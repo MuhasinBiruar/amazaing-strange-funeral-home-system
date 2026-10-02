@@ -1,8 +1,4 @@
-import {
-  type GetLguCasesQuery,
-  getLguCasesResponseSchema,
-  type CreateLguCaseQuery,
-} from 'shared';
+import { type GetLguCasesQuery, getLguCasesResponseSchema } from 'shared';
 import { API } from './api';
 
 export async function getLguCases({
@@ -25,11 +21,4 @@ export async function getLguCases({
     signal,
   });
   return getLguCasesResponseSchema.parse(result.data);
-}
-
-export async function createLguCase(data: CreateLguCaseQuery) {
-  const result = await API.post('/lgucases', data, {
-    withCredentials: true,
-  });
-  return result.data;
 }
