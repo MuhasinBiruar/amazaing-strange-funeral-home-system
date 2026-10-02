@@ -74,6 +74,7 @@ export default function ExpenseTable() {
         fetchData={({ filters: _filters, ...params }) => getExpenses(params)}
         emptyMessage="No expenses recorded yet."
         loadErrorMessage="Could not load expenses."
+        bodyOffsetClassName="top-13"
         refreshKey={refreshKey}
       />
 

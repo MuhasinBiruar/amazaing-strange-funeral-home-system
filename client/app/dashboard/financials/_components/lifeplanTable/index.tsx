@@ -74,6 +74,7 @@ export default function LifeplanTable() {
             signal,
           })
         }
+        bodyOffsetClassName="top-12"
         emptyMessage="No life plans match your search."
         loadErrorMessage="Could not load life plans. Try again."
         refreshKey={refreshKey}

@@ -59,6 +59,7 @@ export default function LguTable() {
         countLabel={(total) => `${total} cases`}
         searchPlaceholder="Search by deceased name or case ID..."
         columns={columns}
+        bodyOffsetClassName="top-12"
         rowKey={(l) => l.lgucaseid}
         defaultSortBy="deceased_name"
         defaultSortOrder="desc"

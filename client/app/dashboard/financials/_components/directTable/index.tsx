@@ -79,6 +79,7 @@ export default function DirectTable() {
         rowKey={(d) => d.caseid}
         defaultSortBy="deceased_name"
         defaultSortOrder="desc"
+        bodyOffsetClassName="top-12"
         fetchData={({ filters: _filters, ...params }) => getDirectPlans(params)}
         emptyMessage="No direct payment plans match your search."
         loadErrorMessage="Could not load direct payment plans. Try again."
@@ -93,6 +94,7 @@ export default function DirectTable() {
           onClose={() => setHistoryFor(null)}
         />
       )}
+
       {paymentFor && (
         <RecordTransactionPanel
           key={`payment-${paymentFor.caseid}`}
