@@ -15,13 +15,12 @@ export const createExpense = async (
   next: NextFunction,
 ) => {
   try {
-    const { description, amount } = req.body;
-    // TODO: Make expensedate editable
+    const { description, amount, expensedate } = req.body;
     const result = await pool.query(
       `INSERT INTO public.expense (description, amount, expensedate, recordedby)
-        VALUES ($1, $2, NOW(), $3)
+        VALUES ($1, $2, $3, $4)
         RETURNING *`,
-      [description, amount, res.locals.session.user.id],
+      [description, amount, expensedate, res.locals.session.user.id],
     );
 
     res.locals.auditAction = `${res.locals.session.user.name} created an expense record ${description} with amount ${amount}.`;

@@ -35,10 +35,8 @@ export const getExpensesResponseSchema = paginationResponseSchema.extend({
 
 export type GetExpensesResponse = z.infer<typeof getExpensesResponseSchema>;
 
-//TODO: Make expensedate editable
 export const createExpenseQuerySchema = expenseSchema.omit({
   expenseid: true,
-  expensedate: true,
   recordedby: true,
 });
 
