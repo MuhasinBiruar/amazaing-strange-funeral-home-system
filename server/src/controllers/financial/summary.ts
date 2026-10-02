@@ -162,8 +162,8 @@ export const getFinancialSummary = async (
       meta: {
         unit,
         interval,
-        startDate: startDate ?? null,
-        endDate: parsedEndDate,
+        startDate: buckets[0]?.startDate ?? null,
+        endDate: buckets[buckets.length - 1]?.endDate ?? null,
         totalIn,
         totalOut,
       },
