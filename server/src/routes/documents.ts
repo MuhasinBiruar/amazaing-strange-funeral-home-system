@@ -12,6 +12,7 @@ import { uploadDocument } from '@/middleware/upload';
 import { NotFoundError, BadRequestError } from '@/errors';
 import { getDeceasedName } from '@/util/audit-log';
 import { publicDocumentUrl, uploadDocumentFile } from '@/lib/s3';
+import { triggerNotificationSweep } from '@/lib/notifications';
 import {
   getDocumentsQuerySchema,
   uploadDocumentFormSchema,
@@ -103,6 +104,8 @@ router.post(
         RETURNING *;`,
         [parsed.documenttype, staffid, parsed.caseid, key],
       );
+
+      triggerNotificationSweep();
 
       const deceasedName = await getDeceasedName(parsed.caseid);
       res.locals.auditAction = `${res.locals.session.user.name} uploaded a ${parsed.documenttype} document for ${deceasedName}`;

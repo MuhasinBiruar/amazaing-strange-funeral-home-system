@@ -19,6 +19,7 @@ import auditLog from './middleware/audit-log';
 import deliveriesRouter from './routes/deliveries';
 import casketDeliveriesRouter from './routes/casketdeliveries';
 import formalinDeliveriesRouter from './routes/formalindeliveries';
+import notificationsRouter from './routes/notifications';
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use('/casketinventory', casketInventoryRouter);
 app.use('/deliveries/casket', casketDeliveriesRouter);
 app.use('/deliveries/formalin', formalinDeliveriesRouter);
 app.use('/deliveries', deliveriesRouter);
+app.use('/notifications', notificationsRouter);
 
 app.use('/api/me', meRouter);
 

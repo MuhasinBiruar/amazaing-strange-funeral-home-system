@@ -16,6 +16,9 @@ export const createDeceasedRecordQuerySchema = z.object({
   dateofdeath: withNullDefault(z.coerce.date()),
   managedby: withNullDefault(z.string().min(1)),
   representedby: withNullDefault(z.int32()),
+  // Optional, not `.default(false)`: a default would also apply inside the
+  // `.partial()` update schema and reset the flag on unrelated PATCHes.
+  hasadvanceddecomposition: z.boolean().optional(),
 });
 
 export type CreateDeceasedRecordQuery = z.infer<
@@ -31,6 +34,7 @@ export type UpdateDeceasedRecordQuery = z.infer<
 
 export const deceasedRecordSchema = createDeceasedRecordQuerySchema.extend({
   caseid: z.int32(),
+  hasadvanceddecomposition: z.boolean(),
 });
 
 export type DeceasedRecord = z.infer<typeof deceasedRecordSchema>;

@@ -69,6 +69,7 @@ export function useSubmitIntake(
           : null,
         managedby: null,
         representedby: generatedRepId,
+        hasadvanceddecomposition: formData.hasadvanceddecomposition === true,
       };
       const recordResponse = await API.post('/deceasedrecords', recordPayload);
       generatedCaseId = recordResponse.data.data.caseid as number;

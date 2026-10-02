@@ -142,6 +142,17 @@ export default function DeceasedInfoSection({
           />
           Matured life plan
         </label>
+        <label className="flex items-center gap-2 text-sm text-gray-700 pb-1.5">
+          <input
+            type="checkbox"
+            checked={form.hasadvanceddecomposition}
+            onChange={(e) =>
+              update('hasadvanceddecomposition', e.target.checked)
+            }
+            className="cursor-pointer"
+          />
+          Advanced decomposition / open wounds
+        </label>
       </div>
 
       {saveError && <p className="text-xs text-red-500">{saveError}</p>}

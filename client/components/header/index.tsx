@@ -5,6 +5,7 @@ import { authClient } from '@/lib/auth-client';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { useInfoModal } from '@/components/infoModal/useInfoModal';
+import NotificationBell from '@/components/notificationBell';
 
 export default function Header() {
   const router = useRouter();
@@ -28,6 +29,9 @@ export default function Header() {
           Back
         </button>
       </div>
+
+      <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+      <NotificationBell />
 
       <div className="relative shrink-0 grip grid-row-2">
         <p className="flex items-center gap-1 text-xs sm:text-sm text-gray-500 font-bold">
@@ -63,6 +67,7 @@ export default function Header() {
         >
           Log Out
         </button>
+      </div>
       </div>
 
       {infoModal}

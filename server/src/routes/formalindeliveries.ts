@@ -19,6 +19,7 @@ import {
 } from 'shared';
 import { idParamSchema, type IdParam } from 'shared/utils';
 import { withTransaction } from '@/util/with-transaction';
+import { triggerNotificationSweep } from '@/lib/notifications';
 
 const router = Router();
 
@@ -183,6 +184,8 @@ router.post(
 
         return deliveryResult.rows[0];
       });
+
+      triggerNotificationSweep();
 
       res.locals.auditAction = `${res.locals.session.user.name} recorded a formalin delivery of ${parsed.quantityreceived}`;
 

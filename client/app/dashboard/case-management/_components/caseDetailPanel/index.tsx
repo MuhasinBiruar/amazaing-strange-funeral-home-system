@@ -111,6 +111,7 @@ export default function CaseDetailPanel({
           ? new Date(deceasedForm.dateofdeath)
           : null,
         hasmaturedlifeplan: deceasedForm.hasmaturedlifeplan,
+        hasadvanceddecomposition: deceasedForm.hasadvanceddecomposition,
       });
       setRefreshKey((v) => v + 1);
       setIsDeceasedSaved(true);

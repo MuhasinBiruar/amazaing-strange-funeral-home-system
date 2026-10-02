@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import app from './app.js'; // or "./app" depending on your bundler setup
 import pool from './db.js';
+import { startNotificationScheduler } from './lib/notifications.js';
 
 // Prefer the explicit local API port; deployment platforms provide PORT.
 const PORT = Number(process.env.APP_PORT || process.env.PORT) || 4000;
@@ -12,6 +13,8 @@ app.listen(PORT, '0.0.0.0', async () => {
 
     console.log(`Server listening on port ${PORT}`);
     console.log('Database connected successfully');
+
+    startNotificationScheduler();
   } catch (error) {
     console.error('Database connection failed:', error);
   }

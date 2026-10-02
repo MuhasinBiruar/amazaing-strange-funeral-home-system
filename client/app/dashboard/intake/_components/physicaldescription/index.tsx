@@ -1,8 +1,8 @@
 import { FileText } from 'lucide-react';
 
 interface PhysicalDescriptionProps {
-  data: Record<string, string | undefined>;
-  onChange: (field: string, value: string) => void;
+  data: Record<string, unknown>;
+  onChange: (field: string, value: unknown) => void;
   errors?: Record<string, string>;
 }
 
@@ -21,7 +21,7 @@ export default function PhysicalDescription({
           DETAILED DESCRIPTION
         </label>
         <textarea
-          value={data.physicaldescription || ''}
+          value={(data.physicaldescription as string | undefined) || ''}
           onChange={(e) => onChange('physicaldescription', e.target.value)}
           className="w-full bg-gray-50 text-gray-900 border \
           placeholder:text-gray-400 border-gray-200 rounded-lg p-2.5 \
@@ -29,6 +29,22 @@ export default function PhysicalDescription({
           placeholder="Include estimated height/weight, identifying marks (tattoos, scars), and clothing worn at intake..."
         />
       </div>
+      <label className="flex items-start gap-2 text-sm text-gray-700 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={data.hasadvanceddecomposition === true}
+          onChange={(e) =>
+            onChange('hasadvanceddecomposition', e.target.checked)
+          }
+          className="mt-0.5 accent-indigo-600"
+        />
+        <span>
+          Advanced decomposition or open wounds
+          <span className="block text-xs text-gray-500">
+            Notifies inventory staff to expect elevated formalin usage.
+          </span>
+        </span>
+      </label>
     </section>
   );
 }
