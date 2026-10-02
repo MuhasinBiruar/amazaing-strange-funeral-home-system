@@ -1,12 +1,16 @@
 import {
+  createTransactionResponseSchema,
   getDirectPlansResponseSchema,
   getDirectTransactionsResponseSchema,
   getFinancialDetailsResponseSchema,
   getFinancialSummaryResponseSchema,
+  type CreateTransactionQuery,
   type GetDirectPlansQuery,
   type GetFinancialSummaryQuery,
 } from 'shared';
 import { API } from './api';
+import axios from 'axios';
+import { extractErrorMessage } from './utils/extractErrorMessage';
 
 export async function getDirectPlans({
   page,
@@ -65,6 +69,26 @@ export async function getDirectTransactions(
     signal,
   });
   return getDirectTransactionsResponseSchema.parse(result.data);
+}
+
+export async function createDirectTransaction(
+  caseid: number,
+  payload: CreateTransactionQuery,
+) {
+  try {
+    const result = await API.post(
+      `/financial/direct/${caseid}/transactions`,
+      payload,
+      { withCredentials: true },
+    );
+    return createTransactionResponseSchema.parse(result.data).data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.error?.message)
+      throw new Error(extractErrorMessage(error.response.data));
+
+    console.error('Error recording transaction:', error);
+    throw error;
+  }
 }
 
 export async function getFinancialDetails(

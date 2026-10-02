@@ -1,25 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import axios from 'axios';
-import { API } from '@/services/api';
-import { extractErrorMessage } from '@/services/utils/extractErrorMessage';
+import { createDirectTransaction } from '@/services/financialService';
 import { useInfoModal } from '@/components/infoModal/useInfoModal';
 import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import LoadingButton from '@/components/loadingButton';
 import { fieldClass, labelClass } from '@/components/formStyles';
+import {
+  createTransactionQuerySchema,
+  paymentCategoryEnum,
+  paymentMethodEnum,
+} from 'shared';
 
-export async function createTransaction(data: {
-  caseid: number;
-  amount: number;
-  paymentcategory: string;
-  ornumber?: string;
-}) {
-  const result = await API.post(`/financial/transactions`, data, {
-    withCredentials: true,
-  });
-  return result.data || result;
+/** `<input type="date">` wants `yyyy-mm-dd` in the viewer's local time. */
+function toDateInputValue(date: Date) {
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 10);
 }
 
 export default function RecordTransactionPanel({
@@ -37,18 +34,32 @@ export default function RecordTransactionPanel({
   const { infoModal, showInfo } = useInfoModal();
 
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('Payment');
-  const [orNumber, setOrNumber] = useState('');
+  const [paymentdatetime, setPaymentdatetime] = useState<string>(
+    toDateInputValue(new Date()),
+  );
+  const [paymentmethod, setPaymentmethod] = useState<string>(
+    paymentMethodEnum.options[0],
+  );
+  const [paymentcategory, setPaymentcategory] = useState<string>(
+    paymentCategoryEnum.options[0],
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+    // `amount` is a numeric *string* in the shared schema, so it is not
+    // run through parseFloat.
+    const result = createTransactionQuerySchema.safeParse({
+      amount: amount.trim(),
+      paymentmethod,
+      paymentcategory,
+    });
+
+    if (!result.success) {
       await showInfo({
         title: 'Invalid Payment',
-        message: 'Please enter a valid amount.',
+        message: result.error.issues[0].message,
         severity: 'error',
       });
       return;
@@ -57,28 +68,20 @@ export default function RecordTransactionPanel({
     setIsSubmitting(true);
 
     try {
-      await createTransaction({
-        caseid: caseId,
-        amount: parsedAmount,
-        paymentcategory: category,
-        ornumber: orNumber.trim() || undefined,
-      });
+      await createDirectTransaction(caseId, result.data);
     } catch (err) {
       setIsSubmitting(false);
-      console.error('Error recording transaction:', err);
 
       await showInfo({
         title: 'Could Not Save Payment',
         message:
-          axios.isAxiosError(err) && err.response?.data?.error?.message
-            ? extractErrorMessage(err.response.data)
-            : 'Failed to record transaction.',
+          err instanceof Error ? err.message : 'Failed to record transaction.',
         severity: 'error',
       });
       return;
     }
 
-    // Parents only refresh their table in onSuccess, so close with the
+    // The parent only refreshes its table in onSuccess, so close with the
     // slide-out transition ourselves.
     onSuccess();
     requestClose();
@@ -118,35 +121,51 @@ export default function RecordTransactionPanel({
           </div>
 
           <div>
-            <label htmlFor="payment-category" className={labelClass}>
-              Category
-            </label>
-            <select
-              id="payment-category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className={`${fieldClass} cursor-pointer`}
-            >
-              <option value="Payment">Payment</option>
-              <option value="Downpayment">Downpayment</option>
-              <option value="Full Payment">Full Payment</option>
-              <option value="Refund">Refund</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="payment-or" className={labelClass}>
-              Official Receipt No.{' '}
-              <span className="font-normal text-gray-400">(optional)</span>
-            </label>
+            <label className={labelClass}>Date of death</label>
             <input
-              id="payment-or"
-              type="text"
-              value={orNumber}
-              onChange={(e) => setOrNumber(e.target.value)}
-              placeholder="e.g., OR-123456"
+              type="date"
+              value={paymentdatetime}
+              onChange={(e) => setPaymentdatetime(e.target.value)}
               className={fieldClass}
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="payment-category" className={labelClass}>
+                Category
+              </label>
+              <select
+                id="payment-category"
+                value={paymentcategory}
+                onChange={(e) => setPaymentcategory(e.target.value)}
+                className={`${fieldClass} cursor-pointer`}
+              >
+                {paymentCategoryEnum.options.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="payment-method" className={labelClass}>
+                Method
+              </label>
+              <select
+                id="payment-method"
+                value={paymentmethod}
+                onChange={(e) => setPaymentmethod(e.target.value)}
+                className={`${fieldClass} cursor-pointer`}
+              >
+                {paymentMethodEnum.options.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
