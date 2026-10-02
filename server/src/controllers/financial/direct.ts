@@ -127,9 +127,20 @@ export async function getDirectTransactions(
     const { id } = req.params;
 
     const result = await pool.query<Transaction>(
-      `SELECT * FROM public.transaction
+      `
+      SELECT
+        transactionid,
+        amount::text AS amount,
+        paymentdatetime,
+        paymentmethod,
+        paymentcategory,
+        remainingbalance::text AS remainingbalance,
+        transactionstatus,
+        caseid
+      FROM public.transaction
       WHERE caseid = $1
-      ORDER BY paymentdatetime DESC`,
+      ORDER BY paymentdatetime DESC
+      `,
       [id],
     );
 
