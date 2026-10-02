@@ -3,9 +3,14 @@ import requireAuth from '@/middleware/require-auth';
 import {
   getDirectTransactions,
   getDirect,
+  createDirectTransaction,
 } from '@/controllers/financial/direct';
 import { getFinancialDetails } from '@/controllers/financial/details';
 import { getFinancialSummary } from '@/controllers/financial/summary';
+import validate from '@/middleware/validate';
+import { createTransactionQuerySchema } from 'shared';
+import validateParams from '@/middleware/validate-params';
+import { idParamSchema } from 'shared/utils';
 
 const router = Router();
 
@@ -24,7 +29,19 @@ const router = Router();
  * `http://localhost:4000/financial/direct?sortBy=caseid&sortOrder=desc&page=2&limit=10`
  */
 router.get('/direct', requireAuth, getDirect);
-router.get('/direct/:id/transactions', requireAuth, getDirectTransactions);
+router.get(
+  '/direct/:id/transactions',
+  requireAuth,
+  validateParams(idParamSchema),
+  getDirectTransactions,
+);
+router.post(
+  '/direct/:id/transactions',
+  requireAuth,
+  validateParams(idParamSchema),
+  validate(createTransactionQuerySchema),
+  createDirectTransaction,
+);
 
 /**
  * Sample URLs
