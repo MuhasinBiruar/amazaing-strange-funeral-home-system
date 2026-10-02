@@ -20,6 +20,7 @@ import deliveriesRouter from './routes/deliveries';
 import casketDeliveriesRouter from './routes/casketdeliveries';
 import formalinDeliveriesRouter from './routes/formalindeliveries';
 import lifeplansRouter from './routes/lifeplans';
+import auditLogsRouter from './routes/auditlogs';
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use('/deliveries/formalin', formalinDeliveriesRouter);
 app.use('/deliveries', deliveriesRouter);
 
 app.use('/api/me', meRouter);
+app.use('/auditlogs', auditLogsRouter);
 
 app.use(errorHandler);
 

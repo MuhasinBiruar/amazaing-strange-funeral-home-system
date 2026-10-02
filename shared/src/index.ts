@@ -16,6 +16,7 @@ export * from './schemas/cte/financial';
 export * from './schemas/cte/staffdetail';
 export * from './schemas/cte/uncontracteddeceased';
 export * from './schemas/db/access';
+export * from './schemas/db/auditlog';
 export * from './schemas/db/burialrecord';
 export * from './schemas/db/casketdelivery';
 export * from './schemas/db/casketinventory';

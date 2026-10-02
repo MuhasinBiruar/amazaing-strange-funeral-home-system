@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { UserPlus } from 'lucide-react';
+import { ClipboardList, UserPlus } from 'lucide-react';
 import StaffPanel from './_components/staffPanel';
+import AuditLogPanel from './_components/auditLogPanel';
 import DataTable from '@/components/dataTable';
 import { getStaffList } from '@/services/staffService';
 import type { GetStaffRow } from 'shared';
@@ -22,6 +23,7 @@ export default function AdminPage() {
   const { infoModal, showInfo } = useInfoModal();
 
   const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
+  const [isAuditLogOpen, setIsAuditLogOpen] = useState(false);
   const [panelMode, setPanelMode] = useState<PanelMode>('edit');
 
   return (
@@ -39,16 +41,27 @@ export default function AdminPage() {
               Create and manage staff accounts and permissions.
             </p>
           </div>
-          <button
-            onClick={() => {
-              setPanelMode('create');
-              setIsPanelOpen(true);
-            }}
-            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition shrink-0 cursor-pointer"
-          >
-            <UserPlus size={16} />
-            Create Account
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsAuditLogOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-medium px-4 py-2 hover:bg-gray-100 transition cursor-pointer"
+            >
+              <ClipboardList size={16} />
+              View Audit Log
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPanelMode('create');
+                setIsPanelOpen(true);
+              }}
+              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition cursor-pointer"
+            >
+              <UserPlus size={16} />
+              Create Account
+            </button>
+          </div>
         </div>
 
         <DataTable<GetStaffRow, ColumnKey, Filters>
@@ -88,6 +101,9 @@ export default function AdminPage() {
           onSave={() => setRefreshKey((k) => k + 1)}
           showInfo={showInfo}
         />
+      )}
+      {isAuditLogOpen && (
+        <AuditLogPanel onClose={() => setIsAuditLogOpen(false)} />
       )}
       {infoModal}
     </div>
