@@ -114,7 +114,8 @@ const rules: Rule[] = [
   {
     type: 'full_payment',
     audience: ['financial_page'],
-    resolvable: false,
+    // The payment event remains active until the case's service is completed.
+    resolvable: true,
     collect: async () => {
       const result = await pool.query<{
         caseid: number;
@@ -130,6 +131,7 @@ const rules: Rule[] = [
          ) t
          JOIN deceasedrecord dr ON dr.caseid = t.caseid
          WHERE t.remainingbalance <= 0
+           AND dr.servicestatus <> 'completed'
            AND t.paymentdatetime >= now() - make_interval(days => $1::int)`,
         [FULL_PAYMENT_LOOKBACK_DAYS],
       );
@@ -241,11 +243,24 @@ async function applyRule(rule: Rule) {
   }
 
   if (rule.resolvable) {
-    await pool.query(
-      `UPDATE notification SET resolvedat = now()
-       WHERE type = $1 AND resolvedat IS NULL AND NOT (dedupekey = ANY($2::text[]))`,
-      [rule.type, keys],
-    );
+    if (rule.type === 'full_payment') {
+      await pool.query(
+        `UPDATE notification n
+         SET resolvedat = now()
+         FROM deceasedrecord dr
+         WHERE n.caseid = dr.caseid
+           AND n.type = $1
+           AND n.resolvedat IS NULL
+           AND dr.servicestatus = 'completed'`,
+        [rule.type],
+      );
+    } else {
+      await pool.query(
+        `UPDATE notification SET resolvedat = now()
+         WHERE type = $1 AND resolvedat IS NULL AND NOT (dedupekey = ANY($2::text[]))`,
+        [rule.type, keys],
+      );
+    }
   }
 }
 
