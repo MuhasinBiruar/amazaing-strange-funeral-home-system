@@ -9,7 +9,7 @@ import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import LoadingButton from '@/components/loadingButton';
 import { createExpenseQuerySchema } from 'shared';
-import { fieldClass, labelClass } from '../fieldStyles';
+import { fieldClass, labelClass } from '@/components/formStyles';
 
 /** `<input type="date">` wants `yyyy-mm-dd` in the viewer's local time. */
 function toDateInputValue(date: Date) {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import useDebouncedValue from '@/utils/useDebouncedValue';
 import { getCases } from '@/services/caseService';
 import type { Case } from 'shared';
-import { fieldClass, labelClass } from '../fieldStyles';
+import { fieldClass, labelClass } from '@/components/formStyles';
 
 export default function CaseSearchSelect({
   selected,
