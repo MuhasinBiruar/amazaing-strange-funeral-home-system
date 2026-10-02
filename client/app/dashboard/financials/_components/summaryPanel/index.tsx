@@ -227,7 +227,7 @@ export default function SummaryPanel() {
                   title="Click to see more"
                 >
                   <div
-                    className="w-4 border-2 border-indigo-500 bg-transparent group-hover:bg-indigo-500 rounded-t transition-all"
+                    className="w-4 border-2 border-emerald-600 bg-transparent group-hover:bg-emerald-500 rounded-t transition-all"
                     style={{ height: `${inHeight}%` }}
                   />
                   <div
