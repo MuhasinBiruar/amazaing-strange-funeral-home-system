@@ -6,10 +6,7 @@ export const getFinancialSummaryQuerySchema = z
   .object({
     unit: dateUnitEnum.default('month'),
     interval: z.coerce.number().int().min(1).max(1000).default(1),
-    startDate: z.coerce
-      .date()
-      .optional()
-      .default(() => new Date(0)),
+    startDate: z.coerce.date().optional(),
     endDate: z.iso.datetime().or(z.iso.date()).optional(),
     caseid: z.coerce.number().int().positive().optional(),
   })
