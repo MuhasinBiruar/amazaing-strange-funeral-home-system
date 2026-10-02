@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { DataScroller } from 'primereact/datascroller';
 import {
   Banknote,
   Bell,
@@ -64,7 +65,10 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationPage, setNotificationPage] = useState(1);
+  const [hasMoreNotifications, setHasMoreNotifications] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -110,10 +114,13 @@ export default function NotificationBell() {
     listControllerRef.current = controller;
     setLoading(true);
     setError(null);
-    getNotifications(controller.signal)
+    setNotificationPage(1);
+    setHasMoreNotifications(false);
+    getNotifications(1, controller.signal)
       .then((result) => {
         setNotifications(result.data);
         setUnreadCount(result.meta.unreadCount);
+        setHasMoreNotifications(result.meta.hasMore);
       })
       .catch((err) => {
         if (controller.signal.aborted) return;
@@ -146,6 +153,29 @@ export default function NotificationBell() {
     };
   }, [open]);
 
+  const loadMoreNotifications = () => {
+    if (loadingMore || !hasMoreNotifications) return;
+
+    const nextPage = notificationPage + 1;
+    const controller = new AbortController();
+    listControllerRef.current?.abort();
+    listControllerRef.current = controller;
+    setLoadingMore(true);
+    getNotifications(nextPage, controller.signal)
+      .then((result) => {
+        setNotifications((prev) => [...prev, ...result.data]);
+        setNotificationPage(nextPage);
+        setHasMoreNotifications(result.meta.hasMore);
+        setUnreadCount(result.meta.unreadCount);
+      })
+      .catch((err) => {
+        if (!controller.signal.aborted) console.error(err);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoadingMore(false);
+      });
+  };
+
   const handleSelect = async (notification: Notification) => {
     if (!notification.isread) {
       setNotifications((prev) =>
@@ -175,6 +205,48 @@ export default function NotificationBell() {
     } catch {
       refreshCount();
     }
+  };
+
+  const renderNotification = (n: Notification) => {
+    const { icon: Icon, className } = TYPE_STYLES[n.type];
+
+    return (
+      <button
+        type="button"
+        onClick={() => handleSelect(n)}
+        className={`w-full text-left flex gap-3 px-4 py-3 hover:bg-gray-50 hover:cursor-pointer transition-colors ${
+          n.isread ? '' : 'bg-indigo-50/60'
+        }`}
+      >
+        <Icon
+          size={18}
+          className={`shrink-0 mt-0.5 ${n.resolvedat ? 'text-gray-400' : className}`}
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span
+              className={`text-sm truncate ${
+                n.isread ? 'text-gray-700' : 'font-semibold text-gray-900'
+              }`}
+            >
+              {n.title}
+            </span>
+            {n.resolvedat && (
+              <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+                Resolved
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-gray-600 mt-0.5">{n.message}</p>
+          <p className="text-[11px] text-gray-400 mt-1">
+            {timeAgo(n.createdat)}
+          </p>
+        </div>
+        {!n.isread && (
+          <span className="shrink-0 mt-1.5 size-2 rounded-full bg-indigo-600" />
+        )}
+      </button>
+    );
   };
 
   if (!authenticated) return null;
@@ -229,54 +301,26 @@ export default function NotificationBell() {
                 You&apos;re all caught up.
               </p>
             ) : (
-              <ul className="divide-y divide-gray-100">
-                {notifications.map((n) => {
-                  const { icon: Icon, className } = TYPE_STYLES[n.type];
-                  return (
-                    <li key={n.notificationid}>
-                      <button
-                        type="button"
-                        onClick={() => handleSelect(n)}
-                        className={`w-full text-left flex gap-3 px-4 py-3 hover:bg-gray-50 hover:cursor-pointer transition-colors ${
-                          n.isread ? '' : 'bg-indigo-50/60'
-                        }`}
-                      >
-                        <Icon
-                          size={18}
-                          className={`shrink-0 mt-0.5 ${n.resolvedat ? 'text-gray-400' : className}`}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`text-sm truncate ${
-                                n.isread
-                                  ? 'text-gray-700'
-                                  : 'font-semibold text-gray-900'
-                              }`}
-                            >
-                              {n.title}
-                            </span>
-                            {n.resolvedat && (
-                              <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
-                                Resolved
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-600 mt-0.5">
-                            {n.message}
-                          </p>
-                          <p className="text-[11px] text-gray-400 mt-1">
-                            {timeAgo(n.createdat)}
-                          </p>
-                        </div>
-                        {!n.isread && (
-                          <span className="shrink-0 mt-1.5 size-2 rounded-full bg-indigo-600" />
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+              <DataScroller
+                value={notifications}
+                itemTemplate={renderNotification}
+                inline
+                loader
+                rows={notifications.length}
+                scrollHeight="calc(70vh - 4rem)"
+                footer={
+                  hasMoreNotifications ? (
+                    <button
+                      type="button"
+                      onClick={loadMoreNotifications}
+                      disabled={loadingMore}
+                      className="w-full border-t border-gray-100 px-4 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-50 disabled:text-gray-400 disabled:cursor-wait"
+                    >
+                      {loadingMore ? 'Loading...' : 'Load more'}
+                    </button>
+                  ) : null
+                }
+              />
             )}
           </div>
         </div>

@@ -4,10 +4,11 @@ import {
 } from 'shared';
 import { API } from './api';
 
-export async function getNotifications(signal?: AbortSignal) {
+export async function getNotifications(page = 1, signal?: AbortSignal) {
   const result = await API.get('/notifications', {
     withCredentials: true,
     signal,
+    params: { page },
   });
   return getNotificationsResponseSchema.parse(result.data);
 }

@@ -33,10 +33,17 @@ export const notificationSchema = z.object({
 
 export type Notification = z.infer<typeof notificationSchema>;
 
+export const getNotificationsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).max(100).default(1),
+});
+
+export type GetNotificationsQuery = z.infer<typeof getNotificationsQuerySchema>;
+
 export const getNotificationsResponseSchema = z.object({
   data: z.array(notificationSchema),
   meta: z.object({
     unreadCount: z.int32(),
+    hasMore: z.boolean(),
   }),
 });
 
