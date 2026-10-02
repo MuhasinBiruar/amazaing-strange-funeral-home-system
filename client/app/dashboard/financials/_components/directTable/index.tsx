@@ -5,7 +5,7 @@ import DataTable from '@/components/dataTable';
 import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import TransactionHistoryPanel from './transactionHistoryPanel';
-import RecordTransactionModal from './recordTransactionModal';
+import RecordTransactionPanel from './recordTransactionPanel';
 import type { DirectPlan } from 'shared';
 import { getDirectPlans } from '@/services/financialService';
 
@@ -94,7 +94,7 @@ export default function DirectTable() {
         />
       )}
       {paymentFor && (
-        <RecordTransactionModal
+        <RecordTransactionPanel
           key={`payment-${paymentFor.caseid}`}
           caseId={paymentFor.caseid}
           deceasedName={paymentFor.deceased_name}
