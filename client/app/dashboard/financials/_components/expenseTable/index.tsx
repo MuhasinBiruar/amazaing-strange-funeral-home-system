@@ -7,7 +7,7 @@ import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import { getExpenses } from '@/services/expensesService';
 import type { GetExpensesRow } from 'shared';
-import RecordExpenseModal from './recordExpenseModal';
+import RecordExpensePanel from './recordExpensePanel';
 
 type ColumnKey = keyof GetExpensesRow;
 
@@ -78,7 +78,7 @@ export default function ExpenseTable() {
       />
 
       {isCreating && (
-        <RecordExpenseModal
+        <RecordExpensePanel
           onClose={() => setIsCreating(false)}
           onSuccess={() => {
             setIsCreating(false);
