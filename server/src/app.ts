@@ -22,6 +22,7 @@ import formalinDeliveriesRouter from './routes/formalindeliveries';
 import lifeplansRouter from './routes/lifeplans';
 import expensesRouter from './routes/expenses';
 import lguCasesRouter from './routes/lgucases';
+import auditLogsRouter from './routes/auditlogs';
 
 const app = express();
 
@@ -56,6 +57,7 @@ app.use('/deliveries/formalin', formalinDeliveriesRouter);
 app.use('/deliveries', deliveriesRouter);
 
 app.use('/api/me', meRouter);
+app.use('/auditlogs', auditLogsRouter);
 
 app.use(errorHandler);
 
