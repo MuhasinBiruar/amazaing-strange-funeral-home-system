@@ -49,7 +49,7 @@ export default function DirectTable() {
       label: 'Actions',
       widthClassName: 'w-48',
       render: (row) => (
-        <div className="flex items-center gap-4">
+        <div className="flex justify-center items-center gap-4">
           <button
             type="button"
             onClick={() => setPaymentFor(row)}
