@@ -40,7 +40,7 @@ export async function getFinancialDetails(
         FROM public.transaction t
         LEFT JOIN public.deceasedrecord dr ON t.caseid = dr.caseid
         WHERE t.transactionstatus = 'completed'
-          AND t.paymentdatetime >= $1 AND t.paymentdatetime < $2
+          AND t.paymentdatetime >= $1::timestamp AND t.paymentdatetime < $2::timestamp
 
         UNION ALL
 
@@ -55,7 +55,7 @@ export async function getFinancialDetails(
           NULL::text,
           cd.deliverydate::timestamp
         FROM public.casketdelivery cd
-        WHERE cd.deliverydate >= $1 AND cd.deliverydate < $2
+        WHERE cd.deliverydate >= $1::timestamp AND cd.deliverydate < $2::timestamp
 
         UNION ALL
 
@@ -70,7 +70,7 @@ export async function getFinancialDetails(
           NULL::text,
           fd.deliverydate::timestamp
         FROM public.formalindelivery fd
-        WHERE fd.deliverydate >= $1 AND fd.deliverydate < $2
+        WHERE fd.deliverydate >= $1::timestamp AND fd.deliverydate < $2::timestamp
 
         UNION ALL
 
@@ -85,11 +85,11 @@ export async function getFinancialDetails(
           NULL::text,
           e.expensedate::timestamp
         FROM public.expense e
-        WHERE e.expensedate >= $1 AND e.expensedate < $2
+        WHERE e.expensedate >= $1::timestamp AND e.expensedate < $2::timestamp
       ) combined
       ORDER BY datetime DESC
       `,
-      [startDate, exclusiveEnd],
+      [startDate.toISOString(), exclusiveEnd.toISOString()],
     );
 
     res.json({

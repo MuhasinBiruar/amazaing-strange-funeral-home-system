@@ -26,20 +26,24 @@ export const getFinancialSummary = async (
     let paramIndex = 1;
 
     if (startDate) {
-      transactionWhereConditions.push(`paymentdatetime >= $${paramIndex}`);
-      deliveryWhereConditions.push(`deliverydate >= $${paramIndex}`);
-      expenseWhereConditions.push(`expensedate >= $${paramIndex}`);
+      transactionWhereConditions.push(
+        `paymentdatetime >= $${paramIndex}::timestamp`,
+      );
+      deliveryWhereConditions.push(`deliverydate >= $${paramIndex}::timestamp`);
+      expenseWhereConditions.push(`expensedate >= $${paramIndex}::timestamp`);
 
-      queryParams.push(startDate);
+      queryParams.push(startDate.toISOString());
       paramIndex++;
     }
 
     if (endDate) {
-      transactionWhereConditions.push(`paymentdatetime < $${paramIndex}`);
-      deliveryWhereConditions.push(`deliverydate < $${paramIndex}`);
-      expenseWhereConditions.push(`expensedate < $${paramIndex}`);
+      transactionWhereConditions.push(
+        `paymentdatetime < $${paramIndex}::timestamp`,
+      );
+      deliveryWhereConditions.push(`deliverydate < $${paramIndex}::timestamp`);
+      expenseWhereConditions.push(`expensedate < $${paramIndex}::timestamp`);
 
-      queryParams.push(toExclusiveEndBound(endDate));
+      queryParams.push(toExclusiveEndBound(endDate).toISOString());
       paramIndex++;
     }
 
@@ -126,7 +130,7 @@ export const getFinancialSummary = async (
 
         -- General Expenses
         SELECT
-          date_trunc('${unit}', expensedate::timestamp AT TIME ZONE 'UTC') AS period,
+          date_trunc('${unit}', expensedate::timestamp) AS period,
           COALESCE(SUM(amount), 0) AS totalout,
           0::double precision AS totalin,
           0::bigint AS transactioncount
