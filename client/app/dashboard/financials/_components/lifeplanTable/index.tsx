@@ -64,16 +64,7 @@ export default function LifeplanTable() {
         rowKey={(l) => l.planid}
         defaultSortBy="deceased_name"
         defaultSortOrder="desc"
-        fetchData={({ filters: _filters, sortBy, sortOrder, search, signal }) =>
-          getLifeplans({
-            page: 1,
-            limit: 10,
-            sortBy: sortBy,
-            sortOrder: sortOrder as 'asc' | 'desc',
-            search,
-            signal,
-          })
-        }
+        fetchData={({ filters: _filters, ...params }) => getLifeplans(params)}
         bodyOffsetClassName="top-12"
         emptyMessage="No life plans match your search."
         loadErrorMessage="Could not load life plans. Try again."
