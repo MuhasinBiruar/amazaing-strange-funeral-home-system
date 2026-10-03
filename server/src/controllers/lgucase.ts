@@ -7,7 +7,10 @@ import {
   type CreateLguCaseQuery,
   type GetLguCasesResponse,
   type GetLguCasesRow,
+  type UpdateLguCaseQuery,
 } from 'shared';
+import type { IdParam } from 'shared/utils';
+import { BadRequestError, NotFoundError } from '@/errors';
 
 const SORT_COLUMNS: Record<keyof GetLguCasesRow, string> = {
   lgucaseid: 'lc.lgucaseid',
@@ -130,6 +133,44 @@ export async function getLguCases(
         totalPages: Math.ceil(totalRecords / limit),
       },
     } satisfies GetLguCasesResponse);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateLguCase(
+  req: Request<IdParam, {}, UpdateLguCaseQuery>,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { id } = req.params;
+    const parsed = req.body;
+
+    if (Object.keys(parsed).length === 0)
+      throw new BadRequestError('No fields provided for update.');
+
+    const result = await pool.query(
+      `UPDATE lgucase SET
+        reimbursementstatus = COALESCE($1, reimbursementstatus),
+        reimbursementamount = COALESCE($2, reimbursementamount)
+      WHERE lgucaseid = $3
+      RETURNING *`,
+      [
+        parsed.reimbursementstatus ?? null,
+        parsed.reimbursementamount ?? null,
+        id,
+      ],
+    );
+
+    if (result.rows.length === 0)
+      throw new NotFoundError('LGU case not found.');
+
+    const updated = result.rows[0];
+    const deceasedName = await getDeceasedName(updated.caseid);
+    res.locals.auditAction = `${res.locals.session.user.name} updated the LGU case for ${deceasedName} (status: ${updated.reimbursementstatus}, amount: ${updated.reimbursementamount})`;
+
+    res.json({ data: updated });
   } catch (error) {
     next(error);
   }

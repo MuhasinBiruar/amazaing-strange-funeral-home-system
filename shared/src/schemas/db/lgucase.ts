@@ -38,3 +38,9 @@ export const createLguCaseQuery = lguCaseSchema.omit({
 });
 
 export type CreateLguCaseQuery = z.infer<typeof createLguCaseQuery>;
+
+export const updateLguCaseQuerySchema = lguCaseSchema
+  .omit({ lgucaseid: true, caseid: true })
+  .partial();
+
+export type UpdateLguCaseQuery = z.infer<typeof updateLguCaseQuerySchema>;
