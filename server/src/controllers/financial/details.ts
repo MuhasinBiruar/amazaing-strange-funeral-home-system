@@ -92,7 +92,13 @@ export async function getFinancialDetails(
       [startDate, exclusiveEnd],
     );
 
-    res.json({ data: result.rows } satisfies GetFinancialDetailsResponse);
+    res.json({
+      data: result.rows,
+      meta: {
+        startDate,
+        endDate: exclusiveEnd,
+      },
+    } satisfies GetFinancialDetailsResponse);
   } catch (error) {
     next(error);
   }

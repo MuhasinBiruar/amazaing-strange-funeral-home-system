@@ -54,6 +54,10 @@ export type GetFinancialDetailsQuery = z.infer<
 
 export const getFinancialDetailsResponseSchema = z.object({
   data: z.array(financialDetailSchema),
+  meta: z.object({
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date(),
+  }),
 });
 
 export type GetFinancialDetailsResponse = z.infer<
