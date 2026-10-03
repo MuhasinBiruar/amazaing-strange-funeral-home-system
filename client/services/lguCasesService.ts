@@ -1,5 +1,11 @@
-import { type GetLguCasesQuery, getLguCasesResponseSchema } from 'shared';
+import {
+  type GetLguCasesQuery,
+  getLguCasesResponseSchema,
+  type UpdateLguCaseQuery,
+} from 'shared';
 import { API } from './api';
+import axios from 'axios';
+import { extractErrorMessage } from './utils/extractErrorMessage';
 
 export async function getLguCases({
   page,
@@ -21,4 +27,22 @@ export async function getLguCases({
     signal,
   });
   return getLguCasesResponseSchema.parse(result.data);
+}
+
+export async function updateLguCase(
+  lgucaseid: number,
+  payload: UpdateLguCaseQuery,
+) {
+  try {
+    const result = await API.patch(`/lgucases/${lgucaseid}`, payload, {
+      withCredentials: true,
+    });
+    return result.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.error?.message)
+      throw new Error(extractErrorMessage(error.response.data));
+
+    console.error('Error updating LGU case:', error);
+    throw error;
+  }
 }

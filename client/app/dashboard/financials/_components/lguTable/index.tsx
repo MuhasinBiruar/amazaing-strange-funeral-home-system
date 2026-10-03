@@ -6,11 +6,13 @@ import { formatCurrency, titleCase } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import { getLguCases } from '@/services/lguCasesService';
 import type { GetLguCasesRow } from 'shared';
+import EditLguCasePanel from './editLguCasePanel';
 
 type ColumnKey = keyof GetLguCasesRow;
 
 export default function LguTable() {
-  const [refreshKey, _setRefreshKey] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [editing, setEditing] = useState<GetLguCasesRow | null>(null);
 
   const columns: DataTableColumn<GetLguCasesRow, ColumnKey>[] = [
     {
@@ -50,6 +52,20 @@ export default function LguTable() {
       widthClassName: 'w-40',
       render: (l) => formatCurrency(l.reimbursementamount),
     },
+    {
+      key: 'lgucaseid',
+      label: 'Actions',
+      widthClassName: 'w-28',
+      render: (row) => (
+        <button
+          type="button"
+          onClick={() => setEditing(row)}
+          className="text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer text-sm font-medium"
+        >
+          Edit
+        </button>
+      ),
+    },
   ];
 
   return (
@@ -63,20 +79,19 @@ export default function LguTable() {
         rowKey={(l) => l.lgucaseid}
         defaultSortBy="deceased_name"
         defaultSortOrder="desc"
-        fetchData={({ filters: _filters, sortBy, sortOrder, search, signal }) =>
-          getLguCases({
-            page: 1,
-            limit: 10,
-            sortBy: sortBy,
-            sortOrder: sortOrder as 'asc' | 'desc',
-            search,
-            signal,
-          })
-        }
+        fetchData={({ filters: _filters, ...params }) => getLguCases(params)}
         emptyMessage="No LGU cases match your search."
         loadErrorMessage="Could not load LGU cases. Try again."
         refreshKey={refreshKey}
       />
+
+      {editing && (
+        <EditLguCasePanel
+          lguCase={editing}
+          onClose={() => setEditing(null)}
+          onSuccess={() => setRefreshKey((k) => k + 1)}
+        />
+      )}
     </>
   );
 }
