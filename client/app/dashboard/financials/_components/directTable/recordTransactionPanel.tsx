@@ -52,6 +52,7 @@ export default function RecordTransactionPanel({
     // run through parseFloat.
     const result = createTransactionQuerySchema.safeParse({
       amount: amount.trim(),
+      paymentdatetime,
       paymentmethod,
       paymentcategory,
     });
@@ -121,9 +122,13 @@ export default function RecordTransactionPanel({
           </div>
 
           <div>
-            <label className={labelClass}>Date of death</label>
+            <label htmlFor="payment-date" className={labelClass}>
+              Payment date
+            </label>
             <input
+              id="payment-date"
               type="date"
+              required
               value={paymentdatetime}
               onChange={(e) => setPaymentdatetime(e.target.value)}
               className={fieldClass}
