@@ -58,5 +58,5 @@ export const createTransactionResponseSchema = z.object({
 });
 
 export type CreateTransactionResponse = z.infer<
-  typeof createTransactionQuerySchema
+  typeof createTransactionResponseSchema
 >;
