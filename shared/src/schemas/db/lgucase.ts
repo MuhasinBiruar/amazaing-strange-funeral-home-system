@@ -13,26 +13,34 @@ export const lguCaseSchema = z.object({
 
 export type LguCase = z.infer<typeof lguCaseSchema>;
 
-export const lguCaseRowSchema = lguCaseSchema.extend({
+export const getLguCasesRowSchema = lguCaseSchema.extend({
   deceased_name: z.string(),
 });
 
-export type LguCaseRow = z.infer<typeof lguCaseRowSchema>;
+export type GetLguCasesRow = z.infer<typeof getLguCasesRowSchema>;
 
 export const getLguCasesQuerySchema = paginationQuerySchema.extend({
   search: z.string().optional(),
-  sortBy: z.keyof(lguCaseRowSchema).default('lgucaseid'),
+  sortBy: z.keyof(getLguCasesRowSchema).default('lgucaseid'),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
 });
 
 export type GetLguCasesQuery = z.infer<typeof getLguCasesQuerySchema>;
 
 export const getLguCasesResponseSchema = paginationResponseSchema.extend({
-  data: z.array(lguCaseRowSchema),
+  data: z.array(getLguCasesRowSchema),
 });
 
 export type GetLguCasesResponse = z.infer<typeof getLguCasesResponseSchema>;
 
-export const createLguCaseQuery = lguCaseSchema.omit({ lgucaseid: true });
+export const createLguCaseQuery = lguCaseSchema.omit({
+  lgucaseid: true,
+});
 
 export type CreateLguCaseQuery = z.infer<typeof createLguCaseQuery>;
+
+export const updateLguCaseQuerySchema = lguCaseSchema
+  .omit({ lgucaseid: true, caseid: true })
+  .partial();
+
+export type UpdateLguCaseQuery = z.infer<typeof updateLguCaseQuerySchema>;

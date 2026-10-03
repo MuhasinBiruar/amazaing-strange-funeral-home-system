@@ -275,7 +275,7 @@ router.patch(
       const role = res.locals.session.user.role as 'admin' | 'user';
 
       if (Object.keys(parsed).length === 0)
-        return new BadRequestError('No fields provided for update.');
+        throw new BadRequestError('No fields provided for update.');
 
       if (role !== 'admin') {
         const checkResult = await pool.query(

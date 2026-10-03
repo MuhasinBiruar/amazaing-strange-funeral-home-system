@@ -4,9 +4,10 @@ import { useState } from 'react';
 import DataTable from '@/components/dataTable';
 import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
-import { getDirectPlans, type DirectPlan } from '@/services/financialService';
 import TransactionHistoryPanel from './transactionHistoryPanel';
-import RecordTransactionModal from '../directTable/recordTransactionModal';
+import RecordTransactionPanel from './recordTransactionPanel';
+import type { DirectPlan } from 'shared';
+import { getDirectPlans } from '@/services/financialService';
 
 type ColumnKey = keyof DirectPlan;
 
@@ -48,7 +49,7 @@ export default function DirectTable() {
       label: 'Actions',
       widthClassName: 'w-48',
       render: (row) => (
-        <div className="flex items-center gap-4">
+        <div className="flex justify-center items-center gap-4">
           <button
             type="button"
             onClick={() => setPaymentFor(row)}
@@ -78,6 +79,7 @@ export default function DirectTable() {
         rowKey={(d) => d.caseid}
         defaultSortBy="deceased_name"
         defaultSortOrder="desc"
+        bodyOffsetClassName="top-12"
         fetchData={({ filters: _filters, ...params }) => getDirectPlans(params)}
         emptyMessage="No direct payment plans match your search."
         loadErrorMessage="Could not load direct payment plans. Try again."
@@ -92,8 +94,9 @@ export default function DirectTable() {
           onClose={() => setHistoryFor(null)}
         />
       )}
+
       {paymentFor && (
-        <RecordTransactionModal
+        <RecordTransactionPanel
           key={`payment-${paymentFor.caseid}`}
           caseId={paymentFor.caseid}
           deceasedName={paymentFor.deceased_name}

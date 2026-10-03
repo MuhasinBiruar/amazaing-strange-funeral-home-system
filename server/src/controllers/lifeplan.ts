@@ -5,10 +5,10 @@ import type { NextFunction, Request, Response } from 'express';
 import {
   getLifeplansQuerySchema,
   type CreateLifeplanQuery,
-  type getLifeplansQueryRow,
+  type GetLifeplansQueryRow,
 } from 'shared';
 
-const SORT_COLUMNS: Record<keyof getLifeplansQueryRow, string> = {
+const SORT_COLUMNS: Record<keyof GetLifeplansQueryRow, string> = {
   planid: 'l.planid',
   plannumber: 'l.plannumber',
   planholdername: 'l.planholdername',

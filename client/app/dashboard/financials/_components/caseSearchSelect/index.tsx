@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import useDebouncedValue from '@/utils/useDebouncedValue';
 import { getCases } from '@/services/caseService';
 import type { Case } from 'shared';
-import { fieldClass, labelClass } from '../fieldStyles';
+import { fieldClass, labelClass } from '@/components/formStyles';
 
 export default function CaseSearchSelect({
   selected,
@@ -22,10 +22,12 @@ export default function CaseSearchSelect({
 
   useEffect(() => {
     if (!dboQuery) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResults([]);
       setSearchError(null);
       return;
     }
+
     const controller = new AbortController();
     setIsSearching(true);
     setSearchError(null);
@@ -78,11 +80,15 @@ export default function CaseSearchSelect({
         </div>
       )}
 
-      {isOpen && !isSearching && !searchError && dboQuery && results.length === 0 && (
-        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg px-3 py-2 text-sm text-gray-400">
-          No matching cases.
-        </div>
-      )}
+      {isOpen &&
+        !isSearching &&
+        !searchError &&
+        dboQuery &&
+        results.length === 0 && (
+          <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg px-3 py-2 text-sm text-gray-400">
+            No matching cases.
+          </div>
+        )}
 
       {isOpen && !isSearching && results.length > 0 && (
         <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
@@ -97,7 +103,8 @@ export default function CaseSearchSelect({
                 }}
                 className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer"
               >
-                {c.deceased_name} <span className="text-gray-400">#{c.caseid}</span>
+                {c.deceased_name}{' '}
+                <span className="text-gray-400">#{c.caseid}</span>
               </button>
             </li>
           ))}
@@ -105,7 +112,9 @@ export default function CaseSearchSelect({
       )}
 
       {selected && (
-        <p className="text-[11px] text-gray-400 mt-1">Case #{selected.caseid}</p>
+        <p className="text-[11px] text-gray-400 mt-1">
+          Case #{selected.caseid}
+        </p>
       )}
     </div>
   );

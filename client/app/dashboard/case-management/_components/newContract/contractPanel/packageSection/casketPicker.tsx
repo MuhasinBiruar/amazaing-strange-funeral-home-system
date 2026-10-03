@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { CasketInventory } from 'shared';
 import { getCasketInventory } from '@/services/casketInventoryService';
-import { labelClass } from '../../../fieldStyles';
+import { labelClass } from '@/components/formStyles';
 import type { PackageType } from './types';
 
 function CasketRow({

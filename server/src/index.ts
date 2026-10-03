@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import app from './app.js'; // or "./app" depending on your bundler setup
-import pool from './db.js';
+import app from './app';
+import pool from './db';
 
 // Prefer the explicit local API port; deployment platforms provide PORT.
 const PORT = Number(process.env.APP_PORT || process.env.PORT) || 4000;

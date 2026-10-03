@@ -85,8 +85,7 @@ export default function DashboardPage() {
 
   // Admins bypass every per-page access flag. Everyone else only sees a
   // module if it's unrestricted, or they've been explicitly granted its
-  // access flag — mirrors the check PageGuard performs when a route is
-  // actually visited, so nothing shown here would 404 into "Access denied".
+  // access flag - mirrors the check PageGuard performs.
   const visibleModules = modules.filter((module) => {
     if (module.adminOnly) return isAdmin;
     if (isAdmin) return true;

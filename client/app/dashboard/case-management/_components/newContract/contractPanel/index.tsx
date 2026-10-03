@@ -4,7 +4,7 @@ import { createPackage } from '@/services/packageService';
 import { createContract } from '@/services/contractService';
 import emptyToNull from '@/utils/emptyToNull';
 import { formatDate, titleCase } from '@/utils/format';
-import { fieldClass, labelClass } from '../../fieldStyles';
+import { fieldClass, labelClass } from '@/components/formStyles';
 import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import DetailRow from './detailRow';

@@ -5,16 +5,17 @@ import { Plus } from 'lucide-react';
 import DataTable from '@/components/dataTable';
 import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
-import { getExpenses, type Expense } from '@/services/financialService';
-import RecordExpenseModal from './recordExpenseModal';
+import { getExpenses } from '@/services/expensesService';
+import type { GetExpensesRow } from 'shared';
+import RecordExpensePanel from './recordExpensePanel';
 
-type ColumnKey = keyof Expense;
+type ColumnKey = keyof GetExpensesRow;
 
 export default function ExpenseTable() {
   const [isCreating, setIsCreating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const columns: DataTableColumn<Expense, ColumnKey>[] = [
+  const columns: DataTableColumn<GetExpensesRow, ColumnKey>[] = [
     {
       key: 'expensedate',
       label: 'Date',
@@ -38,7 +39,7 @@ export default function ExpenseTable() {
       label: 'Recorded By',
       widthClassName: 'w-40',
       cellClassName: 'text-gray-500',
-      render: (e) => e.recordedby || 'Staff',
+      render: (e) => e.staff_name,
     },
     {
       key: 'amount',
@@ -62,7 +63,7 @@ export default function ExpenseTable() {
         </button>
       </div>
 
-      <DataTable<Expense, ColumnKey>
+      <DataTable<GetExpensesRow, ColumnKey>
         title="General Expenses"
         countLabel={(total) => `${total} records`}
         searchPlaceholder="Search expenses..."
@@ -73,11 +74,12 @@ export default function ExpenseTable() {
         fetchData={({ filters: _filters, ...params }) => getExpenses(params)}
         emptyMessage="No expenses recorded yet."
         loadErrorMessage="Could not load expenses."
+        bodyOffsetClassName="top-13"
         refreshKey={refreshKey}
       />
 
       {isCreating && (
-        <RecordExpenseModal
+        <RecordExpensePanel
           onClose={() => setIsCreating(false)}
           onSuccess={() => {
             setIsCreating(false);
