@@ -12,6 +12,7 @@ const SORT_COLUMNS: Record<string, string> = {
   companyid: 'l.companyid',
   companyname: 'l.companyname',
   contactinfo: 'l.contactinfo',
+  minimumthreshold: 'l.minimumthreshold',
 };
 
 export async function createLifeplanCompany(
@@ -25,9 +26,10 @@ export async function createLifeplanCompany(
       `
         INSERT INTO lifeplancompany (
           companyname,
-          contactinfo
-        ) VALUES ($1, $2) RETURNING companyid;`,
-      [parsed.companyname, parsed.contactinfo],
+          contactinfo,
+          minimumthreshold
+        ) VALUES ($1, $2, $3) RETURNING companyid;`,
+      [parsed.companyname, parsed.contactinfo, parsed.minimumthreshold],
     );
     res.locals.auditAction = `${res.locals.session.user.name} created a life plan company.`;
 
@@ -71,6 +73,7 @@ export async function getLifeplanCompanies(
       SELECT 
         l.companyid,
         l.companyname,
+        l.minimumthreshold,
         l.contactinfo
     `;
 
