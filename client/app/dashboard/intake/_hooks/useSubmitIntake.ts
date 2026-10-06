@@ -79,6 +79,7 @@ export function useSubmitIntake(
         const companyPayload: CreateLifeplanCompanyQuery = {
           companyname: formData.lifeplancompany as string,
           contactinfo: null,
+          minimumthreshold: 0,
         };
         const companyResponse = await API.post(
           '/lifeplans/companies',
