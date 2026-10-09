@@ -46,12 +46,6 @@ export default function LifeplanTable() {
       widthClassName: 'w-32.5',
       render: (l) => formatCurrency(l.totalamount),
     },
-    {
-      key: 'minimumthreshold',
-      label: 'Min. threshold',
-      widthClassName: 'w-32.5',
-      render: (l) => formatCurrency(l.minimumthreshold),
-    },
   ];
 
   return (
