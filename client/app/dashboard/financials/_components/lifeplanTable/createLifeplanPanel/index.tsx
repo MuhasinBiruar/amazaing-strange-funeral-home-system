@@ -32,7 +32,6 @@ export default function CreateLifeplanPanel({
 
   const [plannumber, setPlannumber] = useState('');
   const [planholdername, setPlanholdername] = useState('');
-  const [minimumthreshold, setMinimumthreshold] = useState('');
   const [totalamount, setTotalamount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -98,7 +97,6 @@ export default function CreateLifeplanPanel({
         caseid: selectedCase.caseid,
         plannumber,
         planholdername,
-        minimumthreshold: Number(minimumthreshold),
         totalamount: Number(totalamount),
         companyid: Number(companyid),
       });
@@ -174,37 +172,20 @@ export default function CreateLifeplanPanel({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="minimumthreshold" className={labelClass}>
-                  Min. threshold (PHP)
-                </label>
-                <input
-                  id="minimumthreshold"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  required
-                  value={minimumthreshold}
-                  onChange={(e) => setMinimumthreshold(e.target.value)}
-                  className={fieldClass}
-                />
-              </div>
-              <div>
-                <label htmlFor="totalamount" className={labelClass}>
-                  Total amount (PHP)
-                </label>
-                <input
-                  id="totalamount"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  required
-                  value={totalamount}
-                  onChange={(e) => setTotalamount(e.target.value)}
-                  className={fieldClass}
-                />
-              </div>
+            <div>
+              <label htmlFor="totalamount" className={labelClass}>
+                Total amount (PHP)
+              </label>
+              <input
+                id="totalamount"
+                type="number"
+                min="0"
+                step="0.01"
+                required
+                value={totalamount}
+                onChange={(e) => setTotalamount(e.target.value)}
+                className={fieldClass}
+              />
             </div>
 
             <div>

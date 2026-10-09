@@ -9,6 +9,7 @@ import {
   UserPlus,
   UserStar,
   Wallet,
+  ClipboardClock,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthProvider';
 import type { AccessPage } from 'shared';
@@ -48,9 +49,9 @@ const modules: {
   {
     section: 'Operations',
     name: 'Special Cases',
-    description: 'Review flagged cases',
-    icon: AlertTriangle,
-    routeTo: null,
+    description: 'View LGU & life plan cases',
+    icon: ClipboardClock,
+    routeTo: '/dashboard/special-cases',
     accessPage: 'special_case_page',
   },
   {
@@ -98,6 +99,7 @@ export default function DashboardPage() {
     'Operations',
     'Finance',
     'Admin',
+    'Special Cases',
   ].filter((section) => visibleModules.some((m) => m.section === section));
 
   return (

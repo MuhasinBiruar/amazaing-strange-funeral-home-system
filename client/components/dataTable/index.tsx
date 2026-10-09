@@ -15,6 +15,7 @@ import type {
   PaginatedResponse,
   SortOrder,
 } from './types';
+import type { ReactNode } from 'react';
 
 const SEARCH_DEBOUNCE_MS = 500 as const;
 const ROW_HEIGHT_PX = 45 as const;
@@ -47,6 +48,7 @@ export default function DataTable<
   loadErrorMessage = 'Could not load records. Try again.',
   bodyOffsetClassName,
   refreshKey,
+  additionalFilterSlot,
 }: {
   title: string;
   /**
@@ -81,6 +83,8 @@ export default function DataTable<
    * Bump to force a refetch (e.g. after a mutation elsewhere invalidates this list).
    */
   refreshKey?: number;
+  /** Optional custom control rendered beside the built-in filters. */
+  additionalFilterSlot?: ReactNode;
 }) {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<K>(defaultSortBy);
@@ -165,9 +169,9 @@ export default function DataTable<
   return (
     <div
       ref={containerRef}
-      className="rounded-lg border border-gray-200 bg-white overflow-hidden"
+      className="relative z-0 rounded-lg border border-gray-200 bg-white overflow-visible"
     >
-      <div ref={headerWrapRef}>
+      <div ref={headerWrapRef} className="relative z-20">
         <TableHeader
           title={title}
           countLabel={countLabel(total)}
@@ -176,14 +180,17 @@ export default function DataTable<
           commitDboSearch={commitDboSearch}
           searchPlaceholder={searchPlaceholder}
           filterSlot={
-            filters && filters.length > 0 ? (
-              <FilterBar
-                filters={filters}
-                values={filterValues}
-                setValues={setFilterValues}
-                setPage={setPage}
-              />
-            ) : undefined
+            <>
+              {filters && filters.length > 0 && (
+                <FilterBar
+                  filters={filters}
+                  values={filterValues}
+                  setValues={setFilterValues}
+                  setPage={setPage}
+                />
+              )}
+              {additionalFilterSlot}
+            </>
           }
         />
       </div>

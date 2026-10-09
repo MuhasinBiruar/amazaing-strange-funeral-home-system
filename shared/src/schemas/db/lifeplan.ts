@@ -9,7 +9,6 @@ export const lifeplanSchema = z.object({
   planid: z.int32(),
   plannumber: withNullDefault(z.string().min(1)),
   planholdername: withNullDefault(z.string().min(1)),
-  minimumthreshold: withNullDefault(z.float64().min(0)),
   totalamount: withNullDefault(z.float64().min(1)),
   caseid: z.int32(),
   companyid: z.int32(),
