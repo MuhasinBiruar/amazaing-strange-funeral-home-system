@@ -13,6 +13,8 @@ import { withTransaction } from '@/util/with-transaction';
 import {
   createFormalinUsageSchema,
   formalinInventoryMutationSchema,
+  getFormalinUsageBreakdownQuerySchema,
+  getFormalinUsageSummaryQuerySchema,
   type CreateFormalinUsage,
   type FormalinInventoryMutation,
 } from 'shared';
@@ -130,6 +132,136 @@ router.get('/deliveries', requireAuth, async (_req, res, next) => {
       `,
     );
     res.json({ data: result.rows });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/usage/summary', requireAuth, async (req, res, next) => {
+  try {
+    const { page, limit, startDate, endDate, sortBy, sortOrder } =
+      getFormalinUsageSummaryQuerySchema.parse(req.query);
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+    let paramIndex = 1;
+
+    if (startDate) {
+      conditions.push(`usagedate >= $${paramIndex}::date`);
+      params.push(startDate.toISOString().slice(0, 10));
+      paramIndex++;
+    }
+    if (endDate) {
+      conditions.push(`usagedate < $${paramIndex}::date + INTERVAL '1 day'`);
+      params.push(String(endDate).slice(0, 10));
+      paramIndex++;
+    }
+
+    const whereClause = conditions.length
+      ? `WHERE ${conditions.join(' AND ')}`
+      : '';
+    const sortColumn =
+      sortBy === 'totalquantityused' ? 'totalquantityused' : 'usagedate';
+    const direction = sortOrder === 'asc' ? 'ASC' : 'DESC';
+    const paginationParams = [
+      ...params,
+      limit,
+      (page - 1) * limit,
+    ];
+    const pagination = `LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    const [dataResult, countResult] = await withRepeatableRead((client) =>
+      Promise.all([
+        client.query(
+          `
+            SELECT TO_CHAR(usagedate::date, 'YYYY-MM-DD') AS usagedate,
+                   SUM(quantityused)::float8 AS totalquantityused
+            FROM formalinusage
+            ${whereClause}
+            GROUP BY usagedate::date
+            ORDER BY ${sortColumn} ${direction}, usagedate DESC
+            ${pagination}
+          `,
+          paginationParams,
+        ),
+        client.query(
+          `
+            SELECT COUNT(*)::int AS total
+            FROM (
+              SELECT usagedate::date
+              FROM formalinusage
+              ${whereClause}
+              GROUP BY usagedate::date
+            ) AS grouped_usage
+          `,
+          params,
+        ),
+      ]),
+    );
+
+    const total = countResult.rows[0].total;
+    res.json({
+      data: dataResult.rows,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/usage/breakdown', requireAuth, async (req, res, next) => {
+  try {
+    const { page, limit, startDate, endDate, sortBy, sortOrder } =
+      getFormalinUsageBreakdownQuerySchema.parse(req.query);
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+    let paramIndex = 1;
+
+    if (startDate) {
+      conditions.push(`usagedate >= $${paramIndex}::date`);
+      params.push(startDate.toISOString().slice(0, 10));
+      paramIndex++;
+    }
+    if (endDate) {
+      conditions.push(`usagedate < $${paramIndex}::date + INTERVAL '1 day'`);
+      params.push(String(endDate).slice(0, 10));
+      paramIndex++;
+    }
+
+    const whereClause = conditions.length
+      ? `WHERE ${conditions.join(' AND ')}`
+      : '';
+    const sortColumnMap = {
+      usageid: 'usageid',
+      quantityused: 'quantityused',
+      usagedate: 'usagedate',
+      casetype: 'casetype',
+    } as const;
+    const direction = sortOrder === 'asc' ? 'ASC' : 'DESC';
+    const paginationParams = [...params, limit, (page - 1) * limit];
+    const pagination = `LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    const [dataResult, countResult] = await withRepeatableRead((client) =>
+      Promise.all([
+        client.query(
+          `
+            SELECT usageid, quantityused, usagedate, casetype, caseid, formalinid
+            FROM formalinusage
+            ${whereClause}
+            ORDER BY ${sortColumnMap[sortBy]} ${direction}, usageid DESC
+            ${pagination}
+          `,
+          paginationParams,
+        ),
+        client.query(
+          `SELECT COUNT(*)::int AS total FROM formalinusage ${whereClause}`,
+          params,
+        ),
+      ]),
+    );
+
+    const total = countResult.rows[0].total;
+    res.json({
+      data: dataResult.rows,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    });
   } catch (error) {
     next(error);
   }

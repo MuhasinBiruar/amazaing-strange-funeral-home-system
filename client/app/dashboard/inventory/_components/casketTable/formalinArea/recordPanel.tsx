@@ -15,6 +15,7 @@ import {
 } from '@/services/formalinInventoryService';
 import { formatDate } from '@/utils/format';
 
+/** Operation currently being recorded against the formalin inventory. */
 type Mode = 'add' | 'use';
 type CaseColumn =
   | 'deceased_name'
@@ -24,6 +25,13 @@ type CaseColumn =
   | 'last_formalin_use_date'
   | 'servicestatus';
 
+/**
+ * Records a formalin stock addition or usage event.
+ *
+ * Usage events require a selected case and reduce the current inventory;
+ * stock additions increase it. The parent is notified after a successful save
+ * so it can refresh the inventory summary and display any threshold warning.
+ */
 export default function FormalinRecordPanel({
   inventory,
   onClose,
@@ -79,12 +87,14 @@ export default function FormalinRecordPanel({
     },
   ];
 
+  /** Switches between adding stock and recording usage. */
   function selectMode(nextMode: Mode) {
     setMode(nextMode);
     setError(null);
     setSelectedCase(null);
   }
 
+  /** Validates and persists the currently selected inventory operation. */
   async function submit() {
     const amount = Number(quantity);
     const threshold = Number(minimumthreshold);

@@ -3,8 +3,11 @@ import {
   formalinInventoryMutationResponseSchema,
   formalinInventoryResponseSchema,
   formalinUsageResponseSchema,
+  getFormalinUsageSummaryResponseSchema,
   getFormalinUsageResponseSchema,
   type CreateFormalinUsage,
+  type GetFormalinUsageBreakdownQuery,
+  type GetFormalinUsageSummaryQuery,
   type FormalinInventoryMutation,
 } from 'shared';
 import { API } from './api';
@@ -56,5 +59,72 @@ export async function getFormalinUsageHistory({
     withCredentials: true,
     signal,
   });
+  return getFormalinUsageResponseSchema.parse(result.data);
+}
+
+export async function getFormalinUsageSummary({
+  page,
+  limit,
+  sortBy,
+  sortOrder,
+  startDate,
+  endDate,
+  signal,
+}: Omit<
+  GetFormalinUsageSummaryQuery,
+  'startDate' | 'endDate'
+> & {
+  startDate?: string;
+  endDate?: string;
+  signal?: AbortSignal;
+}) {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    sortBy,
+    sortOrder,
+  });
+  if (startDate) params.set('startDate', startDate);
+  if (endDate) params.set('endDate', endDate);
+
+  const result = await API.get(`/formalininventory/usage/summary?${params}`, {
+    withCredentials: true,
+    signal,
+  });
+  return getFormalinUsageSummaryResponseSchema.parse(result.data);
+}
+
+export async function getFormalinUsageBreakdown({
+  page,
+  limit,
+  sortBy,
+  sortOrder,
+  startDate,
+  endDate,
+  signal,
+}: Omit<
+  GetFormalinUsageBreakdownQuery,
+  'startDate' | 'endDate'
+> & {
+  startDate?: string;
+  endDate?: string;
+  signal?: AbortSignal;
+}) {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    sortBy,
+    sortOrder,
+  });
+  if (startDate) params.set('startDate', startDate);
+  if (endDate) params.set('endDate', endDate);
+
+  const result = await API.get(
+    `/formalininventory/usage/breakdown?${params}`,
+    {
+      withCredentials: true,
+      signal,
+    },
+  );
   return getFormalinUsageResponseSchema.parse(result.data);
 }

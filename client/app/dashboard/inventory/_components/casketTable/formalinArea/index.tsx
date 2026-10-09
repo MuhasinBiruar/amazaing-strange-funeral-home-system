@@ -10,6 +10,10 @@ import FormalinDeliveryHistoryPanel from './deliveryHistoryPanel';
 import FormalinRecordPanel from './recordPanel';
 import FormalinUsageHistoryPanel from './usageHistoryPanel';
 
+/**
+ * Displays the current formalin stock and opens formalin recording and
+ * history panels.
+ */
 export default function FormalinArea() {
   const [inventory, setInventory] = useState<FormalinInventory | null>(null);
   const [isLoading, setIsLoading] = useState(true);

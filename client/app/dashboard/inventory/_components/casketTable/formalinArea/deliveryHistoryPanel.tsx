@@ -8,6 +8,7 @@ import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import { getFormalinDeliveries } from '@/services/formalinInventoryService';
 import { formatDate } from '@/utils/format';
 
+/** Displays formalin deliveries in reverse chronological order. */
 export default function FormalinDeliveryHistoryPanel({
   onClose,
 }: {
@@ -69,12 +70,9 @@ export default function FormalinDeliveryHistoryPanel({
                   <h3 className="font-semibold text-gray-900">
                     {formatDate(row.deliverydate)}
                   </h3>
-                  <p className="mt-1 text-sm text-orange-700">
-                    {row.quantityreceived} liters received
-                  </p>
                 </div>
-                <span className="text-sm text-gray-500">
-                  Inventory #{row.formalinid ?? '—'}{' '}
+                <span className="text-sm text-orange-700">
+                  {row.quantityreceived} liters received
                   {/*remove this later as id is not needed*/}
                 </span>
               </div>

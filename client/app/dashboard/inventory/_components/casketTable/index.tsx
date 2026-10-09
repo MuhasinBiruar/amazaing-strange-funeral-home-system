@@ -10,13 +10,7 @@ import DeliveryHistoryPanel from './deliveryHistoryPanel';
 import FormalinArea from './formalinArea';
 type ColumnKey = keyof CasketInventoryTable;
 
-/**
- *
- * @returns
- * @TODO FIX TABLES FOR FORMALIN TABLES THAT STILL USE DATABASE IDS SUCH AS CASE COLUMN
- *       add total amount paid in payload for formalin delivery and show total amount paid
- */
-
+/** Displays casket inventory alongside formalin stock and history controls. */
 export default function CasketTable() {
   const [historyFor, setHistoryFor] = useState<CasketInventoryTable[] | null>(
     null,
