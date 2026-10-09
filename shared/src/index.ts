@@ -26,6 +26,8 @@ export * from './schemas/db/deceasedrecord';
 export * from './schemas/db/document';
 export * from './schemas/db/expense';
 export * from './schemas/db/formalindelivery';
+export * from './schemas/db/formalininventory';
+export * from './schemas/db/formalinusage';
 export * from './schemas/db/lgucase';
 export * from './schemas/db/lifeplan';
 export * from './schemas/db/lifeplancompany';

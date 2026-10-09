@@ -8,6 +8,7 @@ import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import type { DeliveryHistoryType } from './types';
 
+/** Lists delivery records associated with the selected casket. */
 export default function DeliveryHistoryPanel({
   casketid,
   caskettype,

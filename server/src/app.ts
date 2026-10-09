@@ -19,6 +19,7 @@ import auditLog from './middleware/audit-log';
 import deliveriesRouter from './routes/deliveries';
 import casketDeliveriesRouter from './routes/casketdeliveries';
 import formalinDeliveriesRouter from './routes/formalindeliveries';
+import formalinInventoryRouter from './routes/formalininventory';
 import lifeplansRouter from './routes/lifeplans';
 import expensesRouter from './routes/expenses';
 import lguCasesRouter from './routes/lgucases';
@@ -54,6 +55,7 @@ app.use('/lifeplans', lifeplansRouter);
 app.use('/casketinventory', casketInventoryRouter);
 app.use('/deliveries/casket', casketDeliveriesRouter);
 app.use('/deliveries/formalin', formalinDeliveriesRouter);
+app.use('/formalininventory', formalinInventoryRouter);
 app.use('/deliveries', deliveriesRouter);
 
 app.use('/api/me', meRouter);
