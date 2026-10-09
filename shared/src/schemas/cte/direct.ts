@@ -3,7 +3,12 @@ import {
   paginationQuerySchema,
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
+import { transactionSchema } from '../db/transaction';
 
+/**
+ * Combination of the following tables:
+ * `deceasedrecord` + `representative` + `contract` + `transaction`
+ */
 export const directPlanSchema = z.object({
   caseid: z.int32(),
   deceased_name: z.string(),
@@ -30,4 +35,12 @@ export const getDirectPlansResponseSchema = paginationResponseSchema.extend({
 
 export type GetDirectPlansResponse = z.infer<
   typeof getDirectPlansResponseSchema
+>;
+
+export const getDirectTransactionsResponseSchema = z.object({
+  data: z.array(transactionSchema),
+});
+
+export type GetDirectTransactionsResponse = z.infer<
+  typeof getDirectTransactionsResponseSchema
 >;

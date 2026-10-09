@@ -55,6 +55,14 @@ export const FK_CONSTRAINTS: Record<
     field: 'formalinid',
     message: 'Referenced formalin inventory item does not exist.',
   },
+  expense_recordedby_fkey: {
+    field: 'recordedby',
+    message: 'Staff member who recorded the expense does not exist.',
+  },
+  transaction_caseid_fkey: {
+    field: 'caseid',
+    message: 'Referenced deceased record does not exist.',
+  },
 };
 
 export const UNIQUE_CONSTRAINTS: Record<
@@ -68,10 +76,6 @@ export const UNIQUE_CONSTRAINTS: Record<
   contract_caseid_key: {
     field: 'caseid',
     message: 'A contract for this case already exists.',
-  },
-  contract_packageid_key: {
-    field: 'packageid',
-    message: 'A contract with this package already exists.',
   },
   lifeplan_caseid_key: {
     field: 'caseid',

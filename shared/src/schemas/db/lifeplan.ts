@@ -23,7 +23,7 @@ export const getLifeplansQueryRowSchema = lifeplanSchema.extend({
   companyname: z.string(),
 });
 
-export type getLifeplansQueryRow = z.infer<typeof getLifeplansQueryRowSchema>;
+export type GetLifeplansQueryRow = z.infer<typeof getLifeplansQueryRowSchema>;
 
 export const getLifeplansQuerySchema = paginationQuerySchema.extend({
   search: z.string().optional(),

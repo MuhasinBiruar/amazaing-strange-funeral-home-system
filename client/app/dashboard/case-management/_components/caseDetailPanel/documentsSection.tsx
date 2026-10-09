@@ -4,7 +4,7 @@ import { FileText, Upload, X } from 'lucide-react';
 import type { DocumentWithUrl } from 'shared';
 import { uploadDocument } from '@/services/documentService';
 import { formatDate, titleCase } from '@/utils/format';
-import { fieldClass, labelClass } from '../fieldStyles';
+import { fieldClass, labelClass } from '@/components/formStyles';
 import LoadingButton from '@/components/loadingButton';
 
 const ACCEPTED_TYPES = 'image/*,application/pdf';
