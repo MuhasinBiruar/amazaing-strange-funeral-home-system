@@ -1,16 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import z from 'zod';
 import CasketTable from './_components/casketTable';
-type Tab = 'inventory' | 'delivery';
+import DeliveryTable from './_components/deliveryTable';
+
+const tabEnum = z.enum(['inventory', 'delivery']).catch('inventory');
+type Tab = z.infer<typeof tabEnum>;
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'inventory', label: 'Inventory' },
   { key: 'delivery', label: 'Delivery' },
 ];
 
-export default function InventoryPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('inventory');
+/**
+ * @remarks
+ * The active tab lives in the `tab` query parameter rather than in component
+ * state, so the view survives a reload and is linkable
+ * (e.g. `/dashboard/inventory?tab=delivery`).
+ */
+function InventoryPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const activeTab = tabEnum.parse(searchParams.get('tab'));
+  const changeTab = (tabName: Tab) => {
+    router.replace(`/dashboard/inventory?tab=${tabName}`, { scroll: false });
+  };
 
   return (
     <div className="flex-1 bg-gray-50 flex flex-col">
@@ -32,7 +49,7 @@ export default function InventoryPage() {
             {TABS.map(({ key, label }) => (
               <button
                 key={key}
-                onClick={() => setActiveTab(key)}
+                onClick={() => changeTab(key)}
                 className={`px-4 py-3 text-sm font-medium border-b-2 transition cursor-pointer ${
                   activeTab === key
                     ? 'border-indigo-600 text-indigo-600'
@@ -44,8 +61,16 @@ export default function InventoryPage() {
             ))}
           </div>
         </div>
-        {activeTab === 'inventory' && <CasketTable />}
+        {activeTab === 'delivery' ? <DeliveryTable /> : <CasketTable />}
       </main>
     </div>
+  );
+}
+
+export default function InventoryPage() {
+  return (
+    <Suspense fallback={null}>
+      <InventoryPageContent />
+    </Suspense>
   );
 }

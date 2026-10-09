@@ -25,17 +25,20 @@ const SORT_COLUMNS: Record<keyof Delivery, string> = {
  *
  * `quantityreceived` is cast to `double precision` on the casket side since
  * it's an `integer` there but a `double precision` on the formalin side.
+ * `casketdelivery` only stores `casketid`, so the casket type comes from
+ * `casketinventory` (`casketid` is nullable, hence the `LEFT JOIN`).
  */
 const DELIVERY_CTE = `
   WITH delivery AS (
     SELECT
       cd.deliveryid,
       'casket' AS source,
-      'Casket, ' || cd.caskettype AS item_type,
+      'Casket, ' || COALESCE(ci.caskettype, 'Unknown') AS item_type,
       cd.quantityreceived::double precision AS quantityreceived,
       cd.deliverydate,
       cd.totalamountpaid
     FROM public.casketdelivery cd
+    LEFT JOIN public.casketinventory ci ON ci.casketid = cd.casketid
 
     UNION ALL
 
