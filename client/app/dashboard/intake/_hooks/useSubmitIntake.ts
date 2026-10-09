@@ -91,7 +91,6 @@ export function useSubmitIntake(
         const lifeplanPayload: CreateLifeplanQuery = {
           plannumber: null,
           planholdername: null,
-          minimumthreshold: null,
           totalamount: null,
           caseid: generatedCaseId,
           companyid: generatedCompanyId,
