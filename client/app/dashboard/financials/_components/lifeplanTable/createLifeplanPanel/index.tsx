@@ -7,8 +7,8 @@ import {
   createLifeplan,
   createLifeplanCompany,
   getLifeplanCompanies,
-  type LifeplanCompany,
-} from '@/services/financialService';
+} from '@/services/lifeplansService';
+import type { LifeplanCompany } from 'shared';
 import { fieldClass, labelClass } from '../../fieldStyles';
 import CaseSearchSelect from '../../caseSearchSelect';
 
@@ -65,6 +65,7 @@ export default function CreateLifeplanPanel({
       const created = await createLifeplanCompany({
         companyname: newCompanyName,
         contactinfo: newCompanyContact || null,
+        minimumthreshold: 0,
       });
       setCompanies((prev) => [...prev, created.data]);
       setCompanyid(String(created.data.companyid));

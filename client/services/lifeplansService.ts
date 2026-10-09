@@ -1,4 +1,5 @@
 import {
+  type CreateLifeplanQuery,
   type GetLifeplansQuery,
   getLifeplansResponseSchema,
   type GetLifeplanCompaniesQuery,
@@ -27,6 +28,13 @@ export async function getLifeplans({
     signal,
   });
   return getLifeplansResponseSchema.parse(result.data);
+}
+
+export async function createLifeplan(payload: CreateLifeplanQuery) {
+  const result = await API.post('/lifeplans', payload, {
+    withCredentials: true,
+  });
+  return result.data;
 }
 
 export async function getLifeplanCompanies({

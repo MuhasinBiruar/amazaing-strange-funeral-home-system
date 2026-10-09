@@ -12,6 +12,17 @@ import { API } from './api';
 import axios from 'axios';
 import { extractErrorMessage } from './utils/extractErrorMessage';
 
+export interface DayTransaction {
+  id: string;
+  source: 'transaction' | 'casket' | 'formalin';
+  amount: number;
+  direction: 'in' | 'out';
+  caseid: number | null;
+  deceased_name: string | null;
+  category: string;
+  datetime: string;
+}
+
 export async function getDirectPlans({
   page,
   limit,
@@ -102,4 +113,17 @@ export async function getFinancialDetails(
     signal,
   });
   return getFinancialDetailsResponseSchema.parse(result.data);
+}
+
+export async function getDayTransactions(
+  startDate: string,
+  endDate: string,
+  signal?: AbortSignal,
+) {
+  const params = new URLSearchParams({ startDate, endDate });
+  const result = await API.get(`/financial/day-transactions?${params}`, {
+    withCredentials: true,
+    signal,
+  });
+  return result.data as { data: DayTransaction[] };
 }

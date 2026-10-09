@@ -1,4 +1,5 @@
 import {
+  type CreateLguCaseQuery,
   type GetLguCasesQuery,
   getLguCasesResponseSchema,
   type UpdateLguCaseQuery,
@@ -27,6 +28,13 @@ export async function getLguCases({
     signal,
   });
   return getLguCasesResponseSchema.parse(result.data);
+}
+
+export async function createLguCase(payload: CreateLguCaseQuery) {
+  const result = await API.post('/lgucases', payload, {
+    withCredentials: true,
+  });
+  return result.data;
 }
 
 export async function updateLguCase(

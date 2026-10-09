@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { createExpense } from '@/services/financialService';
+import { createExpense } from '@/services/expensesService';
 
 interface Props {
   onClose: () => void;
@@ -30,7 +30,8 @@ export default function RecordExpenseModal({ onClose, onSuccess }: Props) {
     try {
       await createExpense({
         description: description.trim(),
-        amount: parsedAmount,
+        amount: String(parsedAmount),
+        expensedate: new Date(),
       });
       onSuccess();
       onClose();

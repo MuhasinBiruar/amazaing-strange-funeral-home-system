@@ -1,4 +1,10 @@
-import { Router } from 'express';
+import {
+  Router,
+  type NextFunction,
+  type Request,
+  type Response,
+} from 'express';
+import pool from '@/db';
 import requireAuth from '@/middleware/require-auth';
 import {
   getDirectTransactions,
@@ -11,6 +17,7 @@ import validate from '@/middleware/validate';
 import { createTransactionQuerySchema } from 'shared';
 import validateParams from '@/middleware/validate-params';
 import { idParamSchema } from 'shared/utils';
+import { getDayTransactions } from '@/controllers/financial/transactions';
 
 const router = Router();
 
@@ -50,6 +57,7 @@ router.post(
  * `http://localhost:4000/financial/details?startDate=2026-01-01&endDate=2026-01-31`
  */
 router.get('/details', requireAuth, getFinancialDetails);
+router.get('/day-transactions', requireAuth, getDayTransactions);
 
 /**
  * Sample URLs
@@ -88,7 +96,7 @@ router.get(
       const offset = (page - 1) * limit;
       const search = req.query.search as string;
 
-      const params: any[] = [limit, offset];
+      const params: (number | string)[] = [limit, offset];
       let whereClause = '';
 
       if (search) {
