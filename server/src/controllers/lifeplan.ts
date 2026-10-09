@@ -12,7 +12,6 @@ const SORT_COLUMNS: Record<keyof GetLifeplansQueryRow, string> = {
   planid: 'l.planid',
   plannumber: 'l.plannumber',
   planholdername: 'l.planholdername',
-  minimumthreshold: 'l.minimumthreshold',
   totalamount: 'l.totalamount',
   caseid: 'l.caseid',
   deceased_name: 'deceased_name',
@@ -33,15 +32,13 @@ export async function createLifeplan(
         INSERT INTO lifeplan (
           plannumber,
           planholdername,
-          minimumthreshold,
           totalamount,
           caseid,
           companyid
-        ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING planid;`,
+        ) VALUES ($1, $2, $3, $4, $5) RETURNING planid;`,
       [
         parsed.plannumber,
         parsed.planholdername,
-        parsed.minimumthreshold,
         parsed.totalamount,
         parsed.caseid,
         parsed.companyid,
@@ -73,7 +70,6 @@ export async function getLifeplans(
         l.planid,
         l.plannumber,
         l.planholdername,
-        l.minimumthreshold,
         l.totalamount,
         l.caseid,
         CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
