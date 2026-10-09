@@ -43,6 +43,8 @@ export async function getLifeplanCompanies({
   sortBy,
   sortOrder,
   search,
+  startDate,
+  endDate,
   signal,
 }: GetLifeplanCompaniesQuery & { signal?: AbortSignal }) {
   const params = new URLSearchParams();
@@ -51,6 +53,8 @@ export async function getLifeplanCompanies({
   params.append('sortBy', sortBy);
   params.append('sortOrder', sortOrder);
   if (search) params.append('search', search);
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
 
   const result = await API.get(`/lifeplans/companies?${params}`, {
     withCredentials: true,
