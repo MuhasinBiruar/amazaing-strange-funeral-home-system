@@ -28,6 +28,7 @@ const COLUMNS_ROLE_BADGE: Record<StaffRole, string> = {
   superadmin: 'bg-purple-100 text-purple-700',
   admin: 'bg-indigo-100 text-indigo-700',
   user: 'bg-gray-100 text-gray-700',
+  lifeplan_agent: 'bg-amber-100 text-amber-700',
 };
 
 export const COLUMNS: DataTableColumn<GetStaffRow, ColumnKey>[] = [
@@ -62,7 +63,7 @@ export const COLUMNS: DataTableColumn<GetStaffRow, ColumnKey>[] = [
     key: 'jobRole',
     label: 'Job role',
     widthClassName: 'w-28',
-    render: (r) => r.jobRole,
+    render: (r) => r.jobRole ?? '—',
   },
   {
     key: 'isActive',

@@ -111,6 +111,7 @@ export default function StaffPanel({
     const assignableRole = isSuper
       ? undefined
       : (form.role as AssignableStaffRole);
+    const isAgent = form.role === 'lifeplan_agent';
 
     try {
       if (mode === 'create') {
@@ -119,11 +120,12 @@ export default function StaffPanel({
           middleName: emptyToNull(form.middleName),
           lastName: form.lastName,
           contactNumber: emptyToNull(form.contactNumber),
-          jobRole: emptyToNull(form.jobRole),
+          jobRole: isAgent ? null : emptyToNull(form.jobRole),
           role: assignableRole ?? 'user',
           password: form.password,
           isActive: form.isActive,
           access: form.access,
+          companyid: isAgent ? form.companyid : null,
         });
         setCreatedCreds({
           username: res.data.user.username,
@@ -136,7 +138,7 @@ export default function StaffPanel({
           lastName: form.lastName,
           contactNumber: emptyToNull(form.contactNumber),
           username: form.username,
-          jobRole: emptyToNull(form.jobRole) ?? 'staff',
+          jobRole: isAgent ? undefined : (emptyToNull(form.jobRole) ?? 'staff'),
           role: assignableRole,
           isActive: isSuper ? undefined : form.isActive,
           password: form.password || undefined,
@@ -196,21 +198,25 @@ export default function StaffPanel({
               errors={errors}
             />
             <RoleAndStatusSection
+              mode={mode}
+              companyid={form.companyid}
               jobRole={form.jobRole}
               role={form.role}
               isActive={form.isActive}
               onChange={updateField}
               errors={errors}
             />
-            <PageAccessSection
-              access={form.access}
-              onToggle={(key) => {
-                setForm((prev) => ({
-                  ...prev,
-                  access: { ...prev.access, [key]: !prev.access[key] },
-                }));
-              }}
-            />
+            {form.role !== 'lifeplan_agent' && (
+              <PageAccessSection
+                access={form.access}
+                onToggle={(key) => {
+                  setForm((prev) => ({
+                    ...prev,
+                    access: { ...prev.access, [key]: !prev.access[key] },
+                  }));
+                }}
+              />
+            )}
 
             <LoadingButton
               type="submit"
