@@ -4,15 +4,7 @@ import { Pool } from 'pg';
 import { ac, user, admin as adminRole, superadmin } from './permissions';
 
 /**
- * Better Auth server configuration for the funeral home system.
- *
- * Maps the `user` model onto the existing `staff` table (with custom
- * fields for name parts, job role, active status, and contact number)
- * rather than a dedicated `user` table. Public self-signup is disabled
- * — accounts are created only via `auth.api.createUser` by an admin.
- * Staff log in with username + password (email is a placeholder,
- * unused in practice). Cross-origin requests from the Next.js frontend
- * are permitted via `trustedOrigins`.
+ * Better Auth server config.
  */
 export const auth = betterAuth({
   database: new Pool({
