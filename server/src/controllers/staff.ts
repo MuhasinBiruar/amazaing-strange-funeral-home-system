@@ -6,7 +6,12 @@ import {
   type UpdateStaffQuery,
 } from 'shared';
 import * as StaffModel from '@/model/staff';
-import { ConflictError, ForbiddenError, NotFoundError } from '@/errors';
+import {
+  BadRequestError,
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+} from '@/errors';
 import { auth } from '@/lib/auth';
 import { upsertAccess } from '@/model/access';
 import { withTransaction } from '@/util/with-transaction';
@@ -163,6 +168,11 @@ export const updateStaff = async (
     }
 
     // lifeplan_agent checks
+    if (parsed.companyid !== undefined && existing.role !== 'lifeplan_agent')
+      throw new BadRequestError(
+        'Only a life plan agent can be assigned a company.',
+      );
+
     if (
       parsed.role !== undefined &&
       (existing.role === 'lifeplan_agent') !==
