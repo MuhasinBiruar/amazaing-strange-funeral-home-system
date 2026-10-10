@@ -11,6 +11,8 @@ import { auth } from '@/lib/auth';
 import { upsertAccess } from '@/model/access';
 import { withTransaction } from '@/util/with-transaction';
 import type { Locals } from '@/types/controllers';
+import pool from '@/db';
+import { fromNodeHeaders } from 'better-auth/node';
 
 export const getStaff = async (
   req: Request,
@@ -69,6 +71,16 @@ export const createStaff = async (
       }${parsed.lastName.toLowerCase()}`,
     );
 
+    const isAgent = parsed.role === 'lifeplan_agent';
+    if (isAgent) {
+      const company = await pool.query(
+        'SELECT 1 FROM lifeplancompany WHERE companyid = $1',
+        [parsed.companyid],
+      );
+      if (company.rows.length === 0)
+        throw new NotFoundError('Referenced life plan company does not exist.');
+    }
+
     const staff = await auth.api.createUser({
       body: {
         email: `${username}@staff.internal`,
@@ -80,14 +92,30 @@ export const createStaff = async (
           middleName: parsed.middleName,
           lastName: parsed.lastName,
           isActive: parsed.isActive,
-          jobRole: parsed.jobRole || 'staff',
           contactNumber: parsed.contactNumber,
           username: username,
+          ...(isAgent ? {} : { jobRole: parsed.jobRole || 'staff' }),
         },
       },
     });
 
-    await upsertAccess(staff.user.id, parsed.access);
+    if (isAgent) {
+      try {
+        await pool.query(
+          'INSERT INTO lifeplan_agent (staffid, companyid) VALUES ($1, $2)',
+          [staff.user.id, parsed.companyid],
+        );
+      } catch (error) {
+        // Don't leave a half-created agent that can log in but sees nothing.
+        await auth.api.removeUser({
+          body: { userId: staff.user.id },
+          headers: fromNodeHeaders(req.headers),
+        });
+        throw error;
+      }
+    } else {
+      await upsertAccess(staff.user.id, parsed.access);
+    }
 
     res.locals.auditAction = `${
       res.locals.session.user.name
@@ -133,6 +161,15 @@ export const updateStaff = async (
           'A superadmin cannot be demoted or deactivated.',
         );
     }
+
+    if (
+      parsed.role !== undefined &&
+      (existing.role === 'lifeplan_agent') !==
+        (parsed.role === 'lifeplan_agent')
+    )
+      throw new ForbiddenError(
+        'A life plan agent cannot be changed to or from another role.',
+      );
 
     const nextFirstName = parsed.firstName ?? existing.firstName;
     const nextLastName = parsed.lastName ?? existing.lastName;
@@ -218,7 +255,7 @@ export const updateStaff = async (
           throw new NotFoundError('This account has no password login.');
       }
 
-      if (parsed.access !== undefined)
+      if (parsed.access !== undefined && existing.role !== 'lifeplan_agent')
         await upsertAccess(id, parsed.access, client);
 
       const result = await client.query<Staff>(
