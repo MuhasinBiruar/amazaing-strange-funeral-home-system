@@ -5,18 +5,26 @@ import {
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
 
+/**
+ * A `formalindelivery` row.
+ *
+ * @remarks
+ * `unitcost` is computed as `totalamountpaid / quantityreceived` (`null` when
+ * nothing was received); it isn't a stored column.
+ */
 export const formalinDeliverySchema = z.object({
   deliveryid: z.int32(),
   quantityreceived: z.float64().nonnegative(),
   deliverydate: z.coerce.date(),
   formalinid: z.int32().nullable(),
   totalamountpaid: z.float64().nonnegative(),
+  unitcost: z.float64().nullable(),
 });
 
 export type FormalinDelivery = z.infer<typeof formalinDeliverySchema>;
 
 export const createFormalinDeliveryQuerySchema = formalinDeliverySchema
-  .omit({ deliveryid: true })
+  .omit({ deliveryid: true, unitcost: true })
   .extend({
     formalinid: withNullDefault(z.int32()),
   });
@@ -27,6 +35,7 @@ export type CreateFormalinDeliveryQuery = z.infer<
 
 export const getFormalinDeliveriesQuerySchema = paginationQuerySchema
   .extend({
+    search: z.string().optional(),
     startDate: z.coerce.date().optional(),
     endDate: z.iso.datetime().or(z.iso.date()).optional(),
     sortBy: z.keyof(formalinDeliverySchema).default('deliverydate'),

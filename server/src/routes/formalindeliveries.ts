@@ -28,11 +28,24 @@ const SORT_COLUMNS: Record<keyof FormalinDelivery, string> = {
   deliverydate: 'deliverydate',
   formalinid: 'formalinid',
   totalamountpaid: 'totalamountpaid',
+  unitcost: 'unitcost',
 };
+
+const SELECT_FORMALIN_DELIVERY = `
+  SELECT
+    deliveryid,
+    quantityreceived,
+    deliverydate,
+    formalinid,
+    totalamountpaid,
+    totalamountpaid / NULLIF(quantityreceived, 0) AS unitcost
+  FROM public.formalindelivery
+` as const;
 
 /**
  * Sample URLs
  * `http://localhost:4000/deliveries/formalin`
+ * `http://localhost:4000/deliveries/formalin?search=50`
  * `http://localhost:4000/deliveries/formalin?startDate=2026-01-01&endDate=2026-12-31`
  * `http://localhost:4000/deliveries/formalin?sortBy=totalamountpaid&sortOrder=asc&page=1&limit=20`
  */
@@ -41,13 +54,23 @@ router.get(
   requireAuth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { page, limit, startDate, endDate, sortBy, sortOrder } =
+      const { page, limit, search, startDate, endDate, sortBy, sortOrder } =
         getFormalinDeliveriesQuerySchema.parse(req.query);
 
       // Start building `whereClause`
       const whereConditions: string[] = [];
       const queryParams: unknown[] = [];
       let paramIndex = 1;
+
+      // Searches through: formalindelivery.quantityreceived. Anything that
+      // isn't part of a number (e.g. a trailing "L") is ignored, so "50 L"
+      // and "50" search the same.
+      const quantitySearch = search?.replace(/[^\d.]/g, '');
+      if (quantitySearch) {
+        whereConditions.push(`quantityreceived::text ILIKE $${paramIndex}`);
+        queryParams.push(`%${quantitySearch}%`);
+        paramIndex++;
+      }
 
       if (startDate) {
         whereConditions.push(`deliverydate >= $${paramIndex}`);
@@ -73,9 +96,9 @@ router.get(
       const [dataResult, countResult] = await withRepeatableRead(
         async (client) => {
           const dataQuery = `
-            SELECT * FROM formalindelivery
+            ${SELECT_FORMALIN_DELIVERY}
             ${whereClause}
-            ${orderByClause}
+            ${orderByClause}, deliveryid DESC
             ${paginationClause}
           `;
 
@@ -118,7 +141,7 @@ router.get(
     try {
       const { id } = req.params as unknown as IdParam;
       const result = await pool.query(
-        'SELECT * FROM formalindelivery WHERE deliveryid = $1',
+        `${SELECT_FORMALIN_DELIVERY} WHERE deliveryid = $1`,
         [id],
       );
       if (result.rows.length === 0) throw new NotFoundError();
@@ -172,7 +195,8 @@ router.post(
             deliverydate,
             formalinid,
             totalamountpaid
-          ) VALUES ($1, $2, $3, $4) RETURNING *;`,
+          ) VALUES ($1, $2, $3, $4)
+          RETURNING *, totalamountpaid / NULLIF(quantityreceived, 0) AS unitcost;`,
           [
             parsed.quantityreceived,
             parsed.deliverydate,
