@@ -6,10 +6,11 @@ import {
   type UpdateStaffQuery,
 } from 'shared';
 import * as StaffModel from '@/model/staff';
-import { ConflictError, NotFoundError } from '@/errors';
+import { ConflictError, ForbiddenError, NotFoundError } from '@/errors';
 import { auth } from '@/lib/auth';
 import { upsertAccess } from '@/model/access';
 import { withTransaction } from '@/util/with-transaction';
+import type { Locals } from '@/types/controllers';
 
 export const getStaff = async (
   req: Request,
@@ -113,7 +114,7 @@ export const createStaff = async (
  */
 export const updateStaff = async (
   req: Request<{ id: string }, {}, UpdateStaffQuery>,
-  res: Response,
+  res: Response<{}, Locals>,
   next: NextFunction,
 ) => {
   try {
@@ -121,6 +122,17 @@ export const updateStaff = async (
     const parsed = req.body;
 
     const existing = await StaffModel.getStaffById(id);
+
+    if (existing.role === 'superadmin') {
+      if (res.locals.session.user.role !== 'superadmin')
+        throw new ForbiddenError('Only a superadmin can modify a superadmin.');
+
+      // Prevent the superadmin from locking themselves out
+      if (parsed.role !== undefined || parsed.isActive === false)
+        throw new ForbiddenError(
+          'A superadmin cannot be demoted or deactivated.',
+        );
+    }
 
     const nextFirstName = parsed.firstName ?? existing.firstName;
     const nextLastName = parsed.lastName ?? existing.lastName;
