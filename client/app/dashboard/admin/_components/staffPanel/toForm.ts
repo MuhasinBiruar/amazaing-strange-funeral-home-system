@@ -13,6 +13,6 @@ export function toForm(detail: StaffDetail): FormState {
     isActive: detail.isActive,
     password: '',
     access: detail.access,
-    companyid: null,
+    companyid: detail.companyid,
   };
 }

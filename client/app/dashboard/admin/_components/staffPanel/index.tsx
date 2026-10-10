@@ -143,6 +143,7 @@ export default function StaffPanel({
           isActive: isSuper ? undefined : form.isActive,
           password: form.password || undefined,
           access: form.access,
+          companyid: isAgent ? (form.companyid ?? undefined) : undefined,
         });
         onSave();
         onClose();
