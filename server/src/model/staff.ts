@@ -73,10 +73,21 @@ export const getStaff = async (query: GetStaffQuery) => {
   const whereClause =
     whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
-  // "Admins first" only applies to the default sort (jobRole)
+  /** Display order for the staff table: lower rank appears first. */
+  const ROLE_RANK_EXPR = `
+    CASE s.role
+      WHEN 'superadmin' THEN 0
+      WHEN 'admin' THEN 1
+      WHEN 'lifeplan_agent' THEN 2
+      ELSE 3
+    END
+  `;
+
   const orderByClause =
-    sortBy === 'jobRole'
-      ? `ORDER BY CASE WHEN s.role = 'admin' THEN 0 ELSE 1 END, s."jobRole" ${sortOrder === 'desc' ? 'DESC' : 'ASC'} NULLS LAST`
+    sortBy === 'role'
+      ? `ORDER BY
+      ${ROLE_RANK_EXPR} ${sortOrder === 'desc' ? 'DESC' : 'ASC'} NULLS LAST,
+      s.name ASC NULLS LAST`
       : `ORDER BY ${SORT_COLUMNS[sortBy]} ${sortOrder === 'desc' ? 'DESC' : 'ASC'} NULLS LAST`;
 
   const paginationClause = `LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;

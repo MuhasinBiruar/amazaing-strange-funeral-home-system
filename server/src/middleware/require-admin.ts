@@ -10,7 +10,8 @@ export default function requireAdmin(
 
   if (!user) return next(new UnauthorizedError());
 
-  if (user.role !== 'admin') return next(new ForbiddenError());
+  if (user.role !== 'admin' && user.role !== 'superadmin')
+    return next(new ForbiddenError());
 
   next();
 }

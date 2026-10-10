@@ -27,6 +27,7 @@ import LoadingButton from '@/components/loadingButton';
 import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import PersonalInfoSection from './personalInfoSection';
+import type { AssignableStaffRole } from 'shared';
 
 export default function StaffPanel({
   mode,
@@ -106,6 +107,11 @@ export default function StaffPanel({
 
     setIsSubmitting(true);
 
+    const isSuper = form.role === 'superadmin';
+    const assignableRole = isSuper
+      ? undefined
+      : (form.role as AssignableStaffRole);
+
     try {
       if (mode === 'create') {
         const res = await createStaff({
@@ -114,7 +120,7 @@ export default function StaffPanel({
           lastName: form.lastName,
           contactNumber: emptyToNull(form.contactNumber),
           jobRole: emptyToNull(form.jobRole),
-          role: form.role,
+          role: assignableRole ?? 'user',
           password: form.password,
           isActive: form.isActive,
           access: form.access,
@@ -131,8 +137,8 @@ export default function StaffPanel({
           contactNumber: emptyToNull(form.contactNumber),
           username: form.username,
           jobRole: emptyToNull(form.jobRole) ?? 'staff',
-          role: form.role,
-          isActive: form.isActive,
+          role: assignableRole,
+          isActive: isSuper ? undefined : form.isActive,
           password: form.password || undefined,
           access: form.access,
         });

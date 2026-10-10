@@ -35,8 +35,14 @@ app.use(
     credentials: true,
   }),
 );
-// Better Auth's own routes — must come BEFORE express.json()
+app.use('/api/auth/admin', (_req, res) => {
+  // Mirrors the default values for NotFoundError
+  res.status(404).json({
+    error: { code: 'NOT_FOUND', message: 'Resource not found.' },
+  });
+});
 app.all('/api/auth/*splat', toNodeHandler(auth));
+// Better Auth's own routes must come BEFORE express.json()
 app.use(express.json());
 app.use(auditLog);
 

@@ -16,8 +16,11 @@ import {
 } from './_components/staffTable/constants';
 import type { PanelMode } from './_components/staffPanel/types';
 import { useInfoModal } from '@/components/infoModal/useInfoModal';
+import { useAuth } from '@/contexts/AuthProvider';
 
 export default function AdminPage() {
+  const { isSuperadmin } = useAuth();
+
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const { infoModal, showInfo } = useInfoModal();
@@ -72,7 +75,7 @@ export default function AdminPage() {
           defaultFilters={DEFAULT_FILTERS}
           columns={COLUMNS}
           rowKey={(r) => r.id}
-          defaultSortBy="jobRole"
+          defaultSortBy="role"
           defaultSortOrder="asc"
           fetchData={({ filters, ...params }) =>
             getStaffList({
@@ -81,6 +84,15 @@ export default function AdminPage() {
             })
           }
           onRowClick={(row) => {
+            if (row.role === 'superadmin' && !isSuperadmin) {
+              showInfo({
+                title: 'Restricted',
+                message: 'Only a superadmin can modify this account.',
+                severity: 'warning',
+              });
+              return;
+            }
+
             setSelectedStaffId(row.id);
             setPanelMode('edit');
             setIsPanelOpen(true);
