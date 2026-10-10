@@ -30,6 +30,28 @@ export async function getLifeplans({
   return getLifeplansResponseSchema.parse(result.data);
 }
 
+export async function getMyLifeplans({
+  page,
+  limit,
+  sortBy,
+  sortOrder,
+  search,
+  signal,
+}: GetLifeplansQuery & { signal?: AbortSignal }) {
+  const params = new URLSearchParams();
+  params.append('page', String(page));
+  params.append('limit', String(limit));
+  params.append('sortBy', sortBy);
+  params.append('sortOrder', sortOrder);
+  if (search) params.append('search', search);
+
+  const result = await API.get(`/lifeplans/mine?${params}`, {
+    withCredentials: true,
+    signal,
+  });
+  return getLifeplansResponseSchema.parse(result.data);
+}
+
 export async function createLifeplan(payload: CreateLifeplanQuery) {
   const result = await API.post('/lifeplans', payload, {
     withCredentials: true,
