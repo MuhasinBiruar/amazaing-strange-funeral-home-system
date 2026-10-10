@@ -8,7 +8,7 @@ import pool from '@/db';
 import validate from '@/middleware/validate';
 import validateParams from '@/middleware/validate-params';
 import requireAuth from '@/middleware/require-auth';
-import { NotFoundError } from '@/errors';
+import { BadRequestError, NotFoundError } from '@/errors';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 import { toExclusiveEndBound } from '@/util/date';
 import {
@@ -154,8 +154,20 @@ router.get(
 );
 
 /**
- * Records a formalin delivery and, if it's linked to an inventory item,
- * increments that item's stock by the quantity received.
+ * Records a formalin delivery and adds it to the current stock.
+ *
+ * @remarks
+ * Formalin stock is a ledger: the newest `formalininventory` row (by `date`,
+ * then `formalinid`) is the current stock, and every change appends a new row
+ * rather than editing an old one — the same as adding stock or recording
+ * usage in `routes/formalininventory.ts`. So this locks the newest row, appends
+ * a row with the delivery added (keeping the same minimum threshold), and
+ * links the delivery to that new row.
+ *
+ * The new row's `date` is when the delivery was *recorded* (`now()`), not
+ * `deliverydate`, so a back-dated delivery can't sort below the current stock.
+ *
+ * Responds with a `warning` when stock is still at or below the minimum.
  */
 router.post(
   '/',
@@ -169,24 +181,30 @@ router.post(
     try {
       const parsed = req.body;
 
-      const delivery = await withTransaction(async (client) => {
-        if (parsed.formalinid !== null) {
-          const formalinResult = await client.query(
-            `SELECT formalinid FROM formalininventory WHERE formalinid = $1 FOR UPDATE`,
-            [parsed.formalinid],
-          );
-          if (formalinResult.rows.length === 0) {
-            throw new NotFoundError(
-              'Referenced formalin inventory item does not exist.',
-            );
-          }
-
-          await client.query(
-            `UPDATE formalininventory SET currentstock = currentstock + $1
-             WHERE formalinid = $2`,
-            [parsed.quantityreceived, parsed.formalinid],
+      const { delivery, warning } = await withTransaction(async (client) => {
+        const latestResult = await client.query(
+          `SELECT currentstock, minimumthreshold
+           FROM formalininventory
+           ORDER BY date DESC, formalinid DESC
+           LIMIT 1
+           FOR UPDATE`,
+        );
+        if (latestResult.rows.length === 0) {
+          throw new BadRequestError(
+            'Formalin inventory has not been initialized.',
           );
         }
+
+        const latest = latestResult.rows[0];
+        const newStock = Number(latest.currentstock) + parsed.quantityreceived;
+        const minimum = Number(latest.minimumthreshold);
+
+        const inventoryResult = await client.query(
+          `INSERT INTO formalininventory (currentstock, minimumthreshold, date)
+           VALUES ($1, $2, now())
+           RETURNING formalinid`,
+          [newStock, minimum],
+        );
 
         const deliveryResult = await client.query(
           `
@@ -200,18 +218,25 @@ router.post(
           [
             parsed.quantityreceived,
             parsed.deliverydate,
-            parsed.formalinid,
+            inventoryResult.rows[0].formalinid,
             parsed.totalamountpaid,
           ],
         );
 
-        return deliveryResult.rows[0];
+        return {
+          delivery: deliveryResult.rows[0],
+          warning:
+            newStock <= minimum
+              ? `Formalin stock is still at or below the minimum threshold (${newStock} liters, minimum ${minimum}).`
+              : null,
+        };
       });
 
-      res.locals.auditAction = `${res.locals.session.user.name} recorded a formalin delivery of ${parsed.quantityreceived}`;
+      res.locals.auditAction = `${res.locals.session.user.name} recorded a formalin delivery of ${parsed.quantityreceived} liters`;
 
       res.status(201).json({
         data: delivery,
+        warning,
       });
     } catch (error) {
       next(error);

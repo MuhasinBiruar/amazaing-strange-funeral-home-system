@@ -1,9 +1,13 @@
 import {
+  casketInventoryResponseSchema,
   getCasketInventoryResponseSchema,
   getPaginatedCasketInventoryResponseSchema,
+  type CreateCasketInventoryQuery,
   type GetPaginatedCasketInventoryQuery,
+  type UpdateCasketInventoryQuery,
 } from 'shared';
 import { API } from './api';
+import { toReadableError } from './utils/toReadableError';
 
 /** Fetches every casket in inventory, for the package builder's casket picker. */
 export async function getCasketInventory(signal?: AbortSignal) {
@@ -62,4 +66,39 @@ export async function getCasketPackages(
     signal,
   });
   return result.data.data;
+}
+
+export async function createCasket(payload: CreateCasketInventoryQuery) {
+  try {
+    const result = await API.post('/casketinventory', payload, {
+      withCredentials: true,
+    });
+    return casketInventoryResponseSchema.parse(result.data).data;
+  } catch (error) {
+    throw toReadableError(error, 'Failed to add casket.');
+  }
+}
+
+export async function updateCasket(
+  casketid: number,
+  payload: UpdateCasketInventoryQuery,
+) {
+  try {
+    const result = await API.patch(`/casketinventory/${casketid}`, payload, {
+      withCredentials: true,
+    });
+    return casketInventoryResponseSchema.parse(result.data).data;
+  } catch (error) {
+    throw toReadableError(error, 'Failed to save casket.');
+  }
+}
+
+export async function deleteCasket(casketid: number) {
+  try {
+    await API.delete(`/casketinventory/${casketid}`, {
+      withCredentials: true,
+    });
+  } catch (error) {
+    throw toReadableError(error, 'Failed to delete casket.');
+  }
 }

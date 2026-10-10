@@ -1,5 +1,4 @@
 import z from 'zod';
-import { withNullDefault } from '@/utils/with-null-default';
 import {
   paginationQuerySchema,
   paginationResponseSchema,
@@ -28,9 +27,12 @@ export const casketDeliverySchema = z.object({
 export type CasketDelivery = z.infer<typeof casketDeliverySchema>;
 
 export const createCasketDeliveryQuerySchema = casketDeliverySchema
-  .pick({ quantityreceived: true, deliverydate: true, totalamountpaid: true })
+  .pick({ deliverydate: true, totalamountpaid: true })
   .extend({
-    casketid: withNullDefault(z.int32()),
+    casketid: z.int32({ error: 'Select a casket.' }),
+    quantityreceived: z
+      .int32({ error: 'Quantity must be a whole number.' })
+      .positive('Quantity must be greater than zero.'),
   });
 
 export type CreateCasketDeliveryQuery = z.infer<
@@ -73,6 +75,16 @@ export type GetCasketDeliveriesResponse = z.infer<
 export const getCasketDeliveryResponseSchema = z.object({
   data: casketDeliverySchema,
 });
+
+export const createCasketDeliveryResponseSchema = z.object({
+  data: casketDeliverySchema,
+  /** Set when the casket is still at or below its minimum after the delivery. */
+  warning: z.string().nullable(),
+});
+
+export type CreateCasketDeliveryResponse = z.infer<
+  typeof createCasketDeliveryResponseSchema
+>;
 
 export type GetCasketDeliveryResponse = z.infer<
   typeof getCasketDeliveryResponseSchema

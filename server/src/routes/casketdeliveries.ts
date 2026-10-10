@@ -179,8 +179,12 @@ router.get(
 );
 
 /**
- * Records a casket delivery and, if it's linked to an inventory item,
- * increments that casket's stock by the quantity received.
+ * Records a casket delivery and increments that casket's stock by the
+ * quantity received, in one transaction.
+ *
+ * @remarks
+ * Responds with a `warning` when the casket is still at or below its minimum
+ * threshold even after the delivery.
  */
 router.post(
   '/',
@@ -194,22 +198,22 @@ router.post(
     try {
       const parsed = req.body;
 
-      const delivery = await withTransaction(async (client) => {
-        if (parsed.casketid !== null) {
-          const casketResult = await client.query(
-            `SELECT casketid FROM casketinventory WHERE casketid = $1 FOR UPDATE`,
-            [parsed.casketid],
-          );
-          if (casketResult.rows.length === 0) {
-            throw new NotFoundError('Referenced casket does not exist.');
-          }
-
-          await client.query(
-            `UPDATE casketinventory SET currentstock = currentstock + $1
-             WHERE casketid = $2`,
-            [parsed.quantityreceived, parsed.casketid],
-          );
+      const { delivery, warning } = await withTransaction(async (client) => {
+        const casketResult = await client.query(
+          `UPDATE casketinventory SET currentstock = currentstock + $1
+           WHERE casketid = $2
+           RETURNING caskettype, currentstock, minimumthreshold`,
+          [parsed.quantityreceived, parsed.casketid],
+        );
+        if (casketResult.rows.length === 0) {
+          throw new NotFoundError('Referenced casket does not exist.');
         }
+
+        const casket = casketResult.rows[0];
+        const warning =
+          casket.currentstock <= casket.minimumthreshold
+            ? `${casket.caskettype} is still at or below its minimum threshold (${casket.currentstock} in stock, minimum ${casket.minimumthreshold}).`
+            : null;
 
         const insertResult = await client.query(
           `
@@ -232,13 +236,14 @@ router.post(
           [insertResult.rows[0].deliveryid],
         );
 
-        return deliveryResult.rows[0];
+        return { delivery: deliveryResult.rows[0], warning };
       });
 
-      res.locals.auditAction = `${res.locals.session.user.name} recorded a casket delivery: ${parsed.quantityreceived}x ${delivery.caskettype ?? 'unlinked casket'}`;
+      res.locals.auditAction = `${res.locals.session.user.name} recorded a casket delivery: ${parsed.quantityreceived}x ${delivery.caskettype}`;
 
       res.status(201).json({
         data: delivery,
+        warning,
       });
     } catch (error) {
       next(error);

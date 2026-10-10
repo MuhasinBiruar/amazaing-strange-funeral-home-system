@@ -5,7 +5,7 @@ import type {
   DateRangeValue,
   FilterDef,
 } from '@/components/dataTable/types';
-import { createPackageQuerySchema, type CasketDelivery } from 'shared';
+import { casketTierEnum, type CasketDelivery } from 'shared';
 import { getCasketDeliveries } from '@/services/deliveryService';
 
 type ColumnKey = keyof CasketDelivery;
@@ -26,7 +26,7 @@ const FILTERS: FilterDef<Filters>[] = [
     key: 'tier',
     options: [
       { label: 'All tiers', value: null },
-      ...createPackageQuerySchema.shape.packagetype.options.map((tier) => ({
+      ...casketTierEnum.options.map((tier) => ({
         label: tier,
         value: tier,
       })),
@@ -79,8 +79,13 @@ const COLUMNS: DataTableColumn<CasketDelivery, ColumnKey>[] = [
   },
 ];
 
-/** Read-only log of casket deliveries. */
-export default function CasketDeliveryTable() {
+/** Log of casket deliveries. */
+export default function CasketDeliveryTable({
+  refreshKey,
+}: {
+  /** Bump to refetch, e.g. after recording a delivery. */
+  refreshKey?: number;
+}) {
   return (
     <DataTable<CasketDelivery, ColumnKey, Filters>
       title="Casket deliveries"
@@ -103,6 +108,7 @@ export default function CasketDeliveryTable() {
       emptyMessage="No casket deliveries match your search."
       loadErrorMessage="Could not load casket deliveries. Try again."
       bodyOffsetClassName="top-17.25"
+      refreshKey={refreshKey}
     />
   );
 }

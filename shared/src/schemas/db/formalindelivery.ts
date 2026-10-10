@@ -1,5 +1,4 @@
 import z from 'zod';
-import { withNullDefault } from '@/utils/with-null-default';
 import {
   paginationQuerySchema,
   paginationResponseSchema,
@@ -23,10 +22,18 @@ export const formalinDeliverySchema = z.object({
 
 export type FormalinDelivery = z.infer<typeof formalinDeliverySchema>;
 
+/**
+ * @remarks
+ * No `formalinid`: formalin stock is a ledger where the newest
+ * `formalininventory` row is the current stock, so the server always adds the
+ * delivery on top of that row (see `POST /deliveries/formalin`).
+ */
 export const createFormalinDeliveryQuerySchema = formalinDeliverySchema
-  .omit({ deliveryid: true, unitcost: true })
+  .pick({ deliverydate: true, totalamountpaid: true })
   .extend({
-    formalinid: withNullDefault(z.int32()),
+    quantityreceived: z
+      .float64({ error: 'Quantity must be a number.' })
+      .positive('Quantity must be greater than zero.'),
   });
 
 export type CreateFormalinDeliveryQuery = z.infer<
@@ -68,6 +75,16 @@ export type GetFormalinDeliveriesResponse = z.infer<
 export const getFormalinDeliveryResponseSchema = z.object({
   data: formalinDeliverySchema,
 });
+
+export const createFormalinDeliveryResponseSchema = z.object({
+  data: formalinDeliverySchema,
+  /** Set when stock is still at or below the minimum after the delivery. */
+  warning: z.string().nullable(),
+});
+
+export type CreateFormalinDeliveryResponse = z.infer<
+  typeof createFormalinDeliveryResponseSchema
+>;
 
 export type GetFormalinDeliveryResponse = z.infer<
   typeof getFormalinDeliveryResponseSchema

@@ -1,6 +1,10 @@
+import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import z from 'zod';
+import { useInfoModal } from '@/components/infoModal/useInfoModal';
 import CasketDeliveryTable from './casketDeliveryTable';
 import FormalinDeliveryTable from './formalinDeliveryTable';
+import RecordDeliveryPanel from './recordDeliveryPanel';
 
 export const deliveryTypeEnum = z.enum(['casket', 'formalin']).catch('casket');
 export type DeliveryType = z.infer<typeof deliveryTypeEnum>;
@@ -12,7 +16,8 @@ const TYPES: { key: DeliveryType; label: string }[] = [
 
 /**
  * Delivery logs, one table per item type, switched with the same tab strip
- * the financials page uses for its Direct / LGU / Life Plan logs.
+ * the financials page uses for its Direct / LGU / Life Plan logs. "Record
+ * delivery" records an incoming delivery of whichever type is showing.
  */
 export default function DeliveryTables({
   type,
@@ -21,6 +26,10 @@ export default function DeliveryTables({
   type: DeliveryType;
   onTypeChange: (type: DeliveryType) => void;
 }) {
+  const [isRecording, setIsRecording] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { infoModal, showInfo } = useInfoModal();
+
   return (
     <>
       <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
@@ -41,7 +50,43 @@ export default function DeliveryTables({
         </div>
       </div>
 
-      {type === 'casket' ? <CasketDeliveryTable /> : <FormalinDeliveryTable />}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setIsRecording(true)}
+          className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition cursor-pointer shadow-sm"
+        >
+          <Plus size={16} />
+          Record {type} delivery
+        </button>
+      </div>
+
+      {type === 'casket' ? (
+        <CasketDeliveryTable refreshKey={refreshKey} />
+      ) : (
+        <FormalinDeliveryTable refreshKey={refreshKey} />
+      )}
+
+      {isRecording && (
+        <RecordDeliveryPanel
+          key={type}
+          type={type}
+          onClose={() => setIsRecording(false)}
+          onSaved={(warning) => {
+            setIsRecording(false);
+            setRefreshKey((k) => k + 1);
+            if (warning) {
+              void showInfo({
+                title: 'Stock Still Low',
+                message: warning,
+                severity: 'warning',
+              });
+            }
+          }}
+        />
+      )}
+
+      {infoModal}
     </>
   );
 }

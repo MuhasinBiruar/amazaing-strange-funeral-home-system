@@ -56,8 +56,13 @@ const COLUMNS: DataTableColumn<FormalinDelivery, ColumnKey>[] = [
   },
 ];
 
-/** Read-only log of formalin deliveries. */
-export default function FormalinDeliveryTable() {
+/** Log of formalin deliveries. */
+export default function FormalinDeliveryTable({
+  refreshKey,
+}: {
+  /** Bump to refetch, e.g. after recording a delivery. */
+  refreshKey?: number;
+}) {
   return (
     <DataTable<FormalinDelivery, ColumnKey, Filters>
       title="Formalin deliveries"
@@ -79,6 +84,7 @@ export default function FormalinDeliveryTable() {
       emptyMessage="No formalin deliveries match your search."
       loadErrorMessage="Could not load formalin deliveries. Try again."
       bodyOffsetClassName="top-17.25"
+      refreshKey={refreshKey}
     />
   );
 }

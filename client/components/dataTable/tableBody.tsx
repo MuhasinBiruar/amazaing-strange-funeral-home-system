@@ -47,23 +47,32 @@ export default function TableBody<T, K extends string>({
 
         <thead ref={theadRef}>
           <tr className="text-xs text-gray-400 tracking-wide border-b border-gray-100">
-            {columns.map((col) => (
-              <SortableHeaderCell
-                key={col.key}
-                column={col}
-                sortBy={sortBy}
-                sortOrder={sortDir}
-                onSort={(columnKey) => {
-                  if (sortBy === columnKey) {
-                    setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-                  } else {
-                    setSortBy(columnKey);
-                    setSortDir('asc');
-                  }
-                  setPage(1);
-                }}
-              />
-            ))}
+            {columns.map((col) =>
+              col.sortable === false ? (
+                <th
+                  key={col.key}
+                  className="px-5 py-2.5 font-medium text-center h-12 uppercase"
+                >
+                  {col.label}
+                </th>
+              ) : (
+                <SortableHeaderCell
+                  key={col.key}
+                  column={col}
+                  sortBy={sortBy}
+                  sortOrder={sortDir}
+                  onSort={(columnKey) => {
+                    if (sortBy === columnKey) {
+                      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+                    } else {
+                      setSortBy(columnKey);
+                      setSortDir('asc');
+                    }
+                    setPage(1);
+                  }}
+                />
+              ),
+            )}
           </tr>
         </thead>
         <tbody>

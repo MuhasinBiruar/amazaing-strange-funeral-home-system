@@ -1,10 +1,39 @@
 import {
+  createCasketDeliveryResponseSchema,
+  createFormalinDeliveryResponseSchema,
   getCasketDeliveriesResponseSchema,
   getFormalinDeliveriesResponseSchema,
+  type CreateCasketDeliveryQuery,
+  type CreateFormalinDeliveryQuery,
   type GetCasketDeliveriesQuery,
   type GetFormalinDeliveriesQuery,
 } from 'shared';
 import { API } from './api';
+import { toReadableError } from './utils/toReadableError';
+
+export async function createCasketDelivery(payload: CreateCasketDeliveryQuery) {
+  try {
+    const result = await API.post('/deliveries/casket', payload, {
+      withCredentials: true,
+    });
+    return createCasketDeliveryResponseSchema.parse(result.data);
+  } catch (error) {
+    throw toReadableError(error, 'Failed to record casket delivery.');
+  }
+}
+
+export async function createFormalinDelivery(
+  payload: CreateFormalinDeliveryQuery,
+) {
+  try {
+    const result = await API.post('/deliveries/formalin', payload, {
+      withCredentials: true,
+    });
+    return createFormalinDeliveryResponseSchema.parse(result.data);
+  } catch (error) {
+    throw toReadableError(error, 'Failed to record formalin delivery.');
+  }
+}
 
 export async function getCasketDeliveries({
   page,

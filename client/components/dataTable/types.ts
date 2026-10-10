@@ -26,6 +26,12 @@ export interface DataTableColumn<T, K extends string = string> {
   widthClassName?: string;
   /** Overrides the default `px-5 py-3 text-gray-500 whitespace-nowrap`. */
   cellClassName?: string;
+  /**
+   * Set `false` for columns that don't hold sortable data (e.g. action
+   * buttons): the header renders as plain text with no sort toggle.
+   * Defaults to `true`.
+   */
+  sortable?: boolean;
   render: (row: T) => ReactNode;
 }
 
