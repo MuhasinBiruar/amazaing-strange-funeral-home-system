@@ -75,7 +75,7 @@ export default function AdminPage() {
           defaultFilters={DEFAULT_FILTERS}
           columns={COLUMNS}
           rowKey={(r) => r.id}
-          defaultSortBy="jobRole"
+          defaultSortBy="role"
           defaultSortOrder="asc"
           fetchData={({ filters, ...params }) =>
             getStaffList({
