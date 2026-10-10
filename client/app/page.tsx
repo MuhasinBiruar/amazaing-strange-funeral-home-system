@@ -18,6 +18,9 @@ export default function LoginPage() {
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isSigningIn, setIsSigningIn] = useState(false);
 
+  const homeFor = (role?: string | null) =>
+    role === 'lifeplan_agent' ? '/view-lifeplan' : '/dashboard';
+
   /**
    * Checks for an existing session once, on mount, and if one exists, asks the
    * user whether to log out of it before continuing.
@@ -57,7 +60,7 @@ export default function LoginPage() {
 
         if (isConfirmed) return;
 
-        router.push('/dashboard');
+        router.push(homeFor((data.user as { role?: string | null }).role));
       } catch (err) {
         console.error('Failed to check session:', err);
         setError('Unable to check login status. Please refresh.');
@@ -88,8 +91,6 @@ export default function LoginPage() {
    * Handles the login form submission. Signs in via username/password,
    * sets an error message on failure, or opens the welcome `InfoModal` on
    * success and redirects after confirmation.
-   *
-   * @param e - The form submit event.
    */
   async function handleLogin(e: React.SubmitEvent) {
     e.preventDefault();
@@ -159,7 +160,7 @@ export default function LoginPage() {
 
     if (!isConfirmed) return;
 
-    router.push('/dashboard');
+    router.push(homeFor(user.role));
   }
 
   return (
