@@ -151,17 +151,18 @@ export const updateStaff = async (
 
     const existing = await StaffModel.getStaffById(id);
 
+    // superadmin checks
     if (existing.role === 'superadmin') {
       if (res.locals.session.user.role !== 'superadmin')
         throw new ForbiddenError('Only a superadmin can modify a superadmin.');
 
-      // Prevent the superadmin from locking themselves out
       if (parsed.role !== undefined || parsed.isActive === false)
         throw new ForbiddenError(
           'A superadmin cannot be demoted or deactivated.',
         );
     }
 
+    // lifeplan_agent checks
     if (
       parsed.role !== undefined &&
       (existing.role === 'lifeplan_agent') !==
@@ -171,6 +172,7 @@ export const updateStaff = async (
         'A life plan agent cannot be changed to or from another role.',
       );
 
+    // All-role checks
     const nextFirstName = parsed.firstName ?? existing.firstName;
     const nextLastName = parsed.lastName ?? existing.lastName;
     if (
@@ -202,7 +204,10 @@ export const updateStaff = async (
       : null;
 
     // Only send columns that were provided and actually changed.
-    const fields: Exclude<keyof UpdateStaffQuery, 'access' | 'password'>[] = [
+    const fields: Exclude<
+      keyof UpdateStaffQuery,
+      'access' | 'password' | 'companyid'
+    >[] = [
       'firstName',
       'middleName',
       'lastName',
@@ -253,6 +258,21 @@ export const updateStaff = async (
         );
         if (result.rowCount === 0)
           throw new NotFoundError('This account has no password login.');
+      }
+
+      if (
+        parsed.companyid !== undefined &&
+        existing.role === 'lifeplan_agent'
+      ) {
+        const result = await client.query(
+          'UPDATE lifeplan_agent SET companyid = $1 WHERE staffid = $2',
+          [parsed.companyid, id],
+        );
+
+        if (result.rowCount === 0)
+          throw new NotFoundError(
+            'This account has no life plan agent record.',
+          );
       }
 
       if (parsed.access !== undefined && existing.role !== 'lifeplan_agent')

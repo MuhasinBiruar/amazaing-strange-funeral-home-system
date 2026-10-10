@@ -84,6 +84,8 @@ export const updateStaffQuerySchema = staffWithAccessSchema
     role: assignableStaffRoleEnum,
     access: updateAccessQuerySchema.partial(),
     password: withUndefinedDefault(passwordSchema),
+    /** Only valid for life plan agents. */
+    companyid: z.int32().positive(),
   })
   .partial();
 
