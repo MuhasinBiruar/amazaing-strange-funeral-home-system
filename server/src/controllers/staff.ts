@@ -6,11 +6,18 @@ import {
   type UpdateStaffQuery,
 } from 'shared';
 import * as StaffModel from '@/model/staff';
-import { ConflictError, ForbiddenError, NotFoundError } from '@/errors';
+import {
+  BadRequestError,
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+} from '@/errors';
 import { auth } from '@/lib/auth';
 import { upsertAccess } from '@/model/access';
 import { withTransaction } from '@/util/with-transaction';
 import type { Locals } from '@/types/controllers';
+import pool from '@/db';
+import { fromNodeHeaders } from 'better-auth/node';
 
 export const getStaff = async (
   req: Request,
@@ -69,6 +76,16 @@ export const createStaff = async (
       }${parsed.lastName.toLowerCase()}`,
     );
 
+    const isAgent = parsed.role === 'lifeplan_agent';
+    if (isAgent) {
+      const company = await pool.query(
+        'SELECT 1 FROM lifeplancompany WHERE companyid = $1',
+        [parsed.companyid],
+      );
+      if (company.rows.length === 0)
+        throw new NotFoundError('Referenced life plan company does not exist.');
+    }
+
     const staff = await auth.api.createUser({
       body: {
         email: `${username}@staff.internal`,
@@ -80,14 +97,30 @@ export const createStaff = async (
           middleName: parsed.middleName,
           lastName: parsed.lastName,
           isActive: parsed.isActive,
-          jobRole: parsed.jobRole || 'staff',
           contactNumber: parsed.contactNumber,
           username: username,
+          ...(isAgent ? {} : { jobRole: parsed.jobRole || 'staff' }),
         },
       },
     });
 
-    await upsertAccess(staff.user.id, parsed.access);
+    if (isAgent) {
+      try {
+        await pool.query(
+          'INSERT INTO lifeplan_agent (staffid, companyid) VALUES ($1, $2)',
+          [staff.user.id, parsed.companyid],
+        );
+      } catch (error) {
+        // Don't leave a half-created agent that can log in but sees nothing.
+        await auth.api.removeUser({
+          body: { userId: staff.user.id },
+          headers: fromNodeHeaders(req.headers),
+        });
+        throw error;
+      }
+    } else {
+      await upsertAccess(staff.user.id, parsed.access);
+    }
 
     res.locals.auditAction = `${
       res.locals.session.user.name
@@ -123,17 +156,33 @@ export const updateStaff = async (
 
     const existing = await StaffModel.getStaffById(id);
 
+    // superadmin checks
     if (existing.role === 'superadmin') {
       if (res.locals.session.user.role !== 'superadmin')
         throw new ForbiddenError('Only a superadmin can modify a superadmin.');
 
-      // Prevent the superadmin from locking themselves out
       if (parsed.role !== undefined || parsed.isActive === false)
         throw new ForbiddenError(
           'A superadmin cannot be demoted or deactivated.',
         );
     }
 
+    // lifeplan_agent checks
+    if (parsed.companyid !== undefined && existing.role !== 'lifeplan_agent')
+      throw new BadRequestError(
+        'Only a life plan agent can be assigned a company.',
+      );
+
+    if (
+      parsed.role !== undefined &&
+      (existing.role === 'lifeplan_agent') !==
+        (parsed.role === 'lifeplan_agent')
+    )
+      throw new ForbiddenError(
+        'A life plan agent cannot be changed to or from another role.',
+      );
+
+    // All-role checks
     const nextFirstName = parsed.firstName ?? existing.firstName;
     const nextLastName = parsed.lastName ?? existing.lastName;
     if (
@@ -165,7 +214,10 @@ export const updateStaff = async (
       : null;
 
     // Only send columns that were provided and actually changed.
-    const fields: Exclude<keyof UpdateStaffQuery, 'access' | 'password'>[] = [
+    const fields: Exclude<
+      keyof UpdateStaffQuery,
+      'access' | 'password' | 'companyid'
+    >[] = [
       'firstName',
       'middleName',
       'lastName',
@@ -218,7 +270,22 @@ export const updateStaff = async (
           throw new NotFoundError('This account has no password login.');
       }
 
-      if (parsed.access !== undefined)
+      if (
+        parsed.companyid !== undefined &&
+        existing.role === 'lifeplan_agent'
+      ) {
+        const result = await client.query(
+          'UPDATE lifeplan_agent SET companyid = $1 WHERE staffid = $2',
+          [parsed.companyid, id],
+        );
+
+        if (result.rowCount === 0)
+          throw new NotFoundError(
+            'This account has no life plan agent record.',
+          );
+      }
+
+      if (parsed.access !== undefined && existing.role !== 'lifeplan_agent')
         await upsertAccess(id, parsed.access, client);
 
       const result = await client.query<Staff>(

@@ -13,6 +13,7 @@ export interface FormState {
   isActive: boolean;
   password: string;
   access: UpdateAccessQuery;
+  companyid: number | null;
 }
 
 /**
@@ -35,6 +36,7 @@ export function emptyForm(): FormState {
     isActive: true,
     password: '',
     access: DEFAULT_ACCESS,
+    companyid: null,
   };
 }
 

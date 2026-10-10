@@ -16,10 +16,19 @@ const jobRoleString = z
   .min(1)
   .max(255, 'Job role must be at most 255 characters');
 
-export const staffRoleEnum = z.enum(['superadmin', 'admin', 'user']);
+export const staffRoleEnum = z.enum([
+  'superadmin',
+  'admin',
+  'user',
+  'lifeplan_agent',
+]);
 export type StaffRole = z.infer<typeof staffRoleEnum>;
 
-export const assignableStaffRoleEnum = z.enum(['admin', 'user']);
+export const assignableStaffRoleEnum = z.enum([
+  'admin',
+  'user',
+  'lifeplan_agent',
+]);
 export type AssignableStaffRole = z.infer<typeof assignableStaffRoleEnum>;
 
 /**
@@ -57,6 +66,12 @@ export const createStaffQuerySchema = staffWithAccessSchema
     role: assignableStaffRoleEnum.default('user'),
     access: updateAccessQuerySchema.default(DEFAULT_ACCESS),
     password: passwordSchema,
+    /** Required, and only used, when `role` is `lifeplan_agent`. */
+    companyid: z.int32().positive().nullish(),
+  })
+  .refine((d) => d.role !== 'lifeplan_agent' || d.companyid != null, {
+    message: 'Company is required for a life plan agent.',
+    path: ['companyid'],
   });
 
 export type CreateStaffQuery = z.infer<typeof createStaffQuerySchema>;
@@ -69,6 +84,8 @@ export const updateStaffQuerySchema = staffWithAccessSchema
     role: assignableStaffRoleEnum,
     access: updateAccessQuerySchema.partial(),
     password: withUndefinedDefault(passwordSchema),
+    /** Only valid for life plan agents. */
+    companyid: z.int32().positive(),
   })
   .partial();
 

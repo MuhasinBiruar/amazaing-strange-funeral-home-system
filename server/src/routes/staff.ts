@@ -30,9 +30,10 @@ router.get(
       const { id } = req.params;
 
       const result = await pool.query(
-        `SELECT s.*, ${accessPageEnum.options.map((k) => `a.${k}`).join(', ')}
+        `SELECT s.*, la.companyid, ${accessPageEnum.options.map((k) => `a.${k}`).join(', ')}
           FROM public.staff s
           LEFT JOIN public.access a ON a.staffid = s.id
+          LEFT JOIN public.lifeplan_agent la ON la.staffid = s.id
           WHERE s.id = $1`,
         [id],
       );

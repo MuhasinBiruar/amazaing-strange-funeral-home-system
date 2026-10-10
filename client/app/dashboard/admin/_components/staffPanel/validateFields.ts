@@ -5,10 +5,14 @@ export async function validateFields(
   state: FormState,
   mode: 'create' | 'edit',
 ) {
+  const isSuper = state.role === 'superadmin';
+  const isAgent = state.role === 'lifeplan_agent';
   const input = {
     ...state,
-    role: state.role === 'superadmin' ? undefined : state.role,
-    ...(state.role === 'superadmin' && { isActive: undefined }),
+    role: isSuper ? undefined : state.role,
+    isActive: isSuper ? undefined : state.isActive,
+    jobRole: isAgent ? undefined : state.jobRole,
+    companyid: state.companyid ?? undefined,
   };
 
   let result;

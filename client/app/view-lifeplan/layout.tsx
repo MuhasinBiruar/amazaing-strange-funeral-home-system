@@ -3,7 +3,7 @@ import Footer from '@/components/footer';
 import PageGuard from '@/components/pageGuard';
 import { AuthProvider } from '@/contexts/AuthProvider';
 
-export default function DashboardLayout({ children }: LayoutProps<'/'>) {
+export default function ViewLifeplanLayout({ children }: LayoutProps<'/'>) {
   return (
     <AuthProvider>
       <Header />
