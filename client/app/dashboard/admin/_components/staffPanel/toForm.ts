@@ -1,4 +1,4 @@
-import type { StaffDetail } from 'shared';
+import type { StaffDetail, StaffRole } from 'shared';
 import type { FormState } from './types';
 
 export function toForm(detail: StaffDetail): FormState {
@@ -9,7 +9,7 @@ export function toForm(detail: StaffDetail): FormState {
     contactNumber: detail.contactNumber ?? '',
     username: detail.username ?? '',
     jobRole: detail.jobRole ?? '',
-    role: (detail.role ?? 'user') as 'admin' | 'user',
+    role: (detail.role ?? 'user') as StaffRole,
     isActive: detail.isActive,
     password: '',
     access: detail.access,

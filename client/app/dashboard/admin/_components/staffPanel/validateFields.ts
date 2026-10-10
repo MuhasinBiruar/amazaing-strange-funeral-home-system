@@ -5,14 +5,20 @@ export async function validateFields(
   state: FormState,
   mode: 'create' | 'edit',
 ) {
+  const input = {
+    ...state,
+    role: state.role === 'superadmin' ? undefined : state.role,
+    ...(state.role === 'superadmin' && { isActive: undefined }),
+  };
+
   let result;
   switch (mode) {
     case 'create':
-      result = await createStaffQuerySchema.safeParseAsync(state);
+      result = await createStaffQuerySchema.safeParseAsync(input);
       break;
     default:
     case 'edit':
-      result = await updateStaffQuerySchema.safeParseAsync(state);
+      result = await updateStaffQuerySchema.safeParseAsync(input);
       break;
   }
 

@@ -1,5 +1,10 @@
 import type { FilterDef, DataTableColumn } from '@/components/dataTable/types';
-import { accessPageEnum, getAccessPageLabel, type GetStaffRow } from 'shared';
+import {
+  accessPageEnum,
+  getAccessPageLabel,
+  type GetStaffRow,
+  type StaffRole,
+} from 'shared';
 
 export type ColumnKey = keyof GetStaffRow;
 
@@ -18,6 +23,12 @@ export const FILTERS: FilterDef<Filters>[] = [
     ],
   },
 ];
+
+const COLUMNS_ROLE_BADGE: Record<StaffRole, string> = {
+  superadmin: 'bg-purple-100 text-purple-700',
+  admin: 'bg-indigo-100 text-indigo-700',
+  user: 'bg-gray-100 text-gray-700',
+};
 
 export const COLUMNS: DataTableColumn<GetStaffRow, ColumnKey>[] = [
   {
@@ -40,9 +51,7 @@ export const COLUMNS: DataTableColumn<GetStaffRow, ColumnKey>[] = [
     render: (r) => (
       <span
         className={`px-2 py-1 rounded-full text-xs font-medium ${
-          r.role === 'admin'
-            ? 'bg-indigo-100 text-indigo-700'
-            : 'bg-gray-100 text-gray-700'
+          COLUMNS_ROLE_BADGE[r.role ?? 'user']
         }`}
       >
         {r.role ?? '—'}
