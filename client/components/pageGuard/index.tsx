@@ -37,7 +37,8 @@ function accessPageFor(pathname: string): AccessPage | null {
 export default function PageGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { status, isAdmin, access } = useAuth();
+  const { status, isAdmin, access, role } = useAuth();
+  const isAgent = role === 'lifeplan_agent';
   const { infoModal, showInfo } = useInfoModal();
 
   const isAdminOnlyPath = ADMIN_ONLY_PATHS.some((p) => pathname.startsWith(p));
@@ -57,6 +58,11 @@ export default function PageGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    if (status === 'authenticated' && isAgent) {
+      router.replace('/view-lifeplan');
+      return;
+    }
+
     if (denied) {
       showInfo({
         title: 'Access denied',
@@ -64,9 +70,9 @@ export default function PageGuard({ children }: { children: React.ReactNode }) {
         severity: 'error',
       }).then(() => router.push('/dashboard'));
     }
-  }, [status, denied, router, showInfo]);
+  }, [status, denied, router, showInfo, isAgent]);
 
-  if (status === 'loading' || status === 'unauthenticated' || denied)
+  if (status === 'loading' || status === 'unauthenticated' || denied || isAgent)
     return (
       <div className="grow flex items-center justify-center bg-white">
         <span className="flex items-center gap-2 text-sm text-gray-500">
