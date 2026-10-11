@@ -1,5 +1,4 @@
 import {
-  createDocumentRequirementSchema,
   documentWithUrlSchema,
   getDocumentsResponseSchema,
   type DocumentWithUrl,
@@ -7,27 +6,6 @@ import {
 import { API } from './api';
 
 const UPLOAD_TIMEOUT_MS = 60000 as const;
-
-/** Creates a pending document row with no file for a case. */
-export async function createDocumentRequirement(
-  caseid: number,
-  documenttype: string,
-): Promise<DocumentWithUrl> {
-  const payload = createDocumentRequirementSchema.parse({
-    caseid,
-    documenttype,
-  });
-  const result = await API.post('/documents/requirements', payload);
-
-  return documentWithUrlSchema.parse(result.data.data);
-}
-
-/** Removes a requirement only while it has no submitted file. */
-export async function removeDocumentRequirement(
-  documentid: number,
-): Promise<void> {
-  await API.delete(`/documents/${documentid}`);
-}
 
 /** Fetches every document uploaded for a case. */
 export async function getDocumentsByCase(
