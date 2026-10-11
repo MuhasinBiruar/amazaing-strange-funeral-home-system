@@ -1,6 +1,9 @@
 import axios from 'axios';
 import { API } from '@/services/api';
-import { uploadDocument } from '@/services/documentService';
+import {
+  createDocumentRequirement,
+  uploadDocument,
+} from '@/services/documentService';
 import type {
   CreateDeceasedRecordQuery,
   CreateLguCaseQuery,
@@ -107,7 +110,13 @@ export function useSubmitIntake(
         await API.post('/financial/lgucases', lguCasePayload);
       }
 
-      // STEP 5: UPLOAD ANY STAGED DOCUMENTS
+      // STEP 5: SAVE REQUIRED DOCUMENTS AND UPLOAD ANY STAGED FILES
+      if (stagedDocuments.length > 0)
+        setStatus('Saving document requirements…');
+      for (const doc of stagedDocuments) {
+        await createDocumentRequirement(generatedCaseId!, doc.documenttype);
+      }
+
       if (stagedDocuments.some((d) => d.file))
         setStatus('Uploading documents…');
       const failedUploads: string[] = [];

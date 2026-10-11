@@ -7,37 +7,24 @@ export interface StagedDocument {
   file: File | null;
 }
 
-// Just a sensible starting point — the checklist itself is fully editable
-// below, not a fixed list the system enforces.
-const DEFAULT_REQUIRED_DOCUMENTS = [
-  'Death Certificate',
-  'Release Paper',
-  'Burial Permit',
-  'Valid ID',
-];
-
 // Mirrors the documents bucket's own limits (see server/src/middleware/upload.ts).
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 const ACCEPTED_TYPES = 'image/*,application/pdf';
 
 export function initialStagedDocuments(): StagedDocument[] {
-  return DEFAULT_REQUIRED_DOCUMENTS.map((documenttype) => ({
-    documenttype,
-    file: null,
-  }));
+  return [];
 }
 
 /**
  * Lets staff pick a file per required document, and manage the list of
- * required documents itself — it starts from a sensible default, but who's
- * running intake decides what's actually required for this case, not a
- * hardcoded list.
+ * required documents itself. Staff decide what's required for each case.
  *
  * Files are held as plain `File` objects in the parent's state — not part of
  * the draft `formData`, since `useDraft` JSON-serialises that to localStorage
  * and `File` objects can't survive that. They're actually uploaded (to S3,
  * via the documents endpoint) only once the deceased record exists and has a
- * `caseid`, which happens later in `useSubmitIntake`.
+ * `caseid`, which happens later in `useSubmitIntake`. The requirements
+ * themselves are saved as document rows when the case is created.
  */
 export default function DocumentChecklist({
   documents,
