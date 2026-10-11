@@ -1,7 +1,8 @@
 import { Loader2 } from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
 import SortableHeaderCell from '@/components/dataTable/sortableHeaderCell';
-import type { DataTableColumn, SortOrder } from './types';
+import type { DataTableColumn } from './types';
+import type { SortOrder } from 'shared/utils';
 
 export default function TableBody<T, K extends string>({
   columns,

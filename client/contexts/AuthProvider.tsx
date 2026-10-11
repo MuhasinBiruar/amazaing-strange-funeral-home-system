@@ -73,6 +73,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const isAdmin = user.role === 'admin' || user.role === 'superadmin';
       const jobRole = user.jobRole ?? null;
 
+      if (user.role === 'lifeplan_agent') {
+        setState({
+          status: 'authenticated',
+          userId: user.id,
+          jobRole: null,
+          isAdmin: false,
+          role: user.role,
+          access: null,
+        });
+        return;
+      }
+
       if (isAdmin) {
         setState({
           status: 'authenticated',

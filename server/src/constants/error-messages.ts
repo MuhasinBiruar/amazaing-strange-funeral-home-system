@@ -63,6 +63,10 @@ export const FK_CONSTRAINTS: Record<
     field: 'caseid',
     message: 'Referenced deceased record does not exist.',
   },
+  lifeplan_agent_companyid_fkey: {
+    field: 'companyid',
+    message: 'Referenced life plan company does not exist.',
+  },
 };
 
 export const UNIQUE_CONSTRAINTS: Record<

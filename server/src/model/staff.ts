@@ -1,6 +1,7 @@
 import pool from '@/db';
 import { NotFoundError } from '@/errors';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
+import type { Pool, PoolClient } from 'pg';
 import {
   accessPageEnum,
   GetStaffResponse,
@@ -155,3 +156,29 @@ export const doesUsernameExist = async (
 
   return result.rows.length > 0;
 };
+
+const ACCESS_COLUMNS = accessPageEnum.options.map((k) => `a.${k}`).join(', ');
+
+/** Canonical shape of one staff member, shared by GET /staff/:id and updateStaff. */
+export async function getStaffDetail(id: string, db: Pool | PoolClient = pool) {
+  const result = await db.query(
+    `SELECT s.id, s."firstName", s."middleName", s."lastName", s."isActive",
+            s."jobRole", s."contactNumber", s.username, s.role,
+            la.companyid, lc.companyname, ${ACCESS_COLUMNS}
+     FROM public.staff s
+     LEFT JOIN public.access a ON a.staffid = s.id
+     LEFT JOIN public.lifeplan_agent la ON la.staffid = s.id
+     LEFT JOIN public.lifeplancompany lc ON lc.companyid = la.companyid
+     WHERE s.id = $1`,
+    [id],
+  );
+  if (result.rows.length === 0) throw new NotFoundError();
+
+  const row = result.rows[0];
+  const access = Object.fromEntries(
+    accessPageEnum.options.map((key) => [key, row[key] ?? false]),
+  );
+  for (const key of accessPageEnum.options) delete row[key];
+
+  return { ...row, access };
+}

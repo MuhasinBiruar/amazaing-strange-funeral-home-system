@@ -8,14 +8,9 @@ import TableFooter from './tableFooter';
 import TableHeader from './tableHeader';
 import TableBody from './tableBody';
 import FilterBar from './filterBar';
-import type {
-  DataTableColumn,
-  FetchDataParams,
-  FilterDef,
-  PaginatedResponse,
-  SortOrder,
-} from './types';
+import type { DataTableColumn, FetchDataParams, FilterDef } from './types';
 import type { ReactNode } from 'react';
+import type { PaginatedResponse, SortOrder } from 'shared/utils';
 
 const SEARCH_DEBOUNCE_MS = 500 as const;
 const ROW_HEIGHT_PX = 45 as const;

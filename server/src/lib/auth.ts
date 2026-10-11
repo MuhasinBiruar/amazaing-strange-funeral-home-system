@@ -1,7 +1,13 @@
 import { betterAuth } from 'better-auth';
 import { username, admin } from 'better-auth/plugins';
 import { Pool } from 'pg';
-import { ac, user, admin as adminRole, superadmin } from './permissions';
+import {
+  ac,
+  user,
+  admin as adminRole,
+  superadmin,
+  lifeplanAgent,
+} from './permissions';
 
 /**
  * Better Auth server config.
@@ -24,7 +30,7 @@ export const auth = betterAuth({
       middleName: { type: 'string', required: false },
       lastName: { type: 'string', required: true },
       isActive: { type: 'boolean', required: false, defaultValue: true },
-      jobRole: { type: 'string', required: false, defaultValue: 'staff' },
+      jobRole: { type: 'string', required: false },
       contactNumber: { type: 'string', required: false },
     },
   },
@@ -43,7 +49,12 @@ export const auth = betterAuth({
     username({ minUsernameLength: 3, maxUsernameLength: 50 }),
     admin({
       ac,
-      roles: { user, admin: adminRole, superadmin },
+      roles: {
+        user,
+        admin: adminRole,
+        superadmin,
+        lifeplan_agent: lifeplanAgent,
+      },
       adminRoles: ['admin', 'superadmin'],
     }),
   ],

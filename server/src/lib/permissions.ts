@@ -10,3 +10,4 @@ export const ac = createAccessControl(defaultStatements);
 export const user = ac.newRole({ ...userAc.statements });
 export const admin = ac.newRole({ ...adminAc.statements });
 export const superadmin = ac.newRole({ ...adminAc.statements });
+export const lifeplanAgent = ac.newRole({ ...userAc.statements });
