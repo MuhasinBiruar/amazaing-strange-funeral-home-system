@@ -23,11 +23,20 @@ export type CreateDocumentQuery = z.infer<typeof createDocumentQuerySchema>;
  * plain `z.int()`) because multipart form fields always arrive as strings.
  */
 export const uploadDocumentFormSchema = z.object({
-  documenttype: z.string().min(1),
+  documenttype: z.string().trim().min(1),
   caseid: z.coerce.number().int(),
 });
 
 export type UploadDocumentForm = z.infer<typeof uploadDocumentFormSchema>;
+
+export const createDocumentRequirementSchema = z.object({
+  documenttype: z.string().trim().min(1),
+  caseid: z.coerce.number().int(),
+});
+
+export type CreateDocumentRequirement = z.infer<
+  typeof createDocumentRequirementSchema
+>;
 
 export const documentSchema = createDocumentQuerySchema.extend({
   documentid: z.int(),
