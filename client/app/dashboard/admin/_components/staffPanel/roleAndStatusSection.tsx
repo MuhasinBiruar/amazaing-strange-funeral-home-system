@@ -2,7 +2,7 @@ import { fieldClass, labelClass } from '@/components/formStyles';
 import type { ValidationErrors, UpdateField, PanelMode } from './types';
 import InlineError from '@/components/inlineError';
 import type { StaffRole } from 'shared';
-import CompanySection from './companySection';
+import CompanySearchSelect from '@/components/companySearchSelect';
 
 export default function RoleAndStatusSection({
   mode,
@@ -10,6 +10,7 @@ export default function RoleAndStatusSection({
   role,
   isActive,
   companyid,
+  companyname,
   onChange,
   errors,
 }: {
@@ -18,6 +19,7 @@ export default function RoleAndStatusSection({
   role: StaffRole;
   isActive: boolean;
   companyid: number | null;
+  companyname: string | null;
   onChange: UpdateField;
   errors: ValidationErrors;
 }) {
@@ -90,9 +92,13 @@ export default function RoleAndStatusSection({
       </label>
 
       {isAgent && (
-        <CompanySection
+        <CompanySearchSelect
           companyid={companyid}
-          onChange={(id) => onChange('companyid', id)}
+          companyname={companyname}
+          onChange={(c) => {
+            onChange('companyid', c.companyid);
+            onChange('companyname', c.companyname);
+          }}
           error={errors.companyid}
         />
       )}

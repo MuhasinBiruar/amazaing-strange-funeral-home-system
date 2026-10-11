@@ -14,5 +14,6 @@ export function toForm(detail: StaffDetail): FormState {
     password: '',
     access: detail.access,
     companyid: detail.companyid,
+    companyname: detail.companyname,
   };
 }

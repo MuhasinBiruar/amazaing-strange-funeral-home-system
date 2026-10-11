@@ -14,6 +14,7 @@ export interface FormState {
   password: string;
   access: UpdateAccessQuery;
   companyid: number | null;
+  companyname: string | null;
 }
 
 /**
@@ -37,6 +38,7 @@ export function emptyForm(): FormState {
     password: '',
     access: DEFAULT_ACCESS,
     companyid: null,
+    companyname: null,
   };
 }
 

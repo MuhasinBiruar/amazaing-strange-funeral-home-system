@@ -201,6 +201,7 @@ export default function StaffPanel({
             <RoleAndStatusSection
               mode={mode}
               companyid={form.companyid}
+              companyname={form.companyname}
               jobRole={form.jobRole}
               role={form.role}
               isActive={form.isActive}
