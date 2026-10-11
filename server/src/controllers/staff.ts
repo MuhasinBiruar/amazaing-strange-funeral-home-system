@@ -1,7 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import {
   getStaffQuerySchema,
-  type Staff,
   type CreateStaffQuery,
   type UpdateStaffQuery,
 } from 'shared';
@@ -246,7 +245,7 @@ export const updateStaff = async (
     const name = `${nextFirstName} ${nextLastName}`;
     if (name !== existing.name) changes.name = name;
 
-    const updatedRow = await withTransaction(async (client) => {
+    const updated = await withTransaction(async (client) => {
       const entries = Object.entries(changes);
       if (entries.length > 0) {
         // Column names come from the fixed lists above, never from user input.
@@ -288,23 +287,14 @@ export const updateStaff = async (
       if (parsed.access !== undefined && existing.role !== 'lifeplan_agent')
         await upsertAccess(id, parsed.access, client);
 
-      const result = await client.query<Staff>(
-        'SELECT * FROM staff WHERE id = $1',
-        [id],
-      );
-      return result.rows[0];
+      return StaffModel.getStaffDetail(id, client);
     });
 
     res.locals.auditAction = `${
       res.locals.session.user.name
     } updated the staff account for ${nextFirstName} ${nextLastName}`;
 
-    res.json({
-      data: {
-        ...updatedRow,
-        access: parsed.access,
-      },
-    });
+    res.json({ data: updated });
   } catch (error) {
     next(error);
   }

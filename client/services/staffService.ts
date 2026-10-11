@@ -49,7 +49,7 @@ export const createStaff = async (staffData: CreateStaffQuery) => {
 export const updateStaff = async (id: string, staffData: UpdateStaffQuery) => {
   try {
     const res = await API.patch(`/staff/${id}`, staffData);
-    return res.data;
+    return getStaffDetailResponseSchema.parse(res.data).data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.data?.error?.message)
       throw new Error(extractErrorMessage(error.response.data));

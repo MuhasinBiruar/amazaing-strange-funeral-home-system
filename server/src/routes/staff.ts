@@ -1,15 +1,10 @@
 import { Router, type Request } from 'express';
-import pool from '@/db';
 import requireAuth from '@/middleware/require-auth';
 import validate from '@/middleware/validate';
 import requireAdmin from '@/middleware/require-admin';
-import { NotFoundError } from '@/errors';
-import {
-  accessPageEnum,
-  createStaffQuerySchema,
-  updateStaffQuerySchema,
-} from 'shared';
+import { createStaffQuerySchema, updateStaffQuerySchema } from 'shared';
 import { createStaff, getStaff, updateStaff } from '@/controllers/staff';
+import * as StaffModel from '@/model/staff';
 
 const router = Router();
 
@@ -27,25 +22,7 @@ router.get(
   requireAuth,
   async (req: Request<{ id: string }>, res, next) => {
     try {
-      const { id } = req.params;
-
-      const result = await pool.query(
-        `SELECT s.*, la.companyid, ${accessPageEnum.options.map((k) => `a.${k}`).join(', ')}
-          FROM public.staff s
-          LEFT JOIN public.access a ON a.staffid = s.id
-          LEFT JOIN public.lifeplan_agent la ON la.staffid = s.id
-          WHERE s.id = $1`,
-        [id],
-      );
-      if (result.rows.length === 0) throw new NotFoundError();
-
-      // If access page does not exist, assume false.
-      const row = result.rows[0];
-      const access = Object.fromEntries(
-        accessPageEnum.options.map((key) => [key, row[key] ?? false]),
-      );
-
-      res.json({ data: { ...row, access } });
+      res.json({ data: await StaffModel.getStaffDetail(req.params.id) });
     } catch (error) {
       next(error);
     }

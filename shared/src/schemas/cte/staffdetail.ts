@@ -9,6 +9,7 @@ export const staffDetailSchema = staffWithAccessSchema
   .extend({
     /** Only life plan agents have one. */
     companyid: z.int32().nullable(),
+    companyname: z.string().nullable(),
   });
 
 export type StaffDetail = z.infer<typeof staffDetailSchema>;
