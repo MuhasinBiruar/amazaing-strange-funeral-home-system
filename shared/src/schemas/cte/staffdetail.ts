@@ -7,7 +7,7 @@ import { staffWithAccessSchema } from '../db/staff';
 export const staffDetailSchema = staffWithAccessSchema
   .omit({ name: true })
   .extend({
-    /** Only life plan agents have one. */
+    /** Only life plan agents have a linked company. */
     companyid: z.int32().nullable(),
     companyname: z.string().nullable(),
   });
