@@ -63,18 +63,20 @@ export default function Header() {
         )}
       </div>
 
-      <div className="grid grid-rows-2 justify-items-end shrink-0">
-        <p className="text-xs sm:text-sm text-gray-500 font-bold">
-          Role: <span>{roleLabel}</span>
-        </p>
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="relative flex items-center gap-1 text-xs font-bold sm:text-sm text-gray-500 hover:cursor-pointer hover:text-indigo-600 transition-colors duration-500 after:content-[''] after:absolute after:left-0 after:bottom-0 after:h-px after:w-full after:bg-indigo-600 after:scale-x-0 after:origin-left hover:after:scale-x-100 after:transition-transform after:duration-500 after:ease-in-out"
-        >
-          Log Out
-        </button>
-      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <NotificationBell />
+        <div className="grid grid-rows-2 justify-items-end">
+          <p className="text-xs sm:text-sm text-gray-500 font-bold">
+            Role: <span>{roleLabel}</span>
+          </p>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="relative flex items-center gap-1 text-xs font-bold sm:text-sm text-gray-500 hover:cursor-pointer hover:text-indigo-600 transition-colors duration-500 after:content-[''] after:absolute after:left-0 after:bottom-0 after:h-px after:w-full after:bg-indigo-600 after:scale-x-0 after:origin-left hover:after:scale-x-100 after:transition-transform after:duration-500 after:ease-in-out"
+          >
+            Log Out
+          </button>
+        </div>
       </div>
 
       {infoModal}
