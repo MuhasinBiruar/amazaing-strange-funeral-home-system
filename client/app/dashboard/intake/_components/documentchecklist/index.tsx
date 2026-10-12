@@ -11,8 +11,25 @@ export interface StagedDocument {
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 const ACCEPTED_TYPES = 'image/*,application/pdf';
 
-export function initialStagedDocuments(): StagedDocument[] {
-  return [];
+export function initialStagedDocuments(
+  documentTypes: unknown = '[]',
+): StagedDocument[] {
+  let parsedDocumentTypes = documentTypes;
+  if (typeof parsedDocumentTypes === 'string') {
+    try {
+      parsedDocumentTypes = JSON.parse(parsedDocumentTypes) as unknown;
+    } catch {
+      return [];
+    }
+  }
+  if (!Array.isArray(parsedDocumentTypes)) return [];
+
+  return parsedDocumentTypes
+    .filter(
+      (documenttype): documenttype is string =>
+        typeof documenttype === 'string',
+    )
+    .map((documenttype) => ({ documenttype, file: null }));
 }
 
 /**
