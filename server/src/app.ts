@@ -20,6 +20,11 @@ import deliveriesRouter from './routes/deliveries';
 import casketDeliveriesRouter from './routes/casketdeliveries';
 import formalinDeliveriesRouter from './routes/formalindeliveries';
 import notificationsRouter from './routes/notifications';
+import formalinInventoryRouter from './routes/formalininventory';
+import lifeplansRouter from './routes/lifeplans';
+import expensesRouter from './routes/expenses';
+import lguCasesRouter from './routes/lgucases';
+import auditLogsRouter from './routes/auditlogs';
 
 const app = express();
 
@@ -31,8 +36,14 @@ app.use(
     credentials: true,
   }),
 );
-// Better Auth's own routes — must come BEFORE express.json()
+app.use('/api/auth/admin', (_req, res) => {
+  // Mirrors the default values for NotFoundError
+  res.status(404).json({
+    error: { code: 'NOT_FOUND', message: 'Resource not found.' },
+  });
+});
 app.all('/api/auth/*splat', toNodeHandler(auth));
+// Better Auth's own routes must come BEFORE express.json()
 app.use(express.json());
 app.use(auditLog);
 
@@ -40,18 +51,23 @@ app.use('/burialrecords', burialrecordsRouter);
 app.use('/deceasedrecords', deceasedRecordsRouter);
 app.use('/staff', staffRouter);
 app.use('/documents', documentsRouter);
+app.use('/expenses', expensesRouter);
 app.use('/financial', financialRouter);
 app.use('/representatives', representativesRouter);
 app.use('/contracts', contractsRouter);
 app.use('/packages', packagesRouter);
 app.use('/cases', casesRouter);
+app.use('/lgucases', lguCasesRouter);
+app.use('/lifeplans', lifeplansRouter);
 app.use('/casketinventory', casketInventoryRouter);
 app.use('/deliveries/casket', casketDeliveriesRouter);
 app.use('/deliveries/formalin', formalinDeliveriesRouter);
+app.use('/formalininventory', formalinInventoryRouter);
 app.use('/deliveries', deliveriesRouter);
 app.use('/notifications', notificationsRouter);
 
 app.use('/api/me', meRouter);
+app.use('/auditlogs', auditLogsRouter);
 
 app.use(errorHandler);
 

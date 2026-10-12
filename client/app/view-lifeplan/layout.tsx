@@ -1,0 +1,14 @@
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import PageGuard from '@/components/pageGuard';
+import { AuthProvider } from '@/contexts/AuthProvider';
+
+export default function ViewLifeplanLayout({ children }: LayoutProps<'/'>) {
+  return (
+    <AuthProvider>
+      <Header />
+      <PageGuard>{children}</PageGuard>
+      <Footer />
+    </AuthProvider>
+  );
+}

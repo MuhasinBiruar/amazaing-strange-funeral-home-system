@@ -16,6 +16,8 @@ interface AuthState {
   userId: string | null;
   jobRole: string | null;
   isAdmin: boolean;
+  isSuperadmin: boolean;
+  role: string | null;
   access: UpdateAccessQuery | null;
   refresh: () => void;
 }
@@ -29,11 +31,14 @@ const AuthContext = createContext<AuthState | null>(null);
  * after logging in, or after an admin edits their own access).
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<Omit<AuthState, 'refresh'>>({
+  const [state, setState] = useState<
+    Omit<AuthState, 'refresh' | 'isSuperadmin'>
+  >({
     status: 'loading',
     userId: null,
     jobRole: null,
     isAdmin: false,
+    role: null,
     access: null,
   });
   const [refreshKey, setRefreshKey] = useState(0);
@@ -53,6 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           userId: null,
           jobRole: null,
           isAdmin: false,
+          role: null,
           access: null,
         });
         return;
@@ -64,8 +70,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role?: string;
         jobRole?: string;
       };
-      const isAdmin = user.role === 'admin';
+      const isAdmin = user.role === 'admin' || user.role === 'superadmin';
       const jobRole = user.jobRole ?? null;
+
+      if (user.role === 'lifeplan_agent') {
+        setState({
+          status: 'authenticated',
+          userId: user.id,
+          jobRole: null,
+          isAdmin: false,
+          role: user.role,
+          access: null,
+        });
+        return;
+      }
 
       if (isAdmin) {
         setState({
@@ -73,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           userId: user.id,
           jobRole,
           isAdmin,
+          role: user.role ?? null,
           access: null,
         });
         return;
@@ -86,6 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           userId: user.id,
           jobRole,
           isAdmin,
+          role: user.role ?? null,
           access: detail.access,
         });
       } catch (err) {
@@ -96,6 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           userId: user.id,
           jobRole,
           isAdmin,
+          role: user.role ?? null,
           access: null,
         });
       }
@@ -110,7 +131,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
 
   return (
-    <AuthContext.Provider value={{ ...state, refresh }}>
+    <AuthContext.Provider
+      value={{ ...state, isSuperadmin: state.role === 'superadmin', refresh }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react';
-import { fieldClass, labelClass } from '../fieldStyles';
+import { fieldClass, labelClass } from '@/components/formStyles';
 import LoadingButton from '@/components/loadingButton';
 import type { DeceasedForm } from './types';
 

@@ -21,6 +21,7 @@ import {
 import validateParams from '@/middleware/validate-params';
 import { idParamSchema, type IdParam } from 'shared/utils';
 import { triggerNotificationSweep } from '@/lib/notifications';
+import type { Locals } from '@/types/controllers';
 
 const router = Router();
 
@@ -95,7 +96,7 @@ router.get(
         LEFT JOIN public.contract c ON dr.caseid = c.caseid
         LEFT JOIN public.representative r ON dr.representedby = r.representativeid
         LEFT JOIN public.staff s ON dr.managedby = s.id
-`;
+      `;
 
       // Start building `whereClause`. The contract check is the whole point of
       // this endpoint, so it is always applied.
@@ -269,20 +270,20 @@ router.patch(
   validateParams(idParamSchema),
   validate(updateDeceasedRecordQuerySchema),
   async (
-    req: Request<IdParam, {}, UpdateDeceasedRecordQuery>,
-    res: Response,
+    req: Request<IdParam, {}, UpdateDeceasedRecordQuery, {}, Locals>,
+    res: Response<{}, Locals>,
     next: NextFunction,
   ) => {
     try {
       const { id } = req.params;
       const parsed = req.body;
-      const userId = res.locals.session.user.id as string;
-      const role = res.locals.session.user.role as 'admin' | 'user';
+      const userId = res.locals.session.user.id;
+      const role = res.locals.session.user.role;
 
       if (Object.keys(parsed).length === 0)
-        return new BadRequestError('No fields provided for update.');
+        throw new BadRequestError('No fields provided for update.');
 
-      if (role !== 'admin') {
+      if (role !== 'admin' && role !== 'superadmin') {
         const checkResult = await pool.query(
           `SELECT managedby FROM DeceasedRecord WHERE caseid = $1`,
           [id],

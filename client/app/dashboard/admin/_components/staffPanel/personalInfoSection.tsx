@@ -1,4 +1,4 @@
-import { fieldClass, labelClass } from './fieldStyles';
+import { fieldClass, labelClass } from '@/components/formStyles';
 import type { ValidationErrors, UpdateField } from './types';
 import InlineError from '@/components/inlineError';
 

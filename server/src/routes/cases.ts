@@ -25,6 +25,8 @@ const SORT_COLUMNS: Record<keyof Case, string> = {
   contractid: 'c.contractid',
   representativeid: 'r.representativeid',
   staffid: 's.id',
+  total_formalin_used: 'COALESCE(fu.total_formalin_used, 0)',
+  last_formalin_use_date: 'fu.last_formalin_use_date',
 };
 
 /**
@@ -64,7 +66,9 @@ router.get(
         dr.caseid,
         c.contractid,
         r.representativeid,
-        s.id AS staffid
+        s.id AS staffid,
+        COALESCE(fu.total_formalin_used, 0)::float8 AS total_formalin_used,
+        fu.last_formalin_use_date
       `;
 
       const fromAndJoins = `
@@ -78,6 +82,14 @@ router.get(
           WHERE verificationstatus = 'pending'
           GROUP BY caseid
         ) d ON dr.caseid = d.caseid
+        LEFT JOIN (
+          SELECT
+            caseid,
+            SUM(quantityused)::float8 AS total_formalin_used,
+            MAX(usagedate) AS last_formalin_use_date
+          FROM public.formalinusage
+          GROUP BY caseid
+        ) fu ON dr.caseid = fu.caseid
       `;
 
       // Start building `whereClause`

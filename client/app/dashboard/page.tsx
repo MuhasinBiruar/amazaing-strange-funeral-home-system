@@ -2,13 +2,13 @@
 
 import { useRouter } from 'next/navigation';
 import {
-  AlertTriangle,
   ChevronRight,
   ClipboardCheck,
   FileSignature,
   UserPlus,
   UserStar,
   Wallet,
+  ClipboardClock,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthProvider';
 import type { AccessPage } from 'shared';
@@ -48,9 +48,9 @@ const modules: {
   {
     section: 'Operations',
     name: 'Special Cases',
-    description: 'Review flagged cases',
-    icon: AlertTriangle,
-    routeTo: null,
+    description: 'View LGU & life plan cases',
+    icon: ClipboardClock,
+    routeTo: '/dashboard/special-cases',
     accessPage: 'special_case_page',
   },
   {
@@ -66,7 +66,7 @@ const modules: {
     name: 'Financial Dashboard',
     description: 'View payments and balances',
     icon: Wallet,
-    routeTo: null,
+    routeTo: '/dashboard/financials',
     accessPage: 'financial_page',
   },
   {
@@ -85,8 +85,7 @@ export default function DashboardPage() {
 
   // Admins bypass every per-page access flag. Everyone else only sees a
   // module if it's unrestricted, or they've been explicitly granted its
-  // access flag — mirrors the check PageGuard performs when a route is
-  // actually visited, so nothing shown here would 404 into "Access denied".
+  // access flag - mirrors the check PageGuard performs.
   const visibleModules = modules.filter((module) => {
     if (module.adminOnly) return isAdmin;
     if (isAdmin) return true;
@@ -99,6 +98,7 @@ export default function DashboardPage() {
     'Operations',
     'Finance',
     'Admin',
+    'Special Cases',
   ].filter((section) => visibleModules.some((m) => m.section === section));
 
   return (

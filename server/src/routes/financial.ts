@@ -1,33 +1,23 @@
 import {
   Router,
+  type NextFunction,
   type Request,
   type Response,
-  type NextFunction,
 } from 'express';
 import pool from '@/db';
 import requireAuth from '@/middleware/require-auth';
 import {
-  createLguCaseQuery,
-  createLifeplanCompanyQuerySchema,
-  createLifeplanQuery,
-  getFinancialSummaryQuerySchema,
-} from 'shared';
-import { foldPeriods } from '@/util/financial';
-import validate from '@/middleware/validate';
-import {
-  createLguCase,
-  getLguCases,
-  createLifeplan,
-  getLifeplan,
+  getDirectTransactions,
   getDirect,
-  createLifeplanCompany,
-  getLifeplanCompanies,
-  getLifeplanCompany,
-  deleteLifeplanCompany,
-} from '@/controllers/financial';
-import { idParamSchema } from 'shared/utils';
+  createDirectTransaction,
+} from '@/controllers/financial/direct';
+import { getFinancialDetails } from '@/controllers/financial/details';
+import { getFinancialSummary } from '@/controllers/financial/summary';
+import validate from '@/middleware/validate';
+import { createTransactionQuerySchema } from 'shared';
 import validateParams from '@/middleware/validate-params';
-import { toExclusiveEndBound } from '@/util/date';
+import { idParamSchema } from 'shared/utils';
+import { getDayTransactions } from '@/controllers/financial/transactions';
 
 const router = Router();
 
@@ -46,60 +36,28 @@ const router = Router();
  * `http://localhost:4000/financial/direct?sortBy=caseid&sortOrder=desc&page=2&limit=10`
  */
 router.get('/direct', requireAuth, getDirect);
-
-router.post(
-  '/lgucases',
-  requireAuth,
-  validate(createLguCaseQuery),
-  createLguCase,
-);
-/**
- * Sample URLs
- * `http://localhost:6543/financial/lgucases`
- * `http://localhost:6543/financial/lgucases?search=Juan`
- * `http://localhost:6543/financial/lgucases?search=Dela%20Cruz&sortBy=reimbursementamount&sortOrder=desc&page=1&limit=20`
- */
-router.get('/lgucases', requireAuth, getLguCases);
-
-router.post(
-  '/lifeplans',
-  requireAuth,
-  validate(createLifeplanQuery),
-  createLifeplan,
-);
-/**
- * Sample URLs
- * `http://localhost:4000/financial/lifeplans`
- * `http://localhost:4000/financial/lifeplans?search=Dela%20Cruz`
- * `http://localhost:4000/financial/lifeplans?search=ABC%20Life&sortBy=totalamount&sortOrder=desc&page=1&limit=20`
- */
-router.get('/lifeplans', requireAuth, getLifeplan);
-
-router.post(
-  '/lifeplans/companies',
-  requireAuth,
-  validate(createLifeplanCompanyQuerySchema),
-  createLifeplanCompany,
-);
 router.get(
-  '/lifeplans/companies/:id',
+  '/direct/:id/transactions',
   requireAuth,
   validateParams(idParamSchema),
-  getLifeplanCompany,
+  getDirectTransactions,
 );
+router.post(
+  '/direct/:id/transactions',
+  requireAuth,
+  validateParams(idParamSchema),
+  validate(createTransactionQuerySchema),
+  createDirectTransaction,
+);
+
 /**
  * Sample URLs
- * `http://localhost:4000/financial/lifeplans/companies`
- * `http://localhost:4000/financial/lifeplans/companies?search=Corporation`
- * `http://localhost:4000/financial/lifeplans/companies?search=Company&sortBy=companyname&sortOrder=desc&page=1&limit=20`
+ * `http://localhost:4000/financial/details?startDate=2026-01-01&endDate=2026-01-01`
+ *
+ * `http://localhost:4000/financial/details?startDate=2026-01-01&endDate=2026-01-31`
  */
-router.get('/lifeplans/companies', requireAuth, getLifeplanCompanies);
-router.delete(
-  '/lifeplans/companies/:id',
-  requireAuth,
-  validateParams(idParamSchema),
-  deleteLifeplanCompany,
-);
+router.get('/details', requireAuth, getFinancialDetails);
+router.get('/day-transactions', requireAuth, getDayTransactions);
 
 /**
  * Sample URLs
@@ -123,146 +81,71 @@ router.delete(
  * `endDate` is treated as inclusive of the whole day when given without a time
  * `http://localhost:4000/financial/summary?startDate=2026-01-01&endDate=2026-12-31`
  */
+router.get('/summary', requireAuth, getFinancialSummary);
+
+/**
+ * Expenses Routes
+ */
 router.get(
-  '/summary',
+  '/expenses',
   requireAuth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { unit, interval, startDate, endDate, caseid } =
-        getFinancialSummaryQuerySchema.parse(req.query);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = (page - 1) * limit;
+      const search = req.query.search as string;
 
-      const parsedEndDate = endDate ? new Date(endDate) : null;
+      const params: (number | string)[] = [limit, offset];
+      let whereClause = '';
 
-      const transactionWhereConditions: string[] = [
-        `transactionstatus = 'completed'`,
-      ];
-
-      const deliveryWhereConditions: string[] = [];
-
-      const queryParams: unknown[] = [];
-      let paramIndex = 1;
-
-      if (startDate) {
-        transactionWhereConditions.push(`paymentdatetime >= $${paramIndex}`);
-        deliveryWhereConditions.push(`deliverydate >= $${paramIndex}`);
-
-        queryParams.push(startDate);
-        paramIndex++;
+      if (search) {
+        whereClause = `WHERE description ILIKE $3`;
+        params.push(`%${search}%`);
       }
 
-      if (endDate) {
-        transactionWhereConditions.push(`paymentdatetime < $${paramIndex}`);
-        deliveryWhereConditions.push(`deliverydate < $${paramIndex}`);
-
-        queryParams.push(toExclusiveEndBound(endDate));
-        paramIndex++;
-      }
-
-      if (caseid !== undefined) {
-        // Deliveries do not have a caseid column, so this filter
-        // only applies to transactions.
-        transactionWhereConditions.push(`caseid = $${paramIndex}`);
-        queryParams.push(caseid);
-        paramIndex++;
-      }
-
-      const transactionWhereClause = `WHERE ${transactionWhereConditions.join(' AND ')}`;
-
-      const deliveryWhereClause = deliveryWhereConditions.length
-        ? `WHERE ${deliveryWhereConditions.join(' AND ')}`
-        : '';
+      const countResult = await pool.query(
+        `SELECT COUNT(*) FROM public.expense ${whereClause}`,
+        search ? [params[2]] : [],
+      );
+      const total = parseInt(countResult.rows[0].count);
 
       const result = await pool.query(
         `
-        WITH combined_financials AS (
-          -- Transactions
-          SELECT
-            date_trunc(
-              '${unit}',
-              paymentdatetime AT TIME ZONE 'UTC'
-            ) AS period,
-
-            COALESCE(
-              SUM(amount) FILTER (
-                WHERE paymentcategory = 'Refund'
-              ),
-              0
-            ) AS totalout,
-
-            COALESCE(
-              SUM(amount) FILTER (
-                WHERE NOT (paymentcategory = 'Refund')
-              ),
-              0
-            ) AS totalin,
-
-            COUNT(*)::bigint AS transactioncount
-
-          FROM public.transaction
-          ${transactionWhereClause}
-
-          GROUP BY period
-
-          UNION ALL
-
-          -- Casket Deliveries
-          SELECT
-            date_trunc('${unit}', deliverydate::timestamp) AS period,
-            COALESCE(SUM(totalamountpaid), 0) AS totalout,
-            0::double precision AS totalin,
-            0::bigint AS transactioncount
-
-          FROM public.casketdelivery
-          ${deliveryWhereClause}
-
-          GROUP BY period
-
-          UNION ALL
-
-          -- Formalin Deliveries
-          SELECT
-            date_trunc('${unit}', deliverydate::timestamp) AS period,
-            COALESCE(SUM(totalamountpaid), 0) AS totalout,
-            0::double precision AS totalin,
-            0::bigint AS transactioncount
-
-          FROM public.formalindelivery
-          ${deliveryWhereClause}
-
-          GROUP BY period
-        )
-
-        SELECT
-          period,
-          COALESCE(SUM(totalout), 0)::text AS totalout,
-          COALESCE(SUM(totalin), 0)::text AS totalin,
-          COALESCE(SUM(transactioncount), 0)::bigint AS transactioncount
-        FROM combined_financials
-        GROUP BY period
-        ORDER BY period ASC;
-        `,
-        queryParams,
-      );
-
-      const { buckets, totalIn, totalOut } = foldPeriods(
-        result.rows,
-        unit,
-        interval,
-        startDate ?? null,
-        parsedEndDate,
+      SELECT * FROM public.expense
+      ${whereClause}
+      ORDER BY expensedate DESC
+      LIMIT $1 OFFSET $2
+    `,
+        params,
       );
 
       res.json({
-        data: buckets,
-        meta: {
-          unit,
-          interval,
-          startDate: startDate ?? null,
-          endDate: parsedEndDate,
-          totalIn,
-          totalOut,
-        },
+        data: result.rows,
+        meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
       });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.post(
+  '/expenses',
+  requireAuth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { description, amount, recordedby } = req.body;
+      const result = await pool.query(
+        `
+      INSERT INTO public.expense (description, amount, expensedate, recordedby)
+      VALUES ($1, $2, NOW(), $3)
+      RETURNING *
+    `,
+        [description, amount, recordedby || 'Staff'],
+      );
+
+      res.json(result.rows[0]);
     } catch (error) {
       next(error);
     }

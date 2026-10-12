@@ -1,4 +1,4 @@
-import { DEFAULT_ACCESS, type UpdateAccessQuery } from 'shared';
+import { DEFAULT_ACCESS, type StaffRole, type UpdateAccessQuery } from 'shared';
 
 export type PanelMode = 'create' | 'edit';
 
@@ -9,10 +9,12 @@ export interface FormState {
   contactNumber: string;
   username: string;
   jobRole: string;
-  role: 'admin' | 'user';
+  role: StaffRole;
   isActive: boolean;
   password: string;
   access: UpdateAccessQuery;
+  companyid: number | null;
+  companyname: string | null;
 }
 
 /**
@@ -35,6 +37,8 @@ export function emptyForm(): FormState {
     isActive: true,
     password: '',
     access: DEFAULT_ACCESS,
+    companyid: null,
+    companyname: null,
   };
 }
 

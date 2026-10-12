@@ -1,6 +1,5 @@
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
-
-export type SortOrder = 'asc' | 'desc';
+import type { SortOrder } from 'shared/utils';
 
 export interface SortableColumn<K extends string> {
   key: K;

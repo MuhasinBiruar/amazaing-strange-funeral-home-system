@@ -8,6 +8,7 @@ import { formatCurrency, titleCase } from '@/utils/format';
 import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 
+/** Lists packages that currently include the selected casket. */
 export default function PackagesPanel({
   casketid,
   caskettype,

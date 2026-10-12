@@ -12,6 +12,9 @@ const SORT_COLUMNS: Record<string, string> = {
   companyid: 'l.companyid',
   companyname: 'l.companyname',
   contactinfo: 'l.contactinfo',
+  minimumthreshold: 'l.minimumthreshold',
+  totalplans: 'totalplans',
+  total_serviced_amount: 'total_serviced_amount',
 };
 
 export async function createLifeplanCompany(
@@ -25,9 +28,10 @@ export async function createLifeplanCompany(
       `
         INSERT INTO lifeplancompany (
           companyname,
-          contactinfo
-        ) VALUES ($1, $2) RETURNING companyid;`,
-      [parsed.companyname, parsed.contactinfo],
+          contactinfo,
+          minimumthreshold
+        ) VALUES ($1, $2, $3) RETURNING companyid;`,
+      [parsed.companyname, parsed.contactinfo, parsed.minimumthreshold],
     );
     res.locals.auditAction = `${res.locals.session.user.name} created a life plan company.`;
 
@@ -58,24 +62,44 @@ export async function getLifeplanCompany(
   }
 }
 
+/**
+ * Returns a paginated summary of life plan companies.
+ *
+ * Each company includes the number of associated life plans and their total
+ * serviced amount. When a date range is supplied, those aggregates are
+ * calculated from cases created within the inclusive calendar range using
+ * `deceasedrecord.datecreated`. Companies without matching plans remain in
+ * the response with zero aggregate values.
+ *
+ * @param req Express request containing pagination, search, sorting, and date
+ * range query parameters.
+ * @param res Express response used to return company summaries and pagination
+ * metadata.
+ * @param next Express error handler callback.
+ */
 export async function getLifeplanCompanies(
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    const { page, limit, search, sortBy, sortOrder } =
+    const { page, limit, search, startDate, endDate, sortBy, sortOrder } =
       getLifeplanCompaniesQuerySchema.parse(req.query);
 
-    const selectClause = `
+    const companySelectClause = `
       SELECT 
         l.companyid,
         l.companyname,
-        l.contactinfo
+        l.minimumthreshold,
+        l.contactinfo,
     `;
 
     const fromAndJoins = `
       FROM public.lifeplancompany l
+      LEFT JOIN public.lifeplan lp
+        ON l.companyid = lp.companyid
+      LEFT JOIN public.deceasedrecord dr
+        ON lp.caseid = dr.caseid
     `;
 
     // Start building `whereClause`
@@ -92,6 +116,29 @@ export async function getLifeplanCompanies(
       paramIndex++;
     }
 
+    const countQueryParams = [...queryParams];
+    const aggregateDateConditions: string[] = [];
+    if (startDate) {
+      aggregateDateConditions.push(`dr.datecreated >= $${paramIndex}`);
+      queryParams.push(startDate);
+      paramIndex++;
+    }
+    if (endDate) {
+      aggregateDateConditions.push(`dr.datecreated < ($${paramIndex}::date + INTERVAL '1 day')`);
+      queryParams.push(endDate);
+      paramIndex++;
+    }
+
+    const aggregateFilter =
+      aggregateDateConditions.length > 0
+        ? `FILTER (WHERE ${aggregateDateConditions.join(' AND ')})`
+        : '';
+    const selectClause = `
+      ${companySelectClause}
+        COUNT(lp.planid)${aggregateFilter ? ` ${aggregateFilter}` : ''}::int AS totalplans,
+        COALESCE(SUM(lp.totalamount)${aggregateFilter ? ` ${aggregateFilter}` : ''}, 0)::float8 AS total_serviced_amount
+    `;
+
     const whereClause =
       whereConditions.length > 0
         ? `WHERE ${whereConditions.join(' AND ')}`
@@ -107,13 +154,14 @@ export async function getLifeplanCompanies(
             ${selectClause}
             ${fromAndJoins}
             ${whereClause}
+            GROUP BY l.companyid, l.companyname, l.minimumthreshold, l.contactinfo
             ${orderByClause}
             ${paginationClause}
           `;
 
         const countQuery = `
-            SELECT COUNT(l.companyid) as total
-            ${fromAndJoins}
+            SELECT COUNT(*)::int as total
+            FROM public.lifeplancompany l
             ${whereClause}
           `;
 
@@ -122,7 +170,7 @@ export async function getLifeplanCompanies(
             ...queryParams,
             ...[limit, (page - 1) * limit],
           ]),
-          client.query(countQuery, queryParams),
+          client.query(countQuery, countQueryParams),
         ]);
       },
     );

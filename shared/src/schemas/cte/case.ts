@@ -18,6 +18,8 @@ export const caseSchema = z.object({
   contractid: z.int(),
   representativeid: z.int().nullable(),
   staffid: z.string(),
+  total_formalin_used: z.number().nonnegative().default(0),
+  last_formalin_use_date: z.coerce.date().nullable().default(null),
 });
 
 export type Case = z.infer<typeof caseSchema>;

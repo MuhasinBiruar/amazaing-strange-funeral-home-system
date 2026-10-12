@@ -59,6 +59,18 @@ export const FK_CONSTRAINTS: Record<
     field: 'id',
     message: 'Notification does not exist.',
   },
+  expense_recordedby_fkey: {
+    field: 'recordedby',
+    message: 'Staff member who recorded the expense does not exist.',
+  },
+  transaction_caseid_fkey: {
+    field: 'caseid',
+    message: 'Referenced deceased record does not exist.',
+  },
+  lifeplan_agent_companyid_fkey: {
+    field: 'companyid',
+    message: 'Referenced life plan company does not exist.',
+  },
 };
 
 export const UNIQUE_CONSTRAINTS: Record<
@@ -72,10 +84,6 @@ export const UNIQUE_CONSTRAINTS: Record<
   contract_caseid_key: {
     field: 'caseid',
     message: 'A contract for this case already exists.',
-  },
-  contract_packageid_key: {
-    field: 'packageid',
-    message: 'A contract with this package already exists.',
   },
   lifeplan_caseid_key: {
     field: 'caseid',

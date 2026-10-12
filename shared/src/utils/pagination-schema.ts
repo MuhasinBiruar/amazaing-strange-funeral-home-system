@@ -17,3 +17,5 @@ export const paginationResponseSchema = z.object({
 });
 
 export type PaginationResponse = z.infer<typeof paginationResponseSchema>;
+
+export type PaginatedResponse<T> = PaginationResponse & { data: T[] };
