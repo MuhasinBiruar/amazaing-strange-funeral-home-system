@@ -18,9 +18,9 @@ const NOTIFICATION_LIMIT = 6;
 const ALL_AUDIENCES = '*';
 
 /**
- * Builds the visibility filter for the signed-in staff member: admins see
- * every notification, everyone else only those addressed to a page they have
- * access to.
+ * Builds the visibility filter for the signed-in staff member: admins and
+ * superadmins see every notification, everyone else only those addressed to a
+ * page they have access to.
  *
  * @returns A SQL condition on alias `n` and its parameters, starting at `$2`
  * (`$1` is always the staff id).
@@ -29,7 +29,7 @@ const ALL_AUDIENCES = '*';
  */
 async function getVisibility(res: Response, audienceParam = 2) {
   const { user } = res.locals.session;
-  if (user.role === 'admin') {
+  if (user.role === 'admin' || user.role === 'superadmin') {
     return { condition: 'TRUE', params: [], pages: [], isAdmin: true };
   }
 

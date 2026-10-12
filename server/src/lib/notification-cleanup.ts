@@ -8,7 +8,7 @@ import pool from '@/db';
  * cleanup threshold itself is fourteen days, so a notification is eligible as
  * soon as it is at least two weeks old.
  */
-const CLEANUP_CRON = '0 1 1,15 * *';
+const CLEANUP_CRON = '0 1 * * *';
 const CLEANUP_TIMEZONE =
   process.env.NOTIFICATION_CLEANUP_TIMEZONE ?? 'Asia/Manila';
 const CLEANUP_LOCK_KEY = 581274;
