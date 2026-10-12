@@ -11,6 +11,7 @@ import validate from '@/middleware/validate';
 import { getDeceasedName } from '@/util/audit-log';
 import { createContractQuerySchema, type CreateContractQuery } from 'shared';
 import { withTransaction } from '@/util/with-transaction';
+import { triggerNotificationSweep } from '@/lib/notifications';
 
 const router = Router();
 
@@ -142,6 +143,8 @@ router.post(
           return { contract: contractResult.rows[0], casketWarning };
         },
       );
+
+      triggerNotificationSweep();
 
       const deceasedName = await getDeceasedName(parsed.caseid);
       res.locals.auditAction = `${res.locals.session.user.name} created a new contract for ${deceasedName}`;

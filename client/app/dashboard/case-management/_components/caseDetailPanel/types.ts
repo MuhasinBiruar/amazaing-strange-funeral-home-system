@@ -20,6 +20,7 @@ export interface DeceasedForm {
   plantype: DeceasedRecord['plantype'];
   dateofdeath: string;
   hasmaturedlifeplan: boolean;
+  hasadvanceddecomposition: boolean;
 }
 
 export function toDeceasedForm(record: DeceasedRecord): DeceasedForm {
@@ -34,6 +35,7 @@ export function toDeceasedForm(record: DeceasedRecord): DeceasedForm {
     plantype: record.plantype,
     dateofdeath: toDateInputValue(record.dateofdeath),
     hasmaturedlifeplan: record.hasmaturedlifeplan,
+    hasadvanceddecomposition: record.hasadvanceddecomposition,
   };
 }
 

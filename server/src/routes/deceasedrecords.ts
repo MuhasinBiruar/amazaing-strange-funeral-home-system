@@ -20,6 +20,7 @@ import {
 } from 'shared';
 import validateParams from '@/middleware/validate-params';
 import { idParamSchema, type IdParam } from 'shared/utils';
+import { triggerNotificationSweep } from '@/lib/notifications';
 import type { Locals } from '@/types/controllers';
 
 const router = Router();
@@ -218,8 +219,9 @@ router.post(
           datecreated,
           dateofdeath,
           managedby,
-          representedby
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          representedby,
+          hasadvanceddecomposition
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         RETURNING caseid;`,
         [
           parsed.firstname,
@@ -235,8 +237,11 @@ router.post(
           parsed.dateofdeath,
           managedby,
           parsed.representedby,
+          parsed.hasadvanceddecomposition ?? false,
         ],
       );
+
+      triggerNotificationSweep();
 
       const deceasedName = joinName(
         parsed.firstname,
@@ -306,7 +311,8 @@ router.patch(
           plantype = COALESCE($9, plantype),
           datecreated = COALESCE($10, datecreated),
           dateofdeath = COALESCE($11, dateofdeath),
-          representedby = COALESCE($12, representedby)
+          representedby = COALESCE($12, representedby),
+          hasadvanceddecomposition = COALESCE($14, hasadvanceddecomposition)
         WHERE caseid = $13
         RETURNING *`,
         [
@@ -323,11 +329,14 @@ router.patch(
           parsed.dateofdeath ?? null,
           parsed.representedby ?? null,
           id,
+          parsed.hasadvanceddecomposition ?? null,
         ],
       );
 
       if (result.rows.length === 0)
         throw new NotFoundError('Deceased record not found.');
+
+      triggerNotificationSweep();
 
       const updated = result.rows[0];
       const deceasedName = joinName(

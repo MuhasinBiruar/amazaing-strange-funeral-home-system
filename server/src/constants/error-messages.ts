@@ -55,6 +55,10 @@ export const FK_CONSTRAINTS: Record<
     field: 'formalinid',
     message: 'Referenced formalin inventory item does not exist.',
   },
+  notificationread_notificationid_fkey: {
+    field: 'id',
+    message: 'Notification does not exist.',
+  },
   expense_recordedby_fkey: {
     field: 'recordedby',
     message: 'Staff member who recorded the expense does not exist.',
