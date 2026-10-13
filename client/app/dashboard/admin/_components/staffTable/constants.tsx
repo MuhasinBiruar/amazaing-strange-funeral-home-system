@@ -1,4 +1,6 @@
 import type { FilterDef, DataTableColumn } from '@/components/dataTable/types';
+import type { BadgeVariant } from '@/components/pillBadge';
+import PillBadge from '@/components/pillBadge';
 import {
   accessPageEnum,
   getAccessPageLabel,
@@ -24,11 +26,11 @@ export const FILTERS: FilterDef<Filters>[] = [
   },
 ];
 
-const COLUMNS_ROLE_BADGE: Record<StaffRole, string> = {
-  superadmin: 'bg-purple-100 text-purple-700',
-  admin: 'bg-indigo-100 text-indigo-700',
-  user: 'bg-gray-100 text-gray-700',
-  lifeplan_agent: 'bg-amber-100 text-amber-700',
+const COLUMNS_ROLE_BADGE: Record<StaffRole, BadgeVariant> = {
+  superadmin: 'purple',
+  admin: 'indigo',
+  user: 'gray',
+  lifeplan_agent: 'warning',
 };
 
 export const COLUMNS: DataTableColumn<GetStaffRow, ColumnKey>[] = [
@@ -50,13 +52,9 @@ export const COLUMNS: DataTableColumn<GetStaffRow, ColumnKey>[] = [
     label: 'Role',
     widthClassName: 'w-24',
     render: (r) => (
-      <span
-        className={`px-2 py-1 rounded-full text-xs font-medium ${
-          COLUMNS_ROLE_BADGE[r.role ?? 'user']
-        }`}
-      >
+      <PillBadge variant={COLUMNS_ROLE_BADGE[r.role ?? 'user']}>
         {r.role ?? '—'}
-      </span>
+      </PillBadge>
     ),
   },
   {
