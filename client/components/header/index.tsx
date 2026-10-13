@@ -64,7 +64,7 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        <NotificationBell />
+        {!isAgent && <NotificationBell />}
         <div className="grid grid-rows-2 justify-items-end">
           <p className="text-xs sm:text-sm text-gray-500 font-bold">
             Role: <span>{roleLabel}</span>
