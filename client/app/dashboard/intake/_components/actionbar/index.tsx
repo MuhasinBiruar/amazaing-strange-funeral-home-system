@@ -19,7 +19,7 @@ export default function ActionBar({
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex flex-col">
             <span className="text-xs font-medium text-gray-500">Status</span>
-            <span className="text-sm font-bold text-indigo-900 flex items-center gap-1.5">
+            <span className="text-sm font-bold text-indigo-600 flex items-center gap-1.5">
               {isSubmitting ? (
                 <>
                   <Loader2 size={12} className="animate-spin" />
@@ -64,8 +64,8 @@ export default function ActionBar({
               label="Save Record"
               loadingLabel="Saving…"
               className="px-5 py-2 text-sm \
-              font-semibold text-white bg-indigo-950 rounded-lg \
-              hover:bg-indigo-900 transition shadow-sm in-disabled:opacity-50 in-disabled:cursor-not-allowed"
+              font-semibold text-white bg-indigo-600 rounded-lg \
+              hover:bg-indigo-700 transition shadow-sm in-disabled:opacity-50 in-disabled:cursor-not-allowed"
             />
           </div>
         </div>

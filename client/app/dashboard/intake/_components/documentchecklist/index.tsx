@@ -166,7 +166,7 @@ export default function DocumentChecklist({
           >
             <div className="flex items-center gap-3 min-w-0">
               {doc.file ? (
-                <CheckCircle2 className="text-indigo-900 shrink-0" size={20} />
+                <CheckCircle2 className="text-indigo-600 shrink-0" size={20} />
               ) : (
                 <div className="w-5 h-5 border-2 border-gray-300 rounded shrink-0"></div>
               )}
@@ -267,7 +267,7 @@ export default function DocumentChecklist({
         </div>
         <div className="w-full bg-gray-200 rounded-full h-1.5">
           <div
-            className="bg-indigo-900 h-1.5 rounded-full"
+            className="bg-indigo-600 h-1.5 rounded-full"
             style={{ width: `${progress}%` }}
           ></div>
         </div>

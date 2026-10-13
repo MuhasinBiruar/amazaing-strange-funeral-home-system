@@ -122,7 +122,7 @@ export default function VitalStatistics({
                 onClick={() => onChange('locationOfDeath', loc)}
                 className={`py-2 px-1 text-xs sm:text-sm font-medium rounded-lg border transition in-disabled:cursor-not-allowed ${
                   data.locationOfDeath === loc
-                    ? 'bg-indigo-900 text-white border-indigo-900'
+                    ? 'bg-indigo-600 text-white border-indigo-600'
                     : 'bg-white text-gray-700 border-gray-200 in-enabled:hover:bg-gray-50'
                 }`}
               >
