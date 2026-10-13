@@ -17,7 +17,6 @@ import validate from '@/middleware/validate';
 import { createTransactionQuerySchema } from 'shared';
 import validateParams from '@/middleware/validate-params';
 import { idParamSchema } from 'shared/utils';
-import { getDayTransactions } from '@/controllers/financial/transactions';
 
 const router = Router();
 
@@ -57,7 +56,6 @@ router.post(
  * `http://localhost:4000/financial/details?startDate=2026-01-01&endDate=2026-01-31`
  */
 router.get('/details', requireAuth, getFinancialDetails);
-router.get('/day-transactions', requireAuth, getDayTransactions);
 
 /**
  * Sample URLs

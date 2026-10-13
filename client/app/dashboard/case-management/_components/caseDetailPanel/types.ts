@@ -1,7 +1,7 @@
 import type { DeceasedRecord, Representative } from 'shared';
 
 /** `<input type="date">` wants `yyyy-mm-dd`; the API gives back a Date (or null). */
-export function toDateInputValue(date: Date | string | null): string {
+function toDateInputValue(date: Date | string | null): string {
   if (!date) return '';
   const d = new Date(date);
   if (Number.isNaN(d.getTime())) return '';

@@ -9,7 +9,7 @@ export interface IntakeValidationErrors {
 const requiredText = (message: string) => z.string().trim().min(1, message);
 const optionalText = () => z.string().trim().optional();
 
-export const intakeFormSchema = z
+const intakeFormSchema = z
   .object({
     // Vital Statistics
     firstname: nameSchema('First name'),
@@ -103,8 +103,6 @@ export const intakeFormSchema = z
     },
   );
 
-export type IntakeForm = z.infer<typeof intakeFormSchema>;
-
 function normalizeIntakeInput(data: Record<string, string | undefined>) {
   return {
     firstname: data.firstname ?? '',
@@ -143,9 +141,7 @@ export function validateIntakeForm(
 }
 
 // Order determines which field gets focused first when multiple are invalid
-export const INTAKE_FIELD_ORDER: (keyof ReturnType<
-  typeof normalizeIntakeInput
->)[] = [
+const INTAKE_FIELD_ORDER: (keyof ReturnType<typeof normalizeIntakeInput>)[] = [
   'firstname',
   'middlename',
   'lastname',
