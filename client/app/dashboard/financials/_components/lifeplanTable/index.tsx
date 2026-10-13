@@ -37,7 +37,7 @@ export default function LifeplanTable() {
       key: 'companyname',
       label: 'Company',
       widthClassName: 'w-35',
-      cellClassName: 'px-5 py-3 text-gray-900 font-medium wrap-break-word',
+      cellClassName: 'px-5 py-3 text-gray-900 wrap-break-word',
       render: (l) => l.companyname,
     },
     {
