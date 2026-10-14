@@ -24,7 +24,11 @@ export default function IntakePage() {
     'intake_draft',
     {
       plantype: '',
-      locationOfDeath: 'Hospital',
+      lifeplancompanyid: '',
+      lifeplan_plannumber: '',
+      lifeplan_planholdername: '',
+      lifeplan_totalamount: '',
+      locationOfDeath: '',
       documentRequirements: '[]',
     },
   );

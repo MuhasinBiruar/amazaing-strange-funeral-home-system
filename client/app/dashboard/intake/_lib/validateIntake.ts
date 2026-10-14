@@ -20,11 +20,15 @@ const intakeFormSchema = z
       z.coerce.date().optional(),
     ),
     typeofdeath: optionalText(),
+    otherTypeOfDeath: optionalText(),
     causeofdeath: optionalText(),
 
     // Service Arrangement
     plantype: requiredText('Please select a plan type.'),
-    lifeplancompany: z.string().trim().optional(),
+    lifeplancompanyid: z.string().trim().optional(),
+    lifeplan_plannumber: z.string().trim().optional(),
+    lifeplan_planholdername: z.string().trim().optional(),
+    lifeplan_totalamount: z.string().trim().optional(),
     lgu_reimbursementamount: z.string().trim().optional(),
     lgu_reimbursementstatus: z.string().trim().optional(),
 
@@ -40,13 +44,72 @@ const intakeFormSchema = z
   })
   .refine(
     (data) =>
+      data.typeofdeath !== 'Other' ||
+      (data.otherTypeOfDeath && data.otherTypeOfDeath.trim().length > 0),
+    {
+      error: 'Please specify the type of death.',
+      path: ['otherTypeOfDeath'],
+    },
+  )
+  .refine(
+    (data) =>
       !(
         data.plantype === 'Life' &&
-        (!data.lifeplancompany || data.lifeplancompany.trim().length === 0)
+        (!data.lifeplancompanyid || data.lifeplancompanyid.trim().length === 0)
       ),
     {
-      error: 'Life plan company is required.',
-      path: ['lifeplancompany'],
+      error: 'Please select a lifeplan company.',
+      path: ['lifeplancompanyid'],
+    },
+  )
+  .refine(
+    (data) =>
+      !(
+        data.plantype === 'Life' &&
+        (!data.lifeplan_plannumber ||
+          data.lifeplan_plannumber.trim().length === 0)
+      ),
+    {
+      error: 'Plan number is required.',
+      path: ['lifeplan_plannumber'],
+    },
+  )
+  .refine(
+    (data) =>
+      !(
+        data.plantype === 'Life' &&
+        (!data.lifeplan_planholdername ||
+          data.lifeplan_planholdername.trim().length === 0)
+      ),
+    {
+      error: 'Plan holder name is required.',
+      path: ['lifeplan_planholdername'],
+    },
+  )
+  .refine(
+    (data) =>
+      !(
+        data.plantype === 'Life' &&
+        (!data.lifeplan_totalamount ||
+          data.lifeplan_totalamount.trim().length === 0)
+      ),
+    {
+      error: 'Total amount is required.',
+      path: ['lifeplan_totalamount'],
+    },
+  )
+  .refine(
+    (data) =>
+      !(
+        data.plantype === 'Life' &&
+        data.lifeplan_totalamount &&
+        data.lifeplan_totalamount.trim().length > 0 &&
+        (Number.isNaN(Number(data.lifeplan_totalamount)) ||
+          Number(data.lifeplan_totalamount) <= 0)
+      ),
+    {
+      error: 'Total amount must be a valid positive number.',
+      path: ['lifeplan_totalamount'],
     },
   )
   .refine(
@@ -110,9 +173,17 @@ function normalizeIntakeInput(data: Record<string, string | undefined>) {
     lastname: data.lastname ?? '',
     dateofdeath: data.dateofdeath ?? '',
     typeofdeath: data.typeofdeath ?? '',
+    otherTypeOfDeath: data.otherTypeOfDeath ?? '',
     causeofdeath: data.causeofdeath ?? '',
     plantype: data.plantype ?? '',
-    lifeplancompany: data.lifeplancompany ?? '',
+    lifeplancompanyid: data.lifeplancompanyid ?? '',
+    lifeplan_plannumber: data.lifeplan_plannumber ?? '',
+    lifeplan_planholdername:
+      data.lifeplan_planholdername ||
+      [data.firstname, data.middlename, data.lastname]
+        .filter(Boolean)
+        .join(' '),
+    lifeplan_totalamount: data.lifeplan_totalamount ?? '',
     lgu_reimbursementamount: data.lgu_reimbursementamount ?? '',
     lgu_reimbursementstatus: data.lgu_reimbursementstatus ?? '',
     rep_firstname: data.rep_firstname ?? '',
@@ -147,9 +218,13 @@ const INTAKE_FIELD_ORDER: (keyof ReturnType<typeof normalizeIntakeInput>)[] = [
   'lastname',
   'dateofdeath',
   'typeofdeath',
+  'otherTypeOfDeath',
   'causeofdeath',
   'plantype',
-  'lifeplancompany',
+  'lifeplancompanyid',
+  'lifeplan_plannumber',
+  'lifeplan_planholdername',
+  'lifeplan_totalamount',
   'lgu_reimbursementamount',
   'lgu_reimbursementstatus',
   'rep_firstname',
