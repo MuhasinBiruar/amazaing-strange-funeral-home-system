@@ -89,6 +89,7 @@ export function useSubmitIntake(
               .filter(Boolean)
               .join(' '),
           totalamount: Number(formData.lifeplan_totalamount),
+          use_benefits: formData.lifeplan_use_benefits !== 'false',
           caseid: generatedCaseId,
           companyid: Number(formData.lifeplancompanyid),
         };

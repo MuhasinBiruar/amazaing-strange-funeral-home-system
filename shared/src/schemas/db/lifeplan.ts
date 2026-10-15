@@ -6,6 +6,7 @@ export const lifeplanSchema = z.object({
   plannumber: withNullDefault(z.string().min(1)),
   planholdername: withNullDefault(z.string().min(1)),
   totalamount: withNullDefault(z.float64().min(1)),
+  use_benefits: z.boolean().default(true),
   caseid: z.int32(),
   companyid: z.int32(),
 });

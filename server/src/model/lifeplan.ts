@@ -6,11 +6,16 @@ const SORT_COLUMNS: Record<keyof GetLifeplansQueryRow, string> = {
   plannumber: 'l.plannumber',
   planholdername: 'l.planholdername',
   totalamount: 'l.totalamount',
+  use_benefits: 'l.use_benefits',
   caseid: 'l.caseid',
   deceased_name: 'deceased_name',
   representative_name: 'representative_name',
   companyid: 'l.companyid',
   companyname: 'lc.companyname',
+  contractid: 'c.contractid',
+  contractamount: 'c.totalamount',
+  totalamountpaid: 'COALESCE(t.totalpaid, 0)',
+  remainingbalance: 'c.totalamount - COALESCE(t.totalpaid, 0)',
 };
 
 export const getLifeplans = async (query: GetLifeplansQuery) => {
@@ -22,11 +27,18 @@ export const getLifeplans = async (query: GetLifeplansQuery) => {
       l.plannumber,
       l.planholdername,
       l.totalamount,
+      l.use_benefits,
       l.caseid,
       CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
       CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
       l.companyid,
       lc.companyname
+      ,c.contractid
+      ,c.totalamount AS contractamount
+      ,COALESCE(t.totalpaid, 0) AS totalamountpaid
+      ,CASE WHEN c.totalamount IS NULL THEN NULL
+        ELSE GREATEST(c.totalamount - COALESCE(t.totalpaid, 0), 0)
+       END AS remainingbalance
   `;
 
   const fromAndJoins = `
@@ -34,6 +46,18 @@ export const getLifeplans = async (query: GetLifeplansQuery) => {
     LEFT JOIN public.deceasedrecord dr ON l.caseid = dr.caseid
     LEFT JOIN public.representative r ON dr.representedby = r.representativeid
     LEFT JOIN public.lifeplancompany lc ON l.companyid = lc.companyid
+    LEFT JOIN public.contract c ON l.caseid = c.caseid
+    LEFT JOIN (
+      SELECT caseid,
+        COALESCE(SUM(amount) FILTER (
+          WHERE transactionstatus = 'completed' AND paymentcategory <> 'Refund'
+        ), 0)
+        - COALESCE(SUM(amount) FILTER (
+          WHERE transactionstatus = 'completed' AND paymentcategory = 'Refund'
+        ), 0) AS totalpaid
+      FROM public.transaction
+      GROUP BY caseid
+    ) t ON l.caseid = t.caseid
   `;
 
   // Start building `whereClause`

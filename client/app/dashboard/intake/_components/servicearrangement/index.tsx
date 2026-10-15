@@ -172,6 +172,30 @@ export default function ServiceArrangement({
             )}
           </div>
 
+          <label className="flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-gray-800">
+            <input
+              id="lifeplan_use_benefits"
+              type="checkbox"
+              checked={data.lifeplan_use_benefits !== 'false'}
+              onChange={(e) =>
+                onChange(
+                  'lifeplan_use_benefits',
+                  e.target.checked ? 'true' : 'false',
+                )
+              }
+              className="mt-0.5 h-4 w-4 accent-orange-600"
+            />
+            <span>
+              <span className="block font-semibold">
+                Use life plan casket/benefits
+              </span>
+              <span className="block text-xs text-gray-600">
+                Clear this if the representative will upgrade to a package
+                above the plan&apos;s covered amount.
+              </span>
+            </span>
+          </label>
+
           <div className="flex items-start gap-2 mt-2 p-3 bg-orange-50 border border-orange-100 rounded-lg text-orange-800 text-xs">
             <AlertCircle size={14} className="mt-0.5 shrink-0" />
             <p>

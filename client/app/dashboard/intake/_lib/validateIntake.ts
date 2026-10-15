@@ -29,6 +29,7 @@ const intakeFormSchema = z
     lifeplan_plannumber: z.string().trim().optional(),
     lifeplan_planholdername: z.string().trim().optional(),
     lifeplan_totalamount: z.string().trim().optional(),
+    lifeplan_use_benefits: z.string().default('true'),
     lgu_reimbursementamount: z.string().trim().optional(),
     lgu_reimbursementstatus: z.string().trim().optional(),
 
@@ -184,6 +185,7 @@ function normalizeIntakeInput(data: Record<string, string | undefined>) {
         .filter(Boolean)
         .join(' '),
     lifeplan_totalamount: data.lifeplan_totalamount ?? '',
+    lifeplan_use_benefits: data.lifeplan_use_benefits ?? 'true',
     lgu_reimbursementamount: data.lgu_reimbursementamount ?? '',
     lgu_reimbursementstatus: data.lgu_reimbursementstatus ?? '',
     rep_firstname: data.rep_firstname ?? '',
@@ -225,6 +227,7 @@ const INTAKE_FIELD_ORDER: (keyof ReturnType<typeof normalizeIntakeInput>)[] = [
   'lifeplan_plannumber',
   'lifeplan_planholdername',
   'lifeplan_totalamount',
+  'lifeplan_use_benefits',
   'lgu_reimbursementamount',
   'lgu_reimbursementstatus',
   'rep_firstname',

@@ -23,13 +23,20 @@ export default function PackageSection({
   confirmed,
   onConfirm,
   onEdit,
+  lifeplanAmount,
+  useLifeplanBenefits,
 }: {
   confirmed: ConfirmedPackage | null;
   onConfirm: (pkg: ConfirmedPackage) => void;
   onEdit: () => void;
+  lifeplanAmount?: number;
+  useLifeplanBenefits?: boolean;
 }) {
   const [mode, setMode] = useState<Mode>('create');
-  const [draft, setDraft] = useState<PackageDraft>(initialPackageDraft);
+  const [draft, setDraft] = useState<PackageDraft>(() => ({
+    ...initialPackageDraft(),
+    price: lifeplanAmount === undefined ? '' : String(lifeplanAmount),
+  }));
 
   if (confirmed) {
     return (
@@ -89,7 +96,11 @@ export default function PackageSection({
 
       {mode === 'create' ? (
         <div className="space-y-2">
-          <QuickForm draft={draft} setDraft={setDraft} />
+          <QuickForm
+            draft={draft}
+            setDraft={setDraft}
+            lifeplanAmount={lifeplanAmount}
+          />
           <button
             type="button"
             disabled={!isPackageDraftComplete(draft)}
@@ -109,6 +120,8 @@ export default function PackageSection({
             setDraft((prev) => ({ ...prev, packagetype }));
             setMode('create');
           }}
+          lifeplanAmount={lifeplanAmount}
+          useLifeplanBenefits={useLifeplanBenefits}
         />
       )}
     </div>

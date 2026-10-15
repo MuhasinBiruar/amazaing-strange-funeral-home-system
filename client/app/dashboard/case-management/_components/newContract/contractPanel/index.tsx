@@ -3,7 +3,7 @@ import type { UncontractedDeceased } from 'shared';
 import { createPackage } from '@/services/packageService';
 import { createContract } from '@/services/contractService';
 import emptyToNull from '@/utils/emptyToNull';
-import { formatDate, titleCase } from '@/utils/format';
+import { formatCurrency, formatDate, titleCase } from '@/utils/format';
 import { fieldClass, labelClass } from '@/components/formStyles';
 import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
@@ -80,7 +80,11 @@ export default function ContractPanel({
     setConfirmedPackage(pkg);
     setForm((prev) => ({
       ...prev,
-      totalamount: String(pkg.price),
+      totalamount: String(
+        deceased.plantype === 'Life' && deceased.lifeplan_totalamount !== null
+          ? Math.max(0, pkg.price - deceased.lifeplan_totalamount)
+          : pkg.price,
+      ),
       embalmingperiod: String(pkg.embalmingperiod),
       inclusions: pkg.inclusions ?? '',
     }));
@@ -209,11 +213,23 @@ export default function ContractPanel({
                 confirmed={confirmedPackage}
                 onConfirm={handlePackageConfirmed}
                 onEdit={() => setConfirmedPackage(null)}
+                lifeplanAmount={
+                  deceased.plantype === 'Life'
+                    ? (deceased.lifeplan_totalamount ?? undefined)
+                    : undefined
+                }
+                useLifeplanBenefits={
+                  deceased.plantype === 'Life'
+                    ? (deceased.lifeplan_use_benefits ?? true)
+                    : undefined
+                }
               />
               {confirmedPackage && (
                 <p className="text-[11px] text-gray-400 mt-1">
-                  Amount, embalming period and inclusions below were prefilled
-                  from it — feel free to adjust for this contract.
+                  {deceased.plantype === 'Life' &&
+                  deceased.lifeplan_totalamount !== null
+                    ? `Life plan covers ${formatCurrency(deceased.lifeplan_totalamount)}. The amount below is the additional amount only.`
+                    : 'Amount, embalming period and inclusions below were prefilled from it — feel free to adjust for this contract.'}
                 </p>
               )}
             </div>
@@ -259,8 +275,17 @@ export default function ContractPanel({
 
               <div>
                 <label htmlFor="totalamount" className={labelClass}>
-                  Total amount (PHP)
+                  {deceased.plantype === 'Life'
+                    ? 'Additional amount (PHP)'
+                    : 'Total amount (PHP)'}
                 </label>
+                {deceased.plantype === 'Life' &&
+                  deceased.lifeplan_totalamount !== null && (
+                    <p className="text-[11px] text-gray-500 mb-1">
+                      Plan-covered amount:{' '}
+                      {formatCurrency(deceased.lifeplan_totalamount)}
+                    </p>
+                  )}
                 <input
                   id="totalamount"
                   type="number"
@@ -268,6 +293,7 @@ export default function ContractPanel({
                   step="0.01"
                   required
                   value={form.totalamount}
+                  readOnly={deceased.plantype === 'Life'}
                   onChange={(e) =>
                     setForm((prev) => ({
                       ...prev,

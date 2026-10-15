@@ -28,6 +28,7 @@ export default function IntakePage() {
       lifeplan_plannumber: '',
       lifeplan_planholdername: '',
       lifeplan_totalamount: '',
+      lifeplan_use_benefits: 'true',
       locationOfDeath: '',
       documentRequirements: '[]',
     },

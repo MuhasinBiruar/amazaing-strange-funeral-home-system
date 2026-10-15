@@ -192,9 +192,9 @@ export async function createDirectTransaction(
         throw new NotFoundError('Case not found.');
 
       const { plantype, totalamount } = caseResult.rows[0];
-      if (plantype !== 'Direct')
+      if (plantype !== 'Direct' && plantype !== 'Life')
         throw new BadRequestError(
-          'Payments can only be recorded here for Direct cases.',
+          'Payments can only be recorded here for Direct or Life top-up cases.',
         );
       if (totalamount === null)
         throw new BadRequestError(

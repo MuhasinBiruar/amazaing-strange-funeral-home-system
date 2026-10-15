@@ -36,6 +36,8 @@ const UNCONTRACTED_SORT_COLUMNS: Record<keyof UncontractedDeceased, string> = {
   servicestatus: 'dr.servicestatus',
   hasmaturedlifeplan: 'dr.hasmaturedlifeplan',
   plantype: 'dr.plantype',
+  lifeplan_totalamount: 'lp.totalamount',
+  lifeplan_use_benefits: 'lp.use_benefits',
   datecreated: 'dr.datecreated',
   managed_by_name: 'managed_by_name',
 };
@@ -87,6 +89,8 @@ router.get(
         dr.servicestatus,
         dr.hasmaturedlifeplan,
         dr.plantype,
+        lp.totalamount AS lifeplan_totalamount,
+        lp.use_benefits AS lifeplan_use_benefits,
         dr.datecreated,
         CONCAT_WS(' ', NULLIF(s."firstName", ''), NULLIF(s."middleName", ''), NULLIF(s."lastName", '')) AS managed_by_name
       `;
@@ -96,6 +100,7 @@ router.get(
         LEFT JOIN public.contract c ON dr.caseid = c.caseid
         LEFT JOIN public.representative r ON dr.representedby = r.representativeid
         LEFT JOIN public.staff s ON dr.managedby = s.id
+        LEFT JOIN public.lifeplan lp ON dr.caseid = lp.caseid
       `;
 
       // Start building `whereClause`. The contract check is the whole point of
