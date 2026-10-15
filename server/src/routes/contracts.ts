@@ -79,13 +79,44 @@ router.post(
       const { contract, casketWarning } = await withTransaction(
         async (client) => {
           const packageResult = await client.query(
-            'SELECT casketid FROM package WHERE packageid = $1',
+            'SELECT casketid, price FROM package WHERE packageid = $1',
             [parsed.packageid],
           );
           if (packageResult.rows.length === 0) {
             throw new NotFoundError('Referenced package does not exist.');
           }
           const casketid: number | null = packageResult.rows[0].casketid;
+          const packagePrice = Number(packageResult.rows[0].price);
+
+          const lifeplanResult = await client.query<{
+            totalamount: string;
+            use_benefits: boolean;
+          }>(
+            'SELECT totalamount::text, use_benefits FROM lifeplan WHERE caseid = $1',
+            [parsed.caseid],
+          );
+          if (lifeplanResult.rows.length > 0) {
+            const lifeplan = lifeplanResult.rows[0];
+            const expectedAmount = Math.max(
+              0,
+              packagePrice - Number(lifeplan.totalamount),
+            );
+            if (
+              (lifeplan.use_benefits && packagePrice !== Number(lifeplan.totalamount)) ||
+              (!lifeplan.use_benefits && packagePrice <= Number(lifeplan.totalamount))
+            ) {
+              throw new BadRequestError(
+                lifeplan.use_benefits
+                  ? 'This life-plan package must match the plan amount.'
+                  : 'This upgraded package must cost more than the life-plan amount.',
+              );
+            }
+            if (Number(parsed.totalamount) !== expectedAmount) {
+              throw new BadRequestError(
+                'The contract additional amount does not match the package and life-plan amounts.',
+              );
+            }
+          }
 
           let casketWarning: string | null = null;
 

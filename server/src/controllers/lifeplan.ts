@@ -18,13 +18,15 @@ export async function createLifeplan(
           plannumber,
           planholdername,
           totalamount,
+          use_benefits,
           caseid,
           companyid
-        ) VALUES ($1, $2, $3, $4, $5) RETURNING planid;`,
+        ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING planid;`,
       [
         parsed.plannumber,
         parsed.planholdername,
         parsed.totalamount,
+        parsed.use_benefits,
         parsed.caseid,
         parsed.companyid,
       ],

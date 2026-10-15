@@ -29,6 +29,8 @@ export const uncontractedDeceasedSchema = z.object({
   servicestatus: deceasedRecordSchema.shape.servicestatus,
   hasmaturedlifeplan: deceasedRecordSchema.shape.hasmaturedlifeplan,
   plantype: deceasedRecordSchema.shape.plantype,
+  lifeplan_totalamount: z.float64().nullable(),
+  lifeplan_use_benefits: z.boolean().nullable(),
   datecreated: deceasedRecordSchema.shape.datecreated,
   managed_by_name: z.string(),
 });

@@ -14,9 +14,13 @@ import type { ConfirmedPackage, PackageType } from './types';
 export default function GuidedPicker({
   onConfirm,
   onCreateInstead,
+  lifeplanAmount,
+  useLifeplanBenefits,
 }: {
   onConfirm: (pkg: ConfirmedPackage) => void;
   onCreateInstead: (packagetype: PackageType) => void;
+  lifeplanAmount?: number;
+  useLifeplanBenefits?: boolean;
 }) {
   const [packagetype, setPackagetype] = useState<PackageType | ''>('');
   const [showList, setShowList] = useState(false);
@@ -64,14 +68,28 @@ export default function GuidedPicker({
   }
 
   const matching = (packages ?? []).filter(
-    (p) => p.packagetype === packagetype,
+    (p) =>
+      p.packagetype === packagetype &&
+      (lifeplanAmount === undefined ||
+        (useLifeplanBenefits
+          ? p.price === lifeplanAmount
+          : p.price > lifeplanAmount)),
   );
   const selected = matching.find((p) => p.packageid === selectedId) ?? null;
 
   return (
     <div className="rounded-md border border-gray-200 p-3 space-y-3">
       <div className="flex items-center justify-between">
-        <label className={labelClass}>{packagetype} packages</label>
+        <div>
+          <label className={labelClass}>{packagetype} packages</label>
+          {lifeplanAmount !== undefined && (
+            <p className="text-[11px] text-gray-500 mt-1">
+              Showing packages{' '}
+              {useLifeplanBenefits ? 'equal to' : 'greater than'} the life
+              plan amount of {formatCurrency(lifeplanAmount)}.
+            </p>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => {
