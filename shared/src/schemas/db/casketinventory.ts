@@ -45,8 +45,15 @@ export const createCasketInventoryQuerySchema = z.object({
     .min(1, 'Casket name is required.')
     .max(255, 'Casket name is too long.'),
   caskettier: casketTierEnum,
+  // Required (no default): it drives the low-stock warnings, so it should be
+  // a deliberate choice rather than silently 0.
   minimumthreshold: z
-    .int32({ error: 'Minimum must be a whole number.' })
+    .int32({
+      error: (issue) =>
+        issue.input === undefined
+          ? 'Minimum stock is required.'
+          : 'Minimum must be a whole number.',
+    })
     .nonnegative('Minimum cannot be negative.'),
 });
 

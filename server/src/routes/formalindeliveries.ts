@@ -64,12 +64,17 @@ router.get(
 
       // Searches through: formalindelivery.quantityreceived. Anything that
       // isn't part of a number (e.g. a trailing "L") is ignored, so "50 L"
-      // and "50" search the same.
-      const quantitySearch = search?.replace(/[^\d.]/g, '');
-      if (quantitySearch) {
-        whereConditions.push(`quantityreceived::text ILIKE $${paramIndex}`);
-        queryParams.push(`%${quantitySearch}%`);
-        paramIndex++;
+      // and "50" search the same. A search with no number in it at all (e.g.
+      // "abc") matches nothing, rather than being ignored.
+      if (search?.trim()) {
+        const quantitySearch = search.replace(/[^\d.]/g, '');
+        if (quantitySearch) {
+          whereConditions.push(`quantityreceived::text ILIKE $${paramIndex}`);
+          queryParams.push(`%${quantitySearch}%`);
+          paramIndex++;
+        } else {
+          whereConditions.push('FALSE');
+        }
       }
 
       if (startDate) {

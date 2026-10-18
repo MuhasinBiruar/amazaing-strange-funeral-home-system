@@ -72,9 +72,12 @@ export default function CasketForm({
 
   return (
     <div className="rounded-lg border border-indigo-200 bg-indigo-50/40 p-3 space-y-3">
-      <p className="text-sm font-semibold text-gray-900">
-        {editor.mode === 'create' ? 'New casket' : 'Edit casket'}
-      </p>
+      <div>
+        <p className="text-sm font-semibold text-gray-900">
+          {editor.mode === 'create' ? 'New casket' : 'Edit casket'}
+        </p>
+        <p className="text-xs text-gray-500">All fields are required.</p>
+      </div>
 
       <div>
         <label htmlFor="casket-name" className={labelClass}>
@@ -82,6 +85,7 @@ export default function CasketForm({
         </label>
         <input
           id="casket-name"
+          aria-required="true"
           autoFocus
           value={caskettype}
           onChange={(e) => setCaskettype(e.target.value)}
@@ -98,6 +102,7 @@ export default function CasketForm({
           </label>
           <select
             id="casket-tier"
+            aria-required="true"
             value={caskettier}
             onChange={(e) => setCaskettier(e.target.value)}
             className={`${fieldClass} bg-white cursor-pointer`}
@@ -119,11 +124,13 @@ export default function CasketForm({
           <input
             id="casket-minimum"
             type="number"
+            aria-required="true"
             min={0}
             step={1}
             value={minimum}
             onChange={(e) => setMinimum(e.target.value)}
             onKeyDown={saveOnEnter}
+            placeholder="e.g., 2"
             className={`${fieldClass} bg-white`}
           />
         </div>
