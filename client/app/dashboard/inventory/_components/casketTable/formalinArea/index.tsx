@@ -30,8 +30,8 @@ export default function FormalinArea() {
     try {
       setInventory(await getFormalinInventory());
     } catch (requestError) {
-      console.error('Failed to load formalin inventory:', requestError);
-      setError('Could not load formalin inventory. Try again.');
+      console.error('Failed to load formalin stock:', requestError);
+      setError('Could not load formalin stock. Try again.');
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +63,7 @@ export default function FormalinArea() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-base font-semibold text-gray-900">
-              Formalin Inventory
+              Formalin Stock
             </h2>
             <p className="mt-1 text-sm text-gray-500">
               Current formalin stock and usage records.
@@ -96,7 +96,7 @@ export default function FormalinArea() {
         </div>
 
         {isLoading && (
-          <p className="text-sm text-gray-500">Loading formalin inventory...</p>
+          <p className="text-sm text-gray-500">Loading formalin stock...</p>
         )}
         {!isLoading && error && <p className="text-sm text-red-600">{error}</p>}
         {!isLoading && !error && inventory && (

@@ -138,7 +138,7 @@ export default function FormalinRecordPanel({
       shown={isShown}
       onRequestClose={requestClose}
       ariaLabel="Record formalin usage"
-      badge="FORMALIN INVENTORY"
+      badge="FORMALIN STOCK"
       badgeClassName="bg-orange-100 text-orange-800"
       title="Record Formalin Usage"
       subtitle={`All quantities are in liters. ${inventory.currentstock} L in stock.`}
