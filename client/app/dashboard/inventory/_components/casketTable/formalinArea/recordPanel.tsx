@@ -2,21 +2,16 @@
 
 import { useState } from 'react';
 import type { Case, FormalinInventory } from 'shared';
-import { Plus, Minus, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 import DataTable from '@/components/dataTable';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import LoadingButton from '@/components/loadingButton';
 import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import { getCases } from '@/services/caseService';
-import {
-  addFormalinStock,
-  recordFormalinUsage,
-} from '@/services/formalinInventoryService';
+import { recordFormalinUsage } from '@/services/formalinInventoryService';
 import { formatDate } from '@/utils/format';
 
-/** Operation currently being recorded against the formalin inventory. */
-type Mode = 'add' | 'use';
 type CaseColumn =
   | 'deceased_name'
   | 'representative_name'
@@ -26,11 +21,12 @@ type CaseColumn =
   | 'servicestatus';
 
 /**
- * Records a formalin stock addition or usage event.
+ * Records formalin used on a case, which reduces the current inventory.
  *
- * Usage events require a selected case and reduce the current inventory;
- * stock additions increase it. The parent is notified after a successful save
- * so it can refresh the inventory summary and display any threshold warning.
+ * Stock is added by recording a formalin delivery on the Delivery tab (which
+ * also captures what was paid), not here. The parent is notified after a
+ * successful save so it can refresh the inventory summary and display any
+ * threshold warning.
  */
 export default function FormalinRecordPanel({
   inventory,
@@ -42,7 +38,6 @@ export default function FormalinRecordPanel({
   onSaved: (warning: string | null) => void;
 }) {
   const { isShown, requestClose } = useSidePanel(onClose);
-  const [mode, setMode] = useState<Mode>('add');
   const [quantity, setQuantity] = useState('');
   const [minimumthreshold, setMinimumThreshold] = useState(
     String(inventory.minimumthreshold),
@@ -87,14 +82,7 @@ export default function FormalinRecordPanel({
     },
   ];
 
-  /** Switches between adding stock and recording usage. */
-  function selectMode(nextMode: Mode) {
-    setMode(nextMode);
-    setError(null);
-    setSelectedCase(null);
-  }
-
-  /** Validates and persists the currently selected inventory operation. */
+  /** Validates and records the usage. */
   async function submit() {
     const amount = Number(quantity);
     const threshold = Number(minimumthreshold);
@@ -107,11 +95,13 @@ export default function FormalinRecordPanel({
       setError('Enter a valid minimum threshold.');
       return;
     }
-    if (mode === 'use' && amount > inventory.currentstock) {
-      setError('Please update the stock first.');
+    if (amount > inventory.currentstock) {
+      setError(
+        `Only ${inventory.currentstock} L is in stock. Record a formalin delivery on the Delivery tab first.`,
+      );
       return;
     }
-    if (mode === 'use' && !selectedCase) {
+    if (!selectedCase) {
       setError('Select a case before recording usage.');
       return;
     }
@@ -120,18 +110,12 @@ export default function FormalinRecordPanel({
     setError(null);
 
     try {
-      const result =
-        mode === 'add'
-          ? await addFormalinStock({
-              currentstock: amount,
-              minimumthreshold: threshold,
-            })
-          : await recordFormalinUsage({
-              quantityused: amount,
-              minimumthreshold: threshold,
-              caseid: selectedCase!.caseid,
-              formalinid: inventory.formalinid,
-            });
+      const result = await recordFormalinUsage({
+        quantityused: amount,
+        minimumthreshold: threshold,
+        caseid: selectedCase.caseid,
+        formalinid: inventory.formalinid,
+      });
 
       onSaved(result.warning);
       requestClose();
@@ -153,34 +137,17 @@ export default function FormalinRecordPanel({
     <SidePanel
       shown={isShown}
       onRequestClose={requestClose}
-      ariaLabel="Record formalin inventory"
+      ariaLabel="Record formalin usage"
       badge="FORMALIN INVENTORY"
       badgeClassName="bg-orange-100 text-orange-800"
-      title="Record Formalin"
-      subtitle="All quantities are recorded in liters."
+      title="Record Formalin Usage"
+      subtitle={`All quantities are in liters. ${inventory.currentstock} L in stock.`}
       widthClassName="sm:w-5xl"
     >
       <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
-        <div className="flex rounded-lg border border-gray-200 p-1">
-          <button
-            type="button"
-            onClick={() => selectMode('add')}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${mode === 'add' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-50'}`}
-          >
-            <Plus size={16} /> Add stock
-          </button>
-          <button
-            type="button"
-            onClick={() => selectMode('use')}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${mode === 'use' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-50'}`}
-          >
-            <Minus size={16} /> Use formalin
-          </button>
-        </div>
-
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="text-sm font-medium text-gray-700">
-            {mode === 'add' ? 'Liters to add' : 'Liters used'}
+            Liters used
             <input
               type="number"
               min="0.01"
@@ -203,37 +170,33 @@ export default function FormalinRecordPanel({
           </label>
         </div>
 
-        {mode === 'use' && (
-          <div className="space-y-3">
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900">
-                Select case
-              </h3>
-              <p className="mt-1 text-xs text-gray-500">
-                {selectedCase
-                  ? `Selected case #${selectedCase.caseid}`
-                  : 'Choose the case receiving the formalin.'}
-              </p>
-            </div>
-            <DataTable<Case, CaseColumn>
-              title="Cases"
-              countLabel={(total) => `${total} cases`}
-              searchPlaceholder="Search cases..."
-              columns={caseColumns}
-              rowKey={(row) => row.caseid}
-              defaultSortBy="deceased_name"
-              defaultSortOrder="asc"
-              onRowClick={setSelectedCase}
-              isRowSelected={(row) => row.caseid === selectedCase?.caseid}
-              fetchData={({ filters: _filters, ...params }) =>
-                getCases({ ...params, sortBy: params.sortBy as never })
-              }
-              emptyMessage="No cases found."
-              loadErrorMessage="Could not load cases. Try again."
-              bodyOffsetClassName="top-12"
-            />
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900">Select case</h3>
+            <p className="mt-1 text-xs text-gray-500">
+              {selectedCase
+                ? `Selected case #${selectedCase.caseid}`
+                : 'Choose the case receiving the formalin.'}
+            </p>
           </div>
-        )}
+          <DataTable<Case, CaseColumn>
+            title="Cases"
+            countLabel={(total) => `${total} cases`}
+            searchPlaceholder="Search cases..."
+            columns={caseColumns}
+            rowKey={(row) => row.caseid}
+            defaultSortBy="deceased_name"
+            defaultSortOrder="asc"
+            onRowClick={setSelectedCase}
+            isRowSelected={(row) => row.caseid === selectedCase?.caseid}
+            fetchData={({ filters: _filters, ...params }) =>
+              getCases({ ...params, sortBy: params.sortBy as never })
+            }
+            emptyMessage="No cases found."
+            loadErrorMessage="Could not load cases. Try again."
+            bodyOffsetClassName="top-12"
+          />
+        </div>
 
         {error && (
           <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -245,7 +208,7 @@ export default function FormalinRecordPanel({
           type="button"
           onClick={submit}
           isLoading={isSaving}
-          label={mode === 'add' ? 'Record stock addition' : 'Record usage'}
+          label="Record usage"
           loadingLabel="Saving..."
           icon={Save}
           className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"

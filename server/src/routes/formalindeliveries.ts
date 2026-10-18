@@ -8,7 +8,7 @@ import pool from '@/db';
 import validate from '@/middleware/validate';
 import validateParams from '@/middleware/validate-params';
 import requireAuth from '@/middleware/require-auth';
-import { BadRequestError, NotFoundError } from '@/errors';
+import { NotFoundError } from '@/errors';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 import { toExclusiveEndBound } from '@/util/date';
 import {
@@ -182,6 +182,13 @@ router.post(
       const parsed = req.body;
 
       const { delivery, warning } = await withTransaction(async (client) => {
+        // `FOR UPDATE` below can't lock anything while the ledger is still
+        // empty, so this transaction-scoped lock keeps two first-ever
+        // deliveries from both starting at 0.
+        await client.query(
+          `SELECT pg_advisory_xact_lock(hashtext('formalininventory'))`,
+        );
+
         const latestResult = await client.query(
           `SELECT currentstock, minimumthreshold
            FROM formalininventory
@@ -189,13 +196,14 @@ router.post(
            LIMIT 1
            FOR UPDATE`,
         );
-        if (latestResult.rows.length === 0) {
-          throw new BadRequestError(
-            'Formalin inventory has not been initialized.',
-          );
-        }
 
-        const latest = latestResult.rows[0];
+        // No ledger row yet (fresh database): the first delivery starts it
+        // at 0 stock with no minimum; the minimum can be set when recording
+        // usage.
+        const latest = latestResult.rows[0] ?? {
+          currentstock: 0,
+          minimumthreshold: 0,
+        };
         const newStock = Number(latest.currentstock) + parsed.quantityreceived;
         const minimum = Number(latest.minimumthreshold);
 
