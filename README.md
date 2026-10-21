@@ -151,6 +151,7 @@ npm run create-superadmin -w server -- --promote <username>
 
    - [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
    - [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+   - [Tailwind CSS Intellisense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
 
 2. Allow the ESLint/Prettier extensions to execute in the workspace. If you miss it or nothing seems to be linting/formatting, add this to your user settings (not the repo's):
 
