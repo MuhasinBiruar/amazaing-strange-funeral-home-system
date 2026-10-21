@@ -2,11 +2,7 @@ import cron from 'node-cron';
 import pool from '@/db';
 
 /**
- * Runs at 01:00 on the 1st and 15th of each month.
- *
- * This is the calendar-based equivalent of a biweekly maintenance window. The
- * cleanup threshold itself is fourteen days, so a notification is eligible as
- * soon as it is at least two weeks old.
+ * Runs at 01:00 (1:00 AM) everyday.
  */
 const CLEANUP_CRON = '0 1 * * *';
 const CLEANUP_TIMEZONE =
