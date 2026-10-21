@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import { startNotificationCleanupScheduler } from './lib/notification-cleanup.js';
+import { startNotificationScheduler } from './lib/notifications.js';
 import app from './app';
 import pool from './db';
 
@@ -12,6 +14,9 @@ app.listen(PORT, '0.0.0.0', async () => {
 
     console.log(`Server listening on port ${PORT}`);
     console.log('Database connected successfully');
+
+    startNotificationScheduler();
+    startNotificationCleanupScheduler();
   } catch (error) {
     console.error('Database connection failed:', error);
   }

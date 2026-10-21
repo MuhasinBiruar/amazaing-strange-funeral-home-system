@@ -10,19 +10,6 @@ import { Suspense } from 'react';
 const tabEnum = z.enum(['view', 'new-contract']).catch('view');
 type Tab = z.infer<typeof tabEnum>;
 
-/**
- * Case management: the log of existing cases, and the entry point for putting a
- * deceased record under contract.
- *
- * @remarks
- * The active tab lives in the `tab` query parameter rather than in component
- * state, so the view survives a reload and is linkable. "New contract" swaps
- * the case table for a picker of deceased records that have no contract yet,
- * rather than navigating away. Because the two views are rendered
- * conditionally, returning to the cases tab after a contract is created
- * remounts `CaseTable`, so the record - now a case for the first time -
- * appears in the log.
- */
 function CasesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();

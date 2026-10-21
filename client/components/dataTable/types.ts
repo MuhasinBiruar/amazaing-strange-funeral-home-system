@@ -1,11 +1,5 @@
-import type { PaginationQuery, PaginationResponse } from 'shared/utils';
+import type { PaginationQuery, SortOrder } from 'shared/utils';
 import type { ReactNode } from 'react';
-
-export type SortOrder = 'asc' | 'desc';
-
-export interface PaginatedResponse<T> extends PaginationResponse {
-  data: T[];
-}
 
 export interface FetchDataParams<
   K extends string,

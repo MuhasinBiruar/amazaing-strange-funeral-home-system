@@ -20,6 +20,7 @@ import {
 } from 'shared';
 import validateParams from '@/middleware/validate-params';
 import { idParamSchema, type IdParam } from 'shared/utils';
+import { triggerNotificationSweep } from '@/lib/notifications';
 import type { Locals } from '@/types/controllers';
 
 const router = Router();
@@ -35,6 +36,8 @@ const UNCONTRACTED_SORT_COLUMNS: Record<keyof UncontractedDeceased, string> = {
   servicestatus: 'dr.servicestatus',
   hasmaturedlifeplan: 'dr.hasmaturedlifeplan',
   plantype: 'dr.plantype',
+  lifeplan_totalamount: 'lp.totalamount',
+  lifeplan_use_benefits: 'lp.use_benefits',
   datecreated: 'dr.datecreated',
   managed_by_name: 'managed_by_name',
 };
@@ -86,6 +89,8 @@ router.get(
         dr.servicestatus,
         dr.hasmaturedlifeplan,
         dr.plantype,
+        lp.totalamount AS lifeplan_totalamount,
+        lp.use_benefits AS lifeplan_use_benefits,
         dr.datecreated,
         CONCAT_WS(' ', NULLIF(s."firstName", ''), NULLIF(s."middleName", ''), NULLIF(s."lastName", '')) AS managed_by_name
       `;
@@ -95,6 +100,7 @@ router.get(
         LEFT JOIN public.contract c ON dr.caseid = c.caseid
         LEFT JOIN public.representative r ON dr.representedby = r.representativeid
         LEFT JOIN public.staff s ON dr.managedby = s.id
+        LEFT JOIN public.lifeplan lp ON dr.caseid = lp.caseid
       `;
 
       // Start building `whereClause`. The contract check is the whole point of
@@ -218,8 +224,9 @@ router.post(
           datecreated,
           dateofdeath,
           managedby,
-          representedby
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          representedby,
+          hasadvanceddecomposition
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         RETURNING caseid;`,
         [
           parsed.firstname,
@@ -235,8 +242,11 @@ router.post(
           parsed.dateofdeath,
           managedby,
           parsed.representedby,
+          parsed.hasadvanceddecomposition ?? false,
         ],
       );
+
+      triggerNotificationSweep();
 
       const deceasedName = joinName(
         parsed.firstname,
@@ -306,7 +316,8 @@ router.patch(
           plantype = COALESCE($9, plantype),
           datecreated = COALESCE($10, datecreated),
           dateofdeath = COALESCE($11, dateofdeath),
-          representedby = COALESCE($12, representedby)
+          representedby = COALESCE($12, representedby),
+          hasadvanceddecomposition = COALESCE($14, hasadvanceddecomposition)
         WHERE caseid = $13
         RETURNING *`,
         [
@@ -323,11 +334,14 @@ router.patch(
           parsed.dateofdeath ?? null,
           parsed.representedby ?? null,
           id,
+          parsed.hasadvanceddecomposition ?? null,
         ],
       );
 
       if (result.rows.length === 0)
         throw new NotFoundError('Deceased record not found.');
+
+      triggerNotificationSweep();
 
       const updated = result.rows[0];
       const deceasedName = joinName(

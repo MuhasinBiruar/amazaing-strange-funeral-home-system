@@ -16,7 +16,7 @@ export default function PackageTypeButtons({
           onClick={() => onChange(type)}
           className={`py-2 px-1 text-xs sm:text-sm font-medium rounded-lg border transition cursor-pointer ${
             value === type
-              ? 'bg-indigo-900 text-white border-indigo-900'
+              ? 'bg-indigo-600 text-white border-indigo-600'
               : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
           }`}
         >

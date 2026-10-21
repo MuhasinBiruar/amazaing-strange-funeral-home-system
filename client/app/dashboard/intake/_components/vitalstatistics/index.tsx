@@ -114,22 +114,16 @@ export default function VitalStatistics({
           <label className="block text-xs font-semibold text-gray-700 mb-1">
             LOCATION OF DEATH
           </label>
-          <div className="grid grid-cols-3 gap-2">
-            {['House', 'Hospital', 'Police Case'].map((loc) => (
-              <button
-                key={loc}
-                type="button"
-                onClick={() => onChange('locationOfDeath', loc)}
-                className={`py-2 px-1 text-xs sm:text-sm font-medium rounded-lg border transition in-disabled:cursor-not-allowed ${
-                  data.locationOfDeath === loc
-                    ? 'bg-indigo-900 text-white border-indigo-900'
-                    : 'bg-white text-gray-700 border-gray-200 in-enabled:hover:bg-gray-50'
-                }`}
-              >
-                {loc}
-              </button>
-            ))}
-          </div>
+          <input
+            id="locationOfDeath"
+            type="text"
+            value={data.locationOfDeath || ''}
+            onChange={(e) => onChange('locationOfDeath', e.target.value)}
+            className="w-full bg-gray-50 text-gray-900 border \
+            border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 \
+            focus:border-indigo-500 in-disabled:cursor-not-allowed"
+            placeholder="Location of death"
+          />
         </div>
 
         <div>
@@ -139,7 +133,11 @@ export default function VitalStatistics({
           <select
             id="typeofdeath"
             value={data.typeofdeath || ''}
-            onChange={(e) => onChange('typeofdeath', e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              onChange('typeofdeath', value);
+              if (value !== 'Other') onChange('otherTypeOfDeath', '');
+            }}
             className="w-full bg-gray-50 text-gray-900 border \
             border-gray-200 rounded-lg p-2.5 text-sm focus:ring-indigo-500 \
             focus:border-indigo-500 in-disabled:cursor-not-allowed"
@@ -152,7 +150,25 @@ export default function VitalStatistics({
             <option value="Homicide">Homicide</option>
             <option value="Suicide">Suicide</option>
             <option value="Unknown">Unknown</option>
+            <option value="Other">Other</option>
           </select>
+          {data.typeofdeath === 'Other' && (
+            <input
+              id="otherTypeOfDeath"
+              type="text"
+              value={data.otherTypeOfDeath || ''}
+              onChange={(e) => onChange('otherTypeOfDeath', e.target.value)}
+              className="w-full bg-gray-50 text-gray-900 border \
+              border-gray-200 rounded-lg p-2.5 text-sm mt-2 \
+              focus:ring-indigo-500 focus:border-indigo-500 in-disabled:cursor-not-allowed"
+              placeholder="Specify type of death"
+            />
+          )}
+          {errors.otherTypeOfDeath && (
+            <p className="text-red-700 text-xs font-bold mt-1">
+              {errors.otherTypeOfDeath}
+            </p>
+          )}
         </div>
 
         <div>

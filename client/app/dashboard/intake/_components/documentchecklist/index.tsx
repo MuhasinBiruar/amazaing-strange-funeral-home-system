@@ -7,37 +7,41 @@ export interface StagedDocument {
   file: File | null;
 }
 
-// Just a sensible starting point — the checklist itself is fully editable
-// below, not a fixed list the system enforces.
-const DEFAULT_REQUIRED_DOCUMENTS = [
-  'Death Certificate',
-  'Release Paper',
-  'Burial Permit',
-  'Valid ID',
-];
-
 // Mirrors the documents bucket's own limits (see server/src/middleware/upload.ts).
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 const ACCEPTED_TYPES = 'image/*,application/pdf';
 
-export function initialStagedDocuments(): StagedDocument[] {
-  return DEFAULT_REQUIRED_DOCUMENTS.map((documenttype) => ({
-    documenttype,
-    file: null,
-  }));
+export function initialStagedDocuments(
+  documentTypes: unknown = '[]',
+): StagedDocument[] {
+  let parsedDocumentTypes = documentTypes;
+  if (typeof parsedDocumentTypes === 'string') {
+    try {
+      parsedDocumentTypes = JSON.parse(parsedDocumentTypes) as unknown;
+    } catch {
+      return [];
+    }
+  }
+  if (!Array.isArray(parsedDocumentTypes)) return [];
+
+  return parsedDocumentTypes
+    .filter(
+      (documenttype): documenttype is string =>
+        typeof documenttype === 'string',
+    )
+    .map((documenttype) => ({ documenttype, file: null }));
 }
 
 /**
  * Lets staff pick a file per required document, and manage the list of
- * required documents itself — it starts from a sensible default, but who's
- * running intake decides what's actually required for this case, not a
- * hardcoded list.
+ * required documents itself. Staff decide what's required for each case.
  *
  * Files are held as plain `File` objects in the parent's state — not part of
  * the draft `formData`, since `useDraft` JSON-serialises that to localStorage
  * and `File` objects can't survive that. They're actually uploaded (to S3,
  * via the documents endpoint) only once the deceased record exists and has a
- * `caseid`, which happens later in `useSubmitIntake`.
+ * `caseid`, which happens later in `useSubmitIntake`. The requirements
+ * themselves are saved as document rows when the case is created.
  */
 export default function DocumentChecklist({
   documents,
@@ -162,7 +166,7 @@ export default function DocumentChecklist({
           >
             <div className="flex items-center gap-3 min-w-0">
               {doc.file ? (
-                <CheckCircle2 className="text-indigo-900 shrink-0" size={20} />
+                <CheckCircle2 className="text-indigo-600 shrink-0" size={20} />
               ) : (
                 <div className="w-5 h-5 border-2 border-gray-300 rounded shrink-0"></div>
               )}
@@ -263,7 +267,7 @@ export default function DocumentChecklist({
         </div>
         <div className="w-full bg-gray-200 rounded-full h-1.5">
           <div
-            className="bg-indigo-900 h-1.5 rounded-full"
+            className="bg-indigo-600 h-1.5 rounded-full"
             style={{ width: `${progress}%` }}
           ></div>
         </div>

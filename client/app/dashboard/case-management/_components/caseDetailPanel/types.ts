@@ -1,7 +1,7 @@
 import type { DeceasedRecord, Representative } from 'shared';
 
 /** `<input type="date">` wants `yyyy-mm-dd`; the API gives back a Date (or null). */
-export function toDateInputValue(date: Date | string | null): string {
+function toDateInputValue(date: Date | string | null): string {
   if (!date) return '';
   const d = new Date(date);
   if (Number.isNaN(d.getTime())) return '';
@@ -20,6 +20,7 @@ export interface DeceasedForm {
   plantype: DeceasedRecord['plantype'];
   dateofdeath: string;
   hasmaturedlifeplan: boolean;
+  hasadvanceddecomposition: boolean;
 }
 
 export function toDeceasedForm(record: DeceasedRecord): DeceasedForm {
@@ -34,6 +35,7 @@ export function toDeceasedForm(record: DeceasedRecord): DeceasedForm {
     plantype: record.plantype,
     dateofdeath: toDateInputValue(record.dateofdeath),
     hasmaturedlifeplan: record.hasmaturedlifeplan,
+    hasadvanceddecomposition: record.hasadvanceddecomposition,
   };
 }
 

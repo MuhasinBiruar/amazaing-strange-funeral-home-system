@@ -24,35 +24,6 @@ const SORT_COLUMNS: Record<string, string> = {
   totalamountpaid: 'totalamountpaid',
 };
 
-export async function getCaseTransactions(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  try {
-    const { id } = req.params as unknown as { id: string };
-
-    const result = await pool.query(
-      `
-      SELECT
-        transactionid,
-        amount,
-        paymentcategory,
-        transactionstatus,
-        paymentdatetime
-      FROM public.transaction
-      WHERE caseid = $1
-      ORDER BY paymentdatetime DESC
-      `,
-      [id],
-    );
-
-    res.json({ data: result.rows });
-  } catch (error) {
-    next(error);
-  }
-}
-
 export async function getDirect(
   req: Request,
   res: Response,
@@ -221,9 +192,9 @@ export async function createDirectTransaction(
         throw new NotFoundError('Case not found.');
 
       const { plantype, totalamount } = caseResult.rows[0];
-      if (plantype !== 'Direct')
+      if (plantype !== 'Direct' && plantype !== 'Life')
         throw new BadRequestError(
-          'Payments can only be recorded here for Direct cases.',
+          'Payments can only be recorded here for Direct or Life top-up cases.',
         );
       if (totalamount === null)
         throw new BadRequestError(

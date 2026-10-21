@@ -1,11 +1,15 @@
-import { createLifeplan, getLifeplans } from '@/controllers/lifeplan';
+import {
+  createLifeplan,
+  getLifeplans,
+  getMyLifeplans,
+} from '@/controllers/lifeplan';
 import {
   createLifeplanCompany,
   getLifeplanCompany,
   getLifeplanCompanies,
   deleteLifeplanCompany,
 } from '@/controllers/lifeplancompany';
-import requireAuth from '@/middleware/require-auth';
+import requireAuth, { requireLifeplanAgent } from '@/middleware/require-auth';
 import validate from '@/middleware/validate';
 import validateParams from '@/middleware/validate-params';
 import { Router } from 'express';
@@ -22,6 +26,8 @@ router.post('/', requireAuth, validate(createLifeplanQuery), createLifeplan);
  * `http://localhost:4000/lifeplans?search=ABC%20Life&sortBy=totalamount&sortOrder=desc&page=1&limit=20`
  */
 router.get('/', requireAuth, getLifeplans);
+
+router.get('/mine', requireLifeplanAgent, getMyLifeplans);
 
 router.post(
   '/companies',

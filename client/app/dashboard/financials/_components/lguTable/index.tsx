@@ -7,6 +7,7 @@ import type { DataTableColumn } from '@/components/dataTable/types';
 import { getLguCases } from '@/services/lguCasesService';
 import type { GetLguCasesRow } from 'shared';
 import EditLguCasePanel from './editLguCasePanel';
+import PillBadge from '@/components/pillBadge';
 
 type ColumnKey = keyof GetLguCasesRow;
 
@@ -28,21 +29,21 @@ export default function LguTable() {
       widthClassName: 'w-40',
       render: (l) => {
         const status = l.reimbursementstatus.toLowerCase();
-        const isApproved = status === 'approved';
-        const isRejected = status === 'rejected';
 
         return (
-          <span
-            className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-              isApproved
-                ? 'bg-green-100 text-green-800'
-                : isRejected
-                  ? 'bg-red-100 text-red-800'
-                  : 'bg-yellow-100 text-yellow-800'
-            }`}
+          <PillBadge
+            variant={
+              status === 'released'
+                ? 'info'
+                : status === 'approved'
+                  ? 'success'
+                  : status === 'pending'
+                    ? 'warning'
+                    : 'error'
+            }
           >
             {titleCase(status)}
-          </span>
+          </PillBadge>
         );
       },
     },

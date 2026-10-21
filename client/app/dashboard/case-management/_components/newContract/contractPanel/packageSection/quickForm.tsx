@@ -7,9 +7,11 @@ import type { PackageDraft } from './types';
 export default function QuickForm({
   draft,
   setDraft,
+  lifeplanAmount,
 }: {
   draft: PackageDraft;
   setDraft: Dispatch<SetStateAction<PackageDraft>>;
+  lifeplanAmount?: number;
 }) {
   return (
     <div className="space-y-3">
@@ -50,6 +52,11 @@ export default function QuickForm({
           <label htmlFor="pkg-price" className={labelClass}>
             Price (PHP)
           </label>
+          {lifeplanAmount !== undefined && (
+            <p className="text-[11px] text-gray-500 mb-1">
+              Baseline covered by life plan: {lifeplanAmount.toLocaleString()}
+            </p>
+          )}
           <input
             id="pkg-price"
             type="number"

@@ -1,10 +1,13 @@
 import axios from 'axios';
 import { API } from '@/services/api';
-import { uploadDocument } from '@/services/documentService';
+import {
+  createDocumentRequirement,
+  uploadDocument,
+} from '@/services/documentService';
+import { createLifeplan } from '@/services/lifeplansService';
 import type {
   CreateDeceasedRecordQuery,
   CreateLguCaseQuery,
-  CreateLifeplanCompanyQuery,
   CreateLifeplanQuery,
   CreateRepresentativeQuery,
 } from 'shared';
@@ -34,7 +37,6 @@ export function useSubmitIntake(
 
     let generatedRepId: number | null = null;
     let generatedCaseId: number | null = null;
-    let generatedCompanyId: number | null = null;
 
     try {
       // STEP 1: REPRESENTATIVE
@@ -58,7 +60,10 @@ export function useSubmitIntake(
         middlename: formData.middlename as string | null,
         lastname: formData.lastname as string,
         causeofdeath: formData.causeofdeath as string | null,
-        typeofdeath: formData.typeofdeath as string | null,
+        typeofdeath:
+          formData.typeofdeath === 'Other'
+            ? (formData.otherTypeOfDeath as string | null)
+            : (formData.typeofdeath as string | null),
         physicaldescription: formData.physicaldescription as string | null,
         servicestatus: 'intake',
         hasmaturedlifeplan: false,
@@ -69,33 +74,26 @@ export function useSubmitIntake(
           : null,
         managedby: null,
         representedby: generatedRepId,
+        hasadvanceddecomposition: formData.hasadvanceddecomposition === true,
       };
       const recordResponse = await API.post('/deceasedrecords', recordPayload);
       generatedCaseId = recordResponse.data.data.caseid as number;
 
       if (formData.plantype === 'Life') {
         setStatus('Saving life plan…');
-        // STEP 3: LIFEPLAN COMPANY
-        const companyPayload: CreateLifeplanCompanyQuery = {
-          companyname: formData.lifeplancompany as string,
-          contactinfo: null,
-          minimumthreshold: 0,
-        };
-        const companyResponse = await API.post(
-          '/lifeplans/companies',
-          companyPayload,
-        );
-        generatedCompanyId = companyResponse.data.data.companyid as number;
-
-        // STEP 4: LIFEPLAN
         const lifeplanPayload: CreateLifeplanQuery = {
-          plannumber: null,
-          planholdername: null,
-          totalamount: null,
+          plannumber: formData.lifeplan_plannumber as string,
+          planholdername:
+            (formData.lifeplan_planholdername as string) ||
+            [formData.firstname, formData.middlename, formData.lastname]
+              .filter(Boolean)
+              .join(' '),
+          totalamount: Number(formData.lifeplan_totalamount),
+          use_benefits: formData.lifeplan_use_benefits !== 'false',
           caseid: generatedCaseId,
-          companyid: generatedCompanyId,
+          companyid: Number(formData.lifeplancompanyid),
         };
-        await API.post('/lifeplans', lifeplanPayload);
+        await createLifeplan(lifeplanPayload);
       } else if (formData.plantype === 'LGU') {
         setStatus('Saving LGU case…');
         // STEP 3: LGU CASE
@@ -107,7 +105,13 @@ export function useSubmitIntake(
         await API.post('/financial/lgucases', lguCasePayload);
       }
 
-      // STEP 5: UPLOAD ANY STAGED DOCUMENTS
+      // STEP 5: SAVE REQUIRED DOCUMENTS AND UPLOAD ANY STAGED FILES
+      if (stagedDocuments.length > 0)
+        setStatus('Saving document requirements…');
+      for (const doc of stagedDocuments) {
+        await createDocumentRequirement(generatedCaseId!, doc.documenttype);
+      }
+
       if (stagedDocuments.some((d) => d.file))
         setStatus('Uploading documents…');
       const failedUploads: string[] = [];
@@ -148,15 +152,6 @@ export function useSubmitIntake(
     } catch (error) {
       setStatus('Cleaning up…');
       const rollbackFailures: string[] = [];
-
-      if (generatedCompanyId) {
-        try {
-          await API.delete(`/lifeplans/companies/${generatedCompanyId}`);
-        } catch (err) {
-          rollbackFailures.push(`life plan company (ID ${generatedCompanyId})`);
-          console.error('Failed to clean up orphaned lifeplan company:', err);
-        }
-      }
 
       if (generatedCaseId) {
         try {

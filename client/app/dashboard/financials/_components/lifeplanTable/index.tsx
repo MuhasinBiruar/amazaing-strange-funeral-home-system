@@ -6,11 +6,15 @@ import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import type { GetLifeplansQueryRow } from 'shared';
 import { getLifeplans } from '@/services/lifeplansService';
+import TransactionHistoryPanel from '../directTable/transactionHistoryPanel';
+import RecordTransactionPanel from '../directTable/recordTransactionPanel';
 
 type ColumnKey = keyof GetLifeplansQueryRow;
 
 export default function LifeplanTable() {
-  const [refreshKey, _setRefreshKey] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [historyFor, setHistoryFor] = useState<GetLifeplansQueryRow | null>(null);
+  const [paymentFor, setPaymentFor] = useState<GetLifeplansQueryRow | null>(null);
 
   const columns: DataTableColumn<GetLifeplansQueryRow, ColumnKey>[] = [
     {
@@ -37,7 +41,7 @@ export default function LifeplanTable() {
       key: 'companyname',
       label: 'Company',
       widthClassName: 'w-35',
-      cellClassName: 'px-5 py-3 text-gray-900 font-medium wrap-break-word',
+      cellClassName: 'px-5 py-3 text-gray-900 wrap-break-word',
       render: (l) => l.companyname,
     },
     {
@@ -45,6 +49,51 @@ export default function LifeplanTable() {
       label: 'Total amount',
       widthClassName: 'w-32.5',
       render: (l) => formatCurrency(l.totalamount),
+    },
+    {
+      key: 'use_benefits',
+      label: 'Benefits',
+      render: (l) => (l.use_benefits ? 'Used' : 'Upgraded'),
+    },
+    {
+      key: 'contractamount',
+      label: 'Extra amount',
+      render: (l) =>
+        l.contractamount != null ? formatCurrency(l.contractamount) : '—',
+    },
+    {
+      key: 'totalamountpaid',
+      label: 'Extra paid',
+      render: (l) => formatCurrency(l.totalamountpaid),
+    },
+    {
+      key: 'remainingbalance',
+      label: 'Extra remaining',
+      render: (l) =>
+        l.remainingbalance != null ? formatCurrency(l.remainingbalance) : '—',
+    },
+    {
+      key: 'caseid',
+      label: 'Actions',
+      render: (l) => (
+        <div className="flex justify-center gap-3">
+          <button
+            type="button"
+            disabled={l.remainingbalance === null || l.remainingbalance <= 0}
+            onClick={() => setPaymentFor(l)}
+            className="text-emerald-600 hover:underline disabled:text-gray-300 disabled:no-underline cursor-pointer disabled:cursor-not-allowed"
+          >
+            Record payment
+          </button>
+          <button
+            type="button"
+            onClick={() => setHistoryFor(l)}
+            className="text-indigo-600 hover:underline cursor-pointer"
+          >
+            View history
+          </button>
+        </div>
+      ),
     },
   ];
 
@@ -64,6 +113,23 @@ export default function LifeplanTable() {
         loadErrorMessage="Could not load life plans. Try again."
         refreshKey={refreshKey}
       />
+      {historyFor && (
+        <TransactionHistoryPanel
+          key={historyFor.caseid}
+          caseid={historyFor.caseid}
+          deceasedName={historyFor.deceased_name}
+          onClose={() => setHistoryFor(null)}
+        />
+      )}
+      {paymentFor && (
+        <RecordTransactionPanel
+          key={`payment-${paymentFor.caseid}`}
+          caseId={paymentFor.caseid}
+          deceasedName={paymentFor.deceased_name}
+          onClose={() => setPaymentFor(null)}
+          onSuccess={() => setRefreshKey((k) => k + 1)}
+        />
+      )}
     </>
   );
 }

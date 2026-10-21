@@ -111,6 +111,7 @@ export default function CaseDetailPanel({
           ? new Date(deceasedForm.dateofdeath)
           : null,
         hasmaturedlifeplan: deceasedForm.hasmaturedlifeplan,
+        hasadvanceddecomposition: deceasedForm.hasadvanceddecomposition,
       });
       setRefreshKey((v) => v + 1);
       setIsDeceasedSaved(true);
@@ -202,7 +203,27 @@ export default function CaseDetailPanel({
             <DocumentsSection
               caseid={caseid}
               documents={documents}
-              onUploaded={(doc) => setDocuments((prev) => [doc, ...prev])}
+              onUploaded={(doc) =>
+                setDocuments((prev) => [
+                  doc,
+                  ...prev.filter(
+                    (existing) =>
+                      !(
+                        existing.filename === null &&
+                        existing.documenttype.trim().toLowerCase() ===
+                          doc.documenttype.trim().toLowerCase()
+                      ),
+                  ),
+                ])
+              }
+              onRequirementCreated={(doc) =>
+                setDocuments((prev) => [doc, ...prev])
+              }
+              onRequirementRemoved={(documentid) =>
+                setDocuments((prev) =>
+                  prev.filter((doc) => doc.documentid !== documentid),
+                )
+              }
             />
           </>
         )}

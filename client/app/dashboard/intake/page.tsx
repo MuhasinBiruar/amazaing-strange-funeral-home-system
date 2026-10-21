@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type SubmitEvent } from 'react';
+import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import VitalStatistics from './_components/vitalstatistics';
 import PhysicalDescription from './_components/physicaldescription';
 import ServiceArrangement from './_components/servicearrangement';
@@ -20,16 +20,46 @@ import { useRouter } from 'next/navigation';
 
 export default function IntakePage() {
   const router = useRouter();
-  const { formData, handleFormChange, clearDraft } = useDraft('intake_draft', {
-    plantype: '',
-    locationOfDeath: 'Hospital',
-  });
+  const { formData, isDraftLoaded, handleFormChange, clearDraft } = useDraft(
+    'intake_draft',
+    {
+      plantype: '',
+      lifeplancompanyid: '',
+      lifeplan_plannumber: '',
+      lifeplan_planholdername: '',
+      lifeplan_totalamount: '',
+      lifeplan_use_benefits: 'true',
+      locationOfDeath: '',
+      documentRequirements: '[]',
+    },
+  );
   // Keep uploaded files separate from the rest of the form data.
   // `useDraft` saves `formData` to localStorage as JSON whenever it changes,
   // but browser `File` objects cannot be stored correctly in JSON.
   const [stagedDocuments, setStagedDocuments] = useState<StagedDocument[]>(
     initialStagedDocuments,
   );
+  const hasRestoredDocuments = useRef(false);
+
+  useEffect(() => {
+    if (!isDraftLoaded || hasRestoredDocuments.current) return;
+
+    hasRestoredDocuments.current = true;
+    setStagedDocuments(initialStagedDocuments(formData.documentRequirements));
+  }, [formData.documentRequirements, isDraftLoaded]);
+
+  const handleStagedDocumentsChange = (documents: StagedDocument[]) => {
+    setStagedDocuments(documents);
+    handleFormChange(
+      'documentRequirements',
+      JSON.stringify(documents.map((document) => document.documenttype)),
+    );
+  };
+
+  const clearIntakeDraft = () => {
+    clearDraft();
+    setStagedDocuments(initialStagedDocuments());
+  };
 
   const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
   const [infoModalOptions, setInfoModalOptions] = useState<InfoModalOptions>({
@@ -47,7 +77,7 @@ export default function IntakePage() {
   const { handleSubmit } = useSubmitIntake(
     formData,
     stagedDocuments,
-    clearDraft,
+    clearIntakeDraft,
     setSubmitStatus,
     openInfoModal,
     setCreatedCaseId,
@@ -128,7 +158,7 @@ export default function IntakePage() {
             />
             <DocumentChecklist
               documents={stagedDocuments}
-              onChange={setStagedDocuments}
+              onChange={handleStagedDocumentsChange}
             />
             <RepresentativeInformation
               data={formData}
@@ -138,7 +168,7 @@ export default function IntakePage() {
           </main>
 
           <ActionBar
-            clearDraft={clearDraft}
+            clearDraft={clearIntakeDraft}
             isSubmitting={isSubmitting}
             submitStatus={submitStatus}
           />

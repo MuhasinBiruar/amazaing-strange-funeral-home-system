@@ -9,6 +9,7 @@ import type {
 import type { Case } from 'shared';
 import { getCases } from '@/services/caseService';
 import CaseDetailPanel from '../caseDetailPanel';
+import PillBadge from '@/components/pillBadge';
 
 export type ColumnKey = keyof Case;
 
@@ -96,7 +97,21 @@ export default function CaseTable() {
       key: 'servicestatus',
       label: 'Service status',
       widthClassName: 'w-32.5',
-      render: (c) => titleCase(c.servicestatus),
+      render: (c) => (
+        <PillBadge
+          variant={
+            c.servicestatus === 'completed'
+              ? 'info'
+              : c.servicestatus === 'active'
+                ? 'success'
+                : c.servicestatus === 'pending'
+                  ? 'warning'
+                  : 'error'
+          }
+        >
+          {titleCase(c.servicestatus)}
+        </PillBadge>
+      ),
     },
     {
       key: 'datecreated',

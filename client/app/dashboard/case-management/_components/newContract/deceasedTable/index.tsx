@@ -3,6 +3,7 @@ import { formatDate, titleCase } from '@/utils/format';
 import type { DataTableColumn, FilterDef } from '@/components/dataTable/types';
 import type { UncontractedDeceased } from 'shared';
 import { getUncontractedDeceased } from '@/services/deceasedRecordService';
+import PillBadge from '@/components/pillBadge';
 
 type ColumnKey = keyof UncontractedDeceased;
 
@@ -45,13 +46,39 @@ const COLUMNS: DataTableColumn<UncontractedDeceased, ColumnKey>[] = [
     key: 'servicestatus',
     label: 'Service status',
     widthClassName: 'w-32.5',
-    render: (r) => titleCase(r.servicestatus),
+    render: (r) => (
+      <PillBadge
+        variant={
+          r.servicestatus === 'completed'
+            ? 'info'
+            : r.servicestatus === 'active'
+              ? 'success'
+              : r.servicestatus === 'pending'
+                ? 'warning'
+                : 'error'
+        }
+      >
+        {titleCase(r.servicestatus)}
+      </PillBadge>
+    ),
   },
   {
     key: 'plantype',
     label: 'Plan type',
     widthClassName: 'w-27.5',
-    render: (r) => r.plantype,
+    render: (r) => (
+      <PillBadge
+        variant={
+          r.plantype === 'Direct'
+            ? 'success'
+            : r.plantype === 'LGU'
+              ? 'warning'
+              : 'info'
+        }
+      >
+        {r.plantype}
+      </PillBadge>
+    ),
   },
   {
     key: 'datecreated',

@@ -10,6 +10,9 @@ import { Loader2 } from 'lucide-react';
 /** Routes that require the `admin` role, independent of any `access` flag. */
 const ADMIN_ONLY_PATHS = ['/dashboard/admin'];
 
+/** The only area life plan agents may use; staff may not use it. */
+const AGENT_HOME = '/view-lifeplan';
+
 /**
  * Dashboard route prefix -> the `access` column that guards it. Routes not
  * listed here (or in {@link ADMIN_ONLY_PATHS}) just require being logged in.
@@ -29,23 +32,31 @@ function accessPageFor(pathname: string): AccessPage | null {
 }
 
 /**
- * Guards a dashboard route: redirects to `/` if not signed in, or to
- * `/dashboard` if the route needs a role/access the user doesn't have.
+ * Guards a route: redirects to `/` if not signed in, or to the user's own
+ * home (`/dashboard` for staff, `/view-lifeplan` for life plan agents) if the
+ * route needs a role/access they don't have.
  *
  * Admins skip all page-level access checks.
  */
 export default function PageGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { status, isAdmin, access } = useAuth();
+  const { status, isAdmin, access, role } = useAuth();
   const { infoModal, showInfo } = useInfoModal();
 
+  const isAgent = role === 'lifeplan_agent';
+  const isAgentPath = pathname.startsWith(AGENT_HOME);
   const isAdminOnlyPath = ADMIN_ONLY_PATHS.some((p) => pathname.startsWith(p));
   const requiredPage = accessPageFor(pathname);
+
+  // Agents are quietly sent home; no error needed, it's just not their area.
+  const misplacedAgent = status === 'authenticated' && isAgent && !isAgentPath;
+
   const denied =
     status === 'authenticated' &&
-    ((isAdminOnlyPath && !isAdmin) ||
-      (!!requiredPage && !isAdmin && !access?.[requiredPage]));
+    ((isAgentPath && !isAgent) ||
+      (isAdminOnlyPath && !isAdmin) ||
+      (requiredPage !== null && !isAdmin && !access?.[requiredPage]));
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -57,6 +68,11 @@ export default function PageGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    if (misplacedAgent) {
+      router.replace(AGENT_HOME);
+      return;
+    }
+
     if (denied) {
       showInfo({
         title: 'Access denied',
@@ -64,9 +80,14 @@ export default function PageGuard({ children }: { children: React.ReactNode }) {
         severity: 'error',
       }).then(() => router.push('/dashboard'));
     }
-  }, [status, denied, router, showInfo]);
+  }, [status, denied, misplacedAgent, router, showInfo]);
 
-  if (status === 'loading' || status === 'unauthenticated' || denied)
+  if (
+    status === 'loading' ||
+    status === 'unauthenticated' ||
+    denied ||
+    misplacedAgent
+  )
     return (
       <div className="grow flex items-center justify-center bg-white">
         <span className="flex items-center gap-2 text-sm text-gray-500">

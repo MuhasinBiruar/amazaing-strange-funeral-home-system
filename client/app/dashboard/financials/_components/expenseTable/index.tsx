@@ -81,7 +81,7 @@ export default function ExpenseTable() {
       key: 'description',
       label: 'Description',
       widthClassName: 'w-full',
-      cellClassName: 'px-5 py-3 wrap-break-word font-medium text-gray-900',
+      cellClassName: 'px-5 py-3 wrap-break-word text-gray-900',
       render: (e) => e.description,
     },
     {

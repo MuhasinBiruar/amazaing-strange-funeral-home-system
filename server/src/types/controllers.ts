@@ -4,3 +4,5 @@ export type Locals = {
   session: NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
   auditAction?: string;
 };
+
+export type LifeplanAgentLocals = Locals & { agentCompanyId?: number };
