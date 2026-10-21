@@ -24,18 +24,39 @@ import { triggerNotificationSweep } from '@/lib/notifications';
 const router = Router();
 
 const SORT_COLUMNS: Record<keyof CasketDelivery, string> = {
-  deliveryid: 'deliveryid',
-  caskettype: 'caskettype',
-  quantityreceived: 'quantityreceived',
-  deliverydate: 'deliverydate',
-  casketid: 'casketid',
-  totalamountpaid: 'totalamountpaid',
+  deliveryid: 'cd.deliveryid',
+  quantityreceived: 'cd.quantityreceived',
+  deliverydate: 'cd.deliverydate',
+  casketid: 'cd.casketid',
+  totalamountpaid: 'cd.totalamountpaid',
+  caskettype: 'ci.caskettype',
+  caskettier: 'ci.caskettier',
+  unitcost: 'unitcost',
 };
+
+/**
+ * `casketdelivery` only stores `casketid`, so the casket's type and tier come
+ * from `casketinventory` (`casketid` is nullable, hence the `LEFT JOIN`).
+ */
+const SELECT_CASKET_DELIVERY = `
+  SELECT
+    cd.deliveryid,
+    cd.quantityreceived,
+    cd.deliverydate,
+    cd.casketid,
+    cd.totalamountpaid,
+    ci.caskettype,
+    ci.caskettier,
+    cd.totalamountpaid / NULLIF(cd.quantityreceived, 0) AS unitcost
+  FROM public.casketdelivery cd
+  LEFT JOIN public.casketinventory ci ON ci.casketid = cd.casketid
+` as const;
 
 /**
  * Sample URLs
  * `http://localhost:4000/deliveries/casket`
  * `http://localhost:4000/deliveries/casket?search=Mahogany`
+ * `http://localhost:4000/deliveries/casket?tier=High%20End`
  * `http://localhost:4000/deliveries/casket?startDate=2026-01-01&endDate=2026-12-31`
  * `http://localhost:4000/deliveries/casket?sortBy=totalamountpaid&sortOrder=asc&page=1&limit=20`
  */
@@ -44,8 +65,16 @@ router.get(
   requireAuth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { page, limit, search, startDate, endDate, sortBy, sortOrder } =
-        getCasketDeliveriesQuerySchema.parse(req.query);
+      const {
+        page,
+        limit,
+        search,
+        tier,
+        startDate,
+        endDate,
+        sortBy,
+        sortOrder,
+      } = getCasketDeliveriesQuerySchema.parse(req.query);
 
       // Start building `whereClause`
       const whereConditions: string[] = [];
@@ -53,19 +82,28 @@ router.get(
       let paramIndex = 1;
 
       if (search) {
-        whereConditions.push(`caskettype ILIKE $${paramIndex}`);
+        // Searches through: casketinventory.caskettype, casketinventory.caskettier
+        whereConditions.push(
+          `(ci.caskettype ILIKE $${paramIndex} OR ci.caskettier ILIKE $${paramIndex})`,
+        );
         queryParams.push(`%${search}%`);
         paramIndex++;
       }
 
+      if (tier) {
+        whereConditions.push(`ci.caskettier = $${paramIndex}`);
+        queryParams.push(tier);
+        paramIndex++;
+      }
+
       if (startDate) {
-        whereConditions.push(`deliverydate >= $${paramIndex}`);
+        whereConditions.push(`cd.deliverydate >= $${paramIndex}`);
         queryParams.push(startDate);
         paramIndex++;
       }
 
       if (endDate) {
-        whereConditions.push(`deliverydate < $${paramIndex}`);
+        whereConditions.push(`cd.deliverydate < $${paramIndex}`);
         queryParams.push(toExclusiveEndBound(endDate));
         paramIndex++;
       }
@@ -82,14 +120,16 @@ router.get(
       const [dataResult, countResult] = await withRepeatableRead(
         async (client) => {
           const dataQuery = `
-            SELECT * FROM casketdelivery
+            ${SELECT_CASKET_DELIVERY}
             ${whereClause}
-            ${orderByClause}
+            ${orderByClause}, cd.deliveryid DESC
             ${paginationClause}
           `;
 
           const countQuery = `
-            SELECT COUNT(*) as total FROM casketdelivery
+            SELECT COUNT(*) as total
+            FROM public.casketdelivery cd
+            LEFT JOIN public.casketinventory ci ON ci.casketid = cd.casketid
             ${whereClause}
           `;
 
@@ -127,7 +167,7 @@ router.get(
     try {
       const { id } = req.params as unknown as IdParam;
       const result = await pool.query(
-        'SELECT * FROM casketdelivery WHERE deliveryid = $1',
+        `${SELECT_CASKET_DELIVERY} WHERE cd.deliveryid = $1`,
         [id],
       );
       if (result.rows.length === 0) throw new NotFoundError();
@@ -140,8 +180,12 @@ router.get(
 );
 
 /**
- * Records a casket delivery and, if it's linked to an inventory item,
- * increments that casket's stock by the quantity received.
+ * Records a casket delivery and increments that casket's stock by the
+ * quantity received, in one transaction.
+ *
+ * @remarks
+ * Responds with a `warning` when the casket is still at or below its minimum
+ * threshold even after the delivery.
  */
 router.post(
   '/',
@@ -155,34 +199,32 @@ router.post(
     try {
       const parsed = req.body;
 
-      const delivery = await withTransaction(async (client) => {
-        if (parsed.casketid !== null) {
-          const casketResult = await client.query(
-            `SELECT caskettype FROM casketinventory WHERE casketid = $1 FOR UPDATE`,
-            [parsed.casketid],
-          );
-          if (casketResult.rows.length === 0) {
-            throw new NotFoundError('Referenced casket does not exist.');
-          }
-
-          await client.query(
-            `UPDATE casketinventory SET currentstock = currentstock + $1
-             WHERE casketid = $2`,
-            [parsed.quantityreceived, parsed.casketid],
-          );
+      const { delivery, warning } = await withTransaction(async (client) => {
+        const casketResult = await client.query(
+          `UPDATE casketinventory SET currentstock = currentstock + $1
+           WHERE casketid = $2
+           RETURNING caskettype, currentstock, minimumthreshold`,
+          [parsed.quantityreceived, parsed.casketid],
+        );
+        if (casketResult.rows.length === 0) {
+          throw new NotFoundError('Referenced casket does not exist.');
         }
 
-        const deliveryResult = await client.query(
+        const casket = casketResult.rows[0];
+        const warning =
+          casket.currentstock <= casket.minimumthreshold
+            ? `${casket.caskettype} is still at or below its minimum threshold (${casket.currentstock} in stock, minimum ${casket.minimumthreshold}).`
+            : null;
+
+        const insertResult = await client.query(
           `
           INSERT INTO casketdelivery (
-            caskettype,
             quantityreceived,
             deliverydate,
             casketid,
             totalamountpaid
-          ) VALUES ($1, $2, $3, $4, $5) RETURNING *;`,
+          ) VALUES ($1, $2, $3, $4) RETURNING deliveryid;`,
           [
-            parsed.caskettype,
             parsed.quantityreceived,
             parsed.deliverydate,
             parsed.casketid,
@@ -190,15 +232,21 @@ router.post(
           ],
         );
 
-        return deliveryResult.rows[0];
+        const deliveryResult = await client.query(
+          `${SELECT_CASKET_DELIVERY} WHERE cd.deliveryid = $1`,
+          [insertResult.rows[0].deliveryid],
+        );
+
+        return { delivery: deliveryResult.rows[0], warning };
       });
 
       triggerNotificationSweep();
 
-      res.locals.auditAction = `${res.locals.session.user.name} recorded a casket delivery: ${parsed.quantityreceived}x ${parsed.caskettype}`;
+      res.locals.auditAction = `${res.locals.session.user.name} recorded a casket delivery: ${parsed.quantityreceived}x ${delivery.caskettype}`;
 
       res.status(201).json({
         data: delivery,
+        warning,
       });
     } catch (error) {
       next(error);
