@@ -48,10 +48,13 @@ function CasketRow({
 }
 
 /**
- * Casket picker for the package builder. Caskets whose `caskettier` matches
- * the package's own `packagetype` are shown first (that's the natural fit),
- * but every casket stays visible and selectable below — staff can still
- * override it. Out-of-stock caskets are grayed out and unselectable.
+ * Casket picker for the package builder.
+ *
+ * @remarks
+ * Caskets whose `caskettier` matches the package's own `packagetype` are shown
+ * first (that's the natural fit), but every casket stays visible and selectable
+ * below - staff can still override it. Out-of-stock caskets are grayed out and
+ * unselectable.
  */
 export default function CasketPicker({
   packagetype,

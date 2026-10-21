@@ -7,10 +7,6 @@ import {
 import { API } from './api';
 import { isAxiosError } from 'axios';
 
-/**
- * Fetches deceased records that do not have a contract yet — the candidates
- * shown by the "New contract" picker.
- */
 export async function getUncontractedDeceased({
   page,
   limit,

@@ -161,8 +161,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
  *
  * @remarks
  * `verificationstatus` and `uploaddate` are left to their database defaults
- * (`'pending'`, `CURRENT_DATE`) rather than being accepted from the client —
- * a document is always freshly pending right after upload.
+ * (`'pending'`, `CURRENT_DATE`) rather than being accepted from the client.
  */
 router.post(
   '/',

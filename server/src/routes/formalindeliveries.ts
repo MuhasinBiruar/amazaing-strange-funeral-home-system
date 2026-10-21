@@ -163,10 +163,9 @@ router.get(
  * Records a formalin delivery and adds it to the current stock.
  *
  * @remarks
- * Formalin stock is a ledger: the newest `formalininventory` row (by `date`,
+ * Formalin stock is a ledger. The newest `formalininventory` row (by `date`,
  * then `formalinid`) is the current stock, and every change appends a new row
- * rather than editing an old one — the same as adding stock or recording
- * usage in `routes/formalininventory.ts`. So this locks the newest row, appends
+ * rather than editing an old one. So this locks the newest row, appends
  * a row with the delivery added (keeping the same minimum threshold), and
  * links the delivery to that new row.
  *

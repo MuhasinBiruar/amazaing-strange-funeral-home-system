@@ -272,7 +272,7 @@ async function applyRule(rule: Rule) {
  * @remarks
  * Condition-based rather than event-based, so it doesn't matter which code
  * path changed the data (an API route, a seed script, or a manual edit in
- * Supabase) — the next sweep catches it.
+ * Supabase) - the next sweep catches it.
  */
 export async function runNotificationSweep() {
   for (const rule of rules) {

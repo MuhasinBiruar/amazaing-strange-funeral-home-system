@@ -37,10 +37,7 @@ const STATUS_STYLES: Record<DocumentWithUrl['verificationstatus'], string> = {
 };
 
 /**
- * Shows every document uploaded for a case — images inline (click to expand
- * full-screen), PDFs as a view/download link since there's no in-panel PDF
- * renderer — plus a form to upload more. Reuses the same upload endpoint the
- * intake page uses.
+ * Shows every document uploaded for a case.
  */
 export default function DocumentsSection({
   caseid,
@@ -572,7 +569,7 @@ export default function DocumentsSection({
       {expandedImage &&
         createPortal(
           // Rendered to document.body: the panel's <aside> is `transition-transform`,
-          // which creates a containing block for `fixed` descendants — nested here,
+          // which creates a containing block for `fixed` descendants - nested here,
           // this would only fill the panel's own width, not the real viewport.
           <div
             role="dialog"

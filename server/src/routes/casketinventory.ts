@@ -85,10 +85,8 @@ router.get('/paginated', requireAuth, async (req, res, next) => {
 });
 
 /**
- * @description Get all packages for a specific casket
- * @param casketid - The ID of the casket
- * @returns A list of packages for the specified casket
- **/
+ * Get all packages for a specific casket.
+ */
 router.get(
   '/casket/:casketid/packages',
   requireAuth,

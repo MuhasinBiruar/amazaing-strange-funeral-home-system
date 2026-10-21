@@ -14,8 +14,8 @@ import ContractPanel from './contractPanel';
  * `useDynamicLimit` measurements valid while the panel is open.
  *
  * A `caseid` search param opens the panel for that specific record
- * immediately on mount — e.g. arriving here right after creating it in
- * intake — without waiting for it to be visible in (or clicked from) the
+ * immediately on mount - e.g. arriving here right after creating it in
+ * intake - without waiting for it to be visible in (or clicked from) the
  * table below. Read directly from the URL rather than threaded down as a
  * prop, matching how the parent page already treats `tab` as the source of
  * truth instead of component state.

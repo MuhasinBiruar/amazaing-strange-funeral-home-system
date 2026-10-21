@@ -55,14 +55,9 @@ router.get('/', requireAuth, async (_req, res, next) => {
 });
 
 /**
- * Deceased records that do not have a contract yet — the candidates for a new
- * contract. This is the complement of `GET /cases`, which inner-joins
- * `contract` and so only ever returns records that already have one.
- *
- * @remarks
- * Must stay registered *above* `GET /:id`. Express matches routes in order, so
- * declared after it, `without-contract` is captured as an `:id` and the
- * `caseid = $1` lookup fails on integer parsing.
+ * Deceased records that do not have a contract yet. This is the complement of
+ * `GET /cases`, which inner-joins `contract` and so only ever returns records
+ * that already have one.
  *
  * Sample URLs
  * `http://localhost:4000/deceasedrecords/without-contract`
