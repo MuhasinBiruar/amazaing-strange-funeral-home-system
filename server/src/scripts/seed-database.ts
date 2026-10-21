@@ -173,7 +173,7 @@ async function main() {
       lastName: values['last-name'],
     });
 
-  console.log('\nDone. Start the app with `npm run dev`.');
+  console.log('\nDone. Start the app with `npm run dev:all`.');
 }
 
 main()
