@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && tsdown",
     "start": "node dist/index.mjs",
     "lint": "eslint . --fix",
-    "create-superadmin": "tsx src/scripts/create-superadmin.ts"
+    "create-superadmin": "tsx src/scripts/create-superadmin.ts",
+    "seed": "tsx src/scripts/seed-database.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
