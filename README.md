@@ -99,7 +99,7 @@ npm run build:shared
 The password for the superadmin must be at least 8 characters and contain an uppercase letter, a lowercase letter, a number and a special character. Use double quotes.
 
 ```bash
-npm run seed -w server -- --password "Str0ng!Pass"
+npm run seed -w server -- --password 'Str0ng!Pass'
 ```
 
 Useful options (run with `--help` for the full list):
