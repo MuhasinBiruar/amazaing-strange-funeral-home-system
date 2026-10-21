@@ -12,12 +12,7 @@ import PackageSection from './packageSection';
 import type { ConfirmedPackage } from './packageSection/types';
 import LoadingButton from '@/components/loadingButton';
 import { useInfoModal } from '@/components/infoModal/useInfoModal';
-
-/** `<input type="date">` wants `yyyy-mm-dd` in the viewer's local time. */
-function toDateInputValue(date: Date) {
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 10);
-}
+import { toDateInputValue } from '@/utils/toDateInputValue';
 
 interface ContractForm {
   signeddate: string;

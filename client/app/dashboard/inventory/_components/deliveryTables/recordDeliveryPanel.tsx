@@ -20,12 +20,7 @@ import {
 } from '@/services/deliveryService';
 import { formatCurrency } from '@/utils/format';
 import type { DeliveryType } from '.';
-
-/** `<input type="date">` wants `yyyy-mm-dd` in the viewer's local time. */
-function toDateInputValue(date: Date) {
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 10);
-}
+import { toDateInputValue } from '@/utils/toDateInputValue';
 
 const formatLiters = (value: number) =>
   `${value.toLocaleString('en-US', { maximumFractionDigits: 2 })} L`;

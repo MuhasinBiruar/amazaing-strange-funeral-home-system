@@ -10,12 +10,7 @@ import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import LoadingButton from '@/components/loadingButton';
 import { createExpenseQuerySchema } from 'shared';
 import { fieldClass, labelClass } from '@/components/formStyles';
-
-/** `<input type="date">` wants `yyyy-mm-dd` in the viewer's local time. */
-function toDateInputValue(date: Date) {
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 10);
-}
+import { toDateInputValue } from '@/utils/toDateInputValue';
 
 /**
  * Slide-in panel for recording a general expense.
