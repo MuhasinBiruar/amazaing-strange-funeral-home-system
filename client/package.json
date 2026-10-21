@@ -17,17 +17,21 @@
     "primereact": "^10.9.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "date-fns": "^4.4.0",
+    "react-date-range": "^2.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-date-range": "^1.4.10",
     "eslint": "^9",
     "shared": "*",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "next": "^16.3.0"
   },
   "optionalDependencies": {
     "@tailwindcss/oxide-linux-x64-gnu": "^4.3.3"
