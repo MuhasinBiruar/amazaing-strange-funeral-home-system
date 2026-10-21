@@ -91,6 +91,8 @@ export default function DirectTable() {
           key={historyFor.caseid}
           caseid={historyFor.caseid}
           deceasedName={historyFor.deceased_name}
+          totalAmount={historyFor.totalamount}
+          totalPaid={historyFor.totalamountpaid}
           onClose={() => setHistoryFor(null)}
         />
       )}
@@ -100,6 +102,8 @@ export default function DirectTable() {
           key={`payment-${paymentFor.caseid}`}
           caseId={paymentFor.caseid}
           deceasedName={paymentFor.deceased_name}
+          totalAmount={paymentFor.totalamount}
+          totalPaid={paymentFor.totalamountpaid}
           onClose={() => setPaymentFor(null)}
           onSuccess={() => setRefreshKey((k) => k + 1)}
         />

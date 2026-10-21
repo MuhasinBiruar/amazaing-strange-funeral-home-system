@@ -40,9 +40,9 @@ const nonNegativeBigNumber = bigNumberSchema.refine((v) => Number(v) >= 0, {
 });
 
 /**
- * `transactionid` comes from the URL.
- * `amount`, `total_due` and `issuedate` are set by the server, which also
- * rejects the request unless the case is fully paid.
+ * The official-receipt part of a payment request.
+ * `amount`, `total_due` and `issuedate` are set by the server, and the
+ * server rejects it unless the payment fully settles the case.
  */
 export const createOfficialReceiptQuerySchema = z.object({
   ornumber: z.string().trim().min(1),
@@ -54,12 +54,4 @@ export const createOfficialReceiptQuerySchema = z.object({
 
 export type CreateOfficialReceiptQuery = z.infer<
   typeof createOfficialReceiptQuerySchema
->;
-
-export const createOfficialReceiptResponseSchema = z.object({
-  data: officialReceiptSchema,
-});
-
-export type CreateOfficialReceiptResponse = z.infer<
-  typeof createOfficialReceiptResponseSchema
 >;

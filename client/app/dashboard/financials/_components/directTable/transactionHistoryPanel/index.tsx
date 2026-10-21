@@ -3,10 +3,13 @@
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { formatCurrency, formatDate, titleCase } from '@/utils/format';
-import { getDirectTransactions } from '@/services/financialService';
+import {
+  getDirectTransactions,
+  getOfficialReceipts,
+} from '@/services/financialService';
 import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
-import type { Transaction } from 'shared';
+import type { Transaction, OfficialReceipt } from 'shared';
 
 /**
  * Slide-in panel listing every transaction on a Direct case, newest first.
@@ -14,16 +17,21 @@ import type { Transaction } from 'shared';
 export default function TransactionHistoryPanel({
   caseid,
   deceasedName,
+  totalAmount,
+  totalPaid,
   onClose,
 }: {
   caseid: number;
   deceasedName: string;
+  totalAmount: number | null;
+  totalPaid: number;
   onClose: () => void;
 }) {
   const { isShown, requestClose } = useSidePanel(onClose);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [receipts, setReceipts] = useState<OfficialReceipt[]>([]);
 
   useEffect(() => {
     const controller = new AbortController();

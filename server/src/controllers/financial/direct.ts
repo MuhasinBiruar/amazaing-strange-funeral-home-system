@@ -167,13 +167,18 @@ export async function createDirectTransaction(
 ) {
   try {
     const caseid = Number(req.params.id);
-    const { amount, paymentdatetime, paymentmethod, paymentcategory } =
+    const { amount, paymentdatetime, paymentmethod, paymentcategory, receipt } =
       req.body;
 
     const delta =
       paymentcategory === 'Refund'
         ? new BigNumber(amount).negated()
         : new BigNumber(amount);
+
+    if (receipt && paymentcategory === 'Refund')
+      throw new BadRequestError(
+        'An official receipt cannot be issued with a refund.',
+      );
 
     const transaction = await withTransaction(async (client) => {
       const caseResult = await client.query<{
@@ -201,6 +206,10 @@ export async function createDirectTransaction(
           'This case has no contract yet, so there is nothing to pay against.',
         );
 
+      const discount = new BigNumber(receipt?.pwd_discount ?? 0);
+      if (discount.isGreaterThan(totalamount))
+        throw new BadRequestError('Discount is larger than the total amount.');
+
       const paidResult = await client.query<{ paid: string }>(
         `SELECT COALESCE(SUM(
            CASE WHEN paymentcategory = 'Refund' THEN -amount ELSE amount END
@@ -220,6 +229,10 @@ export async function createDirectTransaction(
           `Payment is larger than the remaining balance (${remaining
             .plus(delta)
             .toFixed(2)}).`,
+        );
+      if (receipt && remaining.isGreaterThan(0))
+        throw new BadRequestError(
+          `An official receipt can only be issued once the case is fully paid (${remaining.toFixed(2)} would still be unpaid).`,
         );
 
       const insertResult = await client.query<Transaction>(
@@ -251,11 +264,43 @@ export async function createDirectTransaction(
         ],
       );
 
-      return insertResult.rows[0];
+      const created = insertResult.rows[0];
+
+      if (receipt) {
+        try {
+          await client.query(
+            `INSERT INTO public.officialreceipt (
+         ornumber, amount, issuedate, transactionid,
+         total_due, withholding_tax, tin, discount_id, pwd_discount
+       ) VALUES ($1, $2, NOW(), $3, $4, $5, $6, $7, $8)`,
+            [
+              receipt.ornumber,
+              new BigNumber(amount)
+                .integerValue(BigNumber.ROUND_CEIL)
+                .toFixed(),
+              created.transactionid,
+              new BigNumber(totalamount)
+                .minus(discount)
+                .integerValue(BigNumber.ROUND_CEIL)
+                .toFixed(),
+              receipt.withholding_tax,
+              receipt.tin,
+              receipt.discount_id,
+              receipt.pwd_discount,
+            ],
+          );
+        } catch (error) {
+          if ((error as { code?: string }).code === '23505')
+            throw new BadRequestError('That OR number is already used.');
+          throw error;
+        }
+      }
+
+      return created;
     });
 
     const deceasedName = await getDeceasedName(caseid);
-    res.locals.auditAction = `${res.locals.session.user.name} recorded a ${paymentcategory} of ${amount} for ${deceasedName}`;
+    res.locals.auditAction = `${res.locals.session.user.name} recorded a ${paymentcategory} of ${amount} for ${deceasedName}${receipt ? ` (OR ${receipt.ornumber})` : ''}`;
 
     res.status(201).json({ data: transaction });
   } catch (error) {
