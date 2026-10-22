@@ -1,6 +1,6 @@
 import z from 'zod';
 import {
-  paginationQuerySchema,
+  dateFilteredPaginationQuerySchema,
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
 
@@ -39,25 +39,15 @@ export type CreateCasketDeliveryQuery = z.infer<
   typeof createCasketDeliveryQuerySchema
 >;
 
-export const getCasketDeliveriesQuerySchema = paginationQuerySchema
-  .extend({
+export const getCasketDeliveriesQuerySchema = z.intersection(
+  dateFilteredPaginationQuerySchema,
+  z.object({
     search: z.string().optional(),
     tier: z.string().optional(),
-    startDate: z.coerce.date().optional(),
-    endDate: z.iso.datetime().or(z.iso.date()).optional(),
     sortBy: z.keyof(casketDeliverySchema).default('deliverydate'),
     sortOrder: z.enum(['asc', 'desc']).default('desc'),
-  })
-  .refine(
-    (data) =>
-      !data.startDate ||
-      !data.endDate ||
-      data.startDate <= new Date(data.endDate),
-    {
-      message: 'endDate must be on or after startDate.',
-      path: ['endDate'],
-    },
-  );
+  }),
+);
 
 export type GetCasketDeliveriesQuery = z.infer<
   typeof getCasketDeliveriesQuerySchema

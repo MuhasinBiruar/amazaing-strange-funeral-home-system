@@ -1,6 +1,6 @@
 import z from 'zod';
 import {
-  paginationQuerySchema,
+  dateFilteredPaginationQuerySchema,
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
 
@@ -40,24 +40,14 @@ export type CreateFormalinDeliveryQuery = z.infer<
   typeof createFormalinDeliveryQuerySchema
 >;
 
-export const getFormalinDeliveriesQuerySchema = paginationQuerySchema
-  .extend({
+export const getFormalinDeliveriesQuerySchema = z.intersection(
+  dateFilteredPaginationQuerySchema,
+  z.object({
     search: z.string().optional(),
-    startDate: z.coerce.date().optional(),
-    endDate: z.iso.datetime().or(z.iso.date()).optional(),
     sortBy: z.keyof(formalinDeliverySchema).default('deliverydate'),
     sortOrder: z.enum(['asc', 'desc']).default('desc'),
-  })
-  .refine(
-    (data) =>
-      !data.startDate ||
-      !data.endDate ||
-      data.startDate <= new Date(data.endDate),
-    {
-      message: 'endDate must be on or after startDate.',
-      path: ['endDate'],
-    },
-  );
+  }),
+);
 
 export type GetFormalinDeliveriesQuery = z.infer<
   typeof getFormalinDeliveriesQuerySchema

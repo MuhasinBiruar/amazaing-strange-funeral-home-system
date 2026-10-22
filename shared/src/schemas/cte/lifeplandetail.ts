@@ -1,6 +1,6 @@
 import z from 'zod';
 import {
-  paginationQuerySchema,
+  dateFilteredPaginationQuerySchema,
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
 import { lifeplanSchema } from '../db/lifeplan';
@@ -22,25 +22,15 @@ export const getLifeplansQueryRowSchema = lifeplanSchema.extend({
 
 export type GetLifeplansQueryRow = z.infer<typeof getLifeplansQueryRowSchema>;
 
-export const getLifeplansQuerySchema = paginationQuerySchema
-  .extend({
+export const getLifeplansQuerySchema = z.intersection(
+  dateFilteredPaginationQuerySchema,
+  z.object({
     search: z.string().optional(),
     companyid: z.coerce.number().int().positive().optional(),
-    startDate: z.coerce.date().optional(),
-    endDate: z.iso.datetime().or(z.iso.date()).optional(),
     sortBy: z.keyof(getLifeplansQueryRowSchema).default('planid'),
     sortOrder: z.enum(['asc', 'desc']).default('asc'),
-  })
-  .refine(
-    (data) =>
-      !data.startDate ||
-      !data.endDate ||
-      data.startDate <= new Date(data.endDate),
-    {
-      message: 'endDate must be on or after startDate.',
-      path: ['endDate'],
-    },
-  );
+  }),
+);
 
 export type GetLifeplansQuery = z.infer<typeof getLifeplansQuerySchema>;
 
