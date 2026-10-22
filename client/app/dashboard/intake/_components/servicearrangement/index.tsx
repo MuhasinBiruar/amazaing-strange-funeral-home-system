@@ -1,43 +1,18 @@
+import CompanySearchSelect from '@/components/companySearchSelect';
 import { AlertCircle } from 'lucide-react';
-import type { LifeplanCompanyAggregate } from 'shared';
-import DataTable from '@/components/dataTable';
-import type { DataTableColumn } from '@/components/dataTable/types';
-import { getLifeplanCompanies } from '@/services/lifeplansService';
-
-interface ServiceArrangementProps {
-  data: Record<string, string | undefined>;
-  onChange: (field: string, value: string) => void;
-  errors?: Record<string, string>;
-}
-
-type CompanyColumnKey = keyof LifeplanCompanyAggregate;
-
-const COMPANY_COLUMNS: DataTableColumn<
-  LifeplanCompanyAggregate,
-  CompanyColumnKey
->[] = [
-  {
-    key: 'companyname',
-    label: 'Lifeplan',
-    render: (company) => company.companyname,
-  },
-  {
-    key: 'contactinfo',
-    label: 'Contact info',
-    render: (company) => company.contactinfo ?? 'No contacts provided',
-  },
-  {
-    key: 'minimumthreshold',
-    label: 'Minimum threshold',
-    render: (company) => company.minimumthreshold.toLocaleString(),
-  },
-];
+import { useState } from 'react';
 
 export default function ServiceArrangement({
   data,
   onChange,
   errors = {},
-}: ServiceArrangementProps) {
+}: {
+  data: Record<string, string | undefined>;
+  onChange: (field: string, value: string) => void;
+  errors?: Record<string, string>;
+}) {
+  const [companyName, setCompanyName] = useState('');
+
   return (
     <section className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
       <h2 className="text-lg font-bold text-gray-900 mb-4">
@@ -72,27 +47,21 @@ export default function ServiceArrangement({
             <label className="block text-xs font-semibold text-gray-700 mb-1">
               LIFE PLAN COMPANY
             </label>
-            <DataTable<LifeplanCompanyAggregate, CompanyColumnKey>
-              title="Available lifeplan companies"
-              countLabel={(total) => `${total} companies`}
-              searchPlaceholder="Search companies..."
-              columns={COMPANY_COLUMNS}
-              rowKey={(company) => company.companyid}
-              defaultSortBy="companyname"
-              defaultSortOrder="asc"
-              fetchData={({ filters: _filters, ...params }) =>
-                getLifeplanCompanies(params)
-              }
-              onRowClick={(company) =>
-                onChange('lifeplancompanyid', String(company.companyid))
-              }
-              isRowSelected={(company) =>
-                data.lifeplancompanyid === String(company.companyid)
-              }
-              emptyMessage="No lifeplan companies found."
-              loadErrorMessage="Could not load lifeplan companies. Try again."
-              bodyOffsetClassName="top-12"
-            />
+            <div id="lifeplancompanyid">
+              <CompanySearchSelect
+                companyid={
+                  data.lifeplancompanyid!.length === 0
+                    ? null
+                    : Number.parseInt(data.lifeplancompanyid!)
+                }
+                companyname={companyName}
+                onChange={(c) => {
+                  onChange('lifeplancompanyid', c.companyid.toFixed(0));
+                  setCompanyName(c.companyname);
+                }}
+                error={errors.companyid}
+              />
+            </div>
             {errors.lifeplancompanyid && (
               <p className="text-red-700 text-xs font-bold mt-1">
                 {errors.lifeplancompanyid}
@@ -190,8 +159,8 @@ export default function ServiceArrangement({
                 Use life plan casket/benefits
               </span>
               <span className="block text-xs text-gray-600">
-                Clear this if the representative will upgrade to a package
-                above the plan&apos;s covered amount.
+                Clear this if the representative will upgrade to a package above
+                the plan&apos;s covered amount.
               </span>
             </span>
           </label>
