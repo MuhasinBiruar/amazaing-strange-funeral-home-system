@@ -20,18 +20,16 @@ const SORT_COLUMNS: Record<keyof GetLifeplansQueryRow, string> = {
   datecreated: 'dr.datecreated',
 };
 
-export const getLifeplans = async (query: GetLifeplansQuery) => {
-  const {
-    page,
-    limit,
-    search,
-    companyid,
-    startDate,
-    endDate,
-    sortBy,
-    sortOrder,
-  } = query;
-
+export const getLifeplans = async ({
+  page,
+  limit,
+  search,
+  companyid,
+  startDate,
+  endDate,
+  sortBy,
+  sortOrder,
+}: GetLifeplansQuery) => {
   const selectClause = `
     SELECT 
       l.planid,
