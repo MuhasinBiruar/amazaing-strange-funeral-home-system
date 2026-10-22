@@ -117,7 +117,7 @@ export default function FormalinRecordPanel({
         formalinid: inventory.formalinid,
       });
 
-      onSaved(result.warning);
+      onSaved(result.meta.warning);
       requestClose();
     } catch (requestError) {
       const responseData = (
