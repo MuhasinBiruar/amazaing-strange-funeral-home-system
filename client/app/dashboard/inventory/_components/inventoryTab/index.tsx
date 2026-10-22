@@ -22,7 +22,7 @@ import FormalinArea from './formalinArea';
 type ColumnKey = GetPaginatedCasketInventoryQuery['sortBy'] | 'manage';
 
 /** Displays casket inventory alongside formalin stock and history controls. */
-export default function CasketTable() {
+export default function InventoryTab() {
   const [historyFor, setHistoryFor] = useState<CasketInventoryTable[] | null>(
     null,
   );

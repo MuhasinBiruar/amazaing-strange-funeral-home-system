@@ -1,6 +1,6 @@
 import {
-  formalinInventoryResponseSchema,
-  formalinUsageResponseSchema,
+  getFormalinInventoryResponseSchema,
+  createFormalinUsageResponseSchema,
   getFormalinUsageSummaryResponseSchema,
   getFormalinUsageResponseSchema,
   type CreateFormalinUsage,
@@ -14,14 +14,7 @@ export async function getFormalinInventory(signal?: AbortSignal) {
     withCredentials: true,
     signal,
   });
-  return formalinInventoryResponseSchema.parse(result.data).data;
-}
-
-export async function recordFormalinUsage(payload: CreateFormalinUsage) {
-  const result = await API.post('/formalininventory/usage', payload, {
-    withCredentials: true,
-  });
-  return formalinUsageResponseSchema.parse(result.data);
+  return getFormalinInventoryResponseSchema.parse(result.data).data;
 }
 
 export async function getFormalinUsageHistory({
@@ -42,6 +35,13 @@ export async function getFormalinUsageHistory({
     signal,
   });
   return getFormalinUsageResponseSchema.parse(result.data);
+}
+
+export async function recordFormalinUsage(payload: CreateFormalinUsage) {
+  const result = await API.post('/formalininventory/usage', payload, {
+    withCredentials: true,
+  });
+  return createFormalinUsageResponseSchema.parse(result.data);
 }
 
 export async function getFormalinUsageSummary({

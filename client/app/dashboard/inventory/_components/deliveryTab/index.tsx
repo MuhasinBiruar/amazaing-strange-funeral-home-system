@@ -19,7 +19,7 @@ const TYPES: { key: DeliveryType; label: string }[] = [
  * the financials page uses for its Direct / LGU / Life Plan logs. "Record
  * delivery" records an incoming delivery of whichever type is showing.
  */
-export default function DeliveryTables({
+export default function DeliveryTab({
   type,
   onTypeChange,
 }: {

@@ -47,13 +47,10 @@ export async function getCasketInventoryById(
   casketid: number,
   signal?: AbortSignal,
 ) {
-  const result = await API.get(
-    `/casketinventory/casket/${casketid}/deliveryhistory`,
-    {
-      withCredentials: true,
-      signal,
-    },
-  );
+  const result = await API.get(`/casketinventory/${casketid}/deliveryhistory`, {
+    withCredentials: true,
+    signal,
+  });
   return result.data.data;
 }
 
@@ -61,7 +58,7 @@ export async function getCasketPackages(
   casketid: number,
   signal?: AbortSignal,
 ) {
-  const result = await API.get(`/casketinventory/casket/${casketid}/packages`, {
+  const result = await API.get(`/casketinventory/${casketid}/packages`, {
     withCredentials: true,
     signal,
   });

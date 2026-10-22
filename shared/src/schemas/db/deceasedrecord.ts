@@ -16,8 +16,7 @@ export const createDeceasedRecordQuerySchema = z.object({
   dateofdeath: withNullDefault(z.coerce.date()),
   managedby: withNullDefault(z.string().min(1)),
   representedby: withNullDefault(z.int32()),
-  // Optional, not `.default(false)`: a default would also apply inside the
-  // `.partial()` update schema and reset the flag on unrelated PATCHes.
+  // Setting a default would reset the flag on unrelated PATCHes.
   hasadvanceddecomposition: z.boolean().optional(),
 });
 
