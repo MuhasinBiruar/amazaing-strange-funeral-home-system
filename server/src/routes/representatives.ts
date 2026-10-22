@@ -63,7 +63,7 @@ router.post(
   ) => {
     try {
       const parsed = req.body;
-      const result = await pool.query(
+      const result = await pool.query<Representative>(
         `
         INSERT INTO representative (
           firstname,
@@ -73,7 +73,7 @@ router.post(
           contactnumber,
           address,
           datecreated
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING representativeid;`,
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;`,
         [
           parsed.firstname,
           parsed.middlename,
@@ -190,7 +190,6 @@ router.delete(
 
       res.json({
         data: deleted,
-        message: 'Rollback successful: Representative deleted.',
       });
     } catch (error) {
       next(error);

@@ -38,7 +38,7 @@ export const createDeceasedRecord = async (
   try {
     const parsed = req.body;
     const managedby = res.locals.session.user.id;
-    const result = await pool.query(
+    const result = await pool.query<DeceasedRecord>(
       `
       INSERT INTO deceasedrecord (
         firstname,
@@ -56,7 +56,7 @@ export const createDeceasedRecord = async (
         representedby,
         hasadvanceddecomposition
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-      RETURNING caseid;`,
+      RETURNING *;`,
       [
         parsed.firstname,
         parsed.middlename,
