@@ -13,8 +13,12 @@ type ColumnKey = keyof GetLifeplansQueryRow;
 
 export default function LifeplanTable() {
   const [refreshKey, setRefreshKey] = useState(0);
-  const [historyFor, setHistoryFor] = useState<GetLifeplansQueryRow | null>(null);
-  const [paymentFor, setPaymentFor] = useState<GetLifeplansQueryRow | null>(null);
+  const [historyFor, setHistoryFor] = useState<GetLifeplansQueryRow | null>(
+    null,
+  );
+  const [paymentFor, setPaymentFor] = useState<GetLifeplansQueryRow | null>(
+    null,
+  );
 
   const columns: DataTableColumn<GetLifeplansQueryRow, ColumnKey>[] = [
     {
@@ -118,6 +122,8 @@ export default function LifeplanTable() {
           key={historyFor.caseid}
           caseid={historyFor.caseid}
           deceasedName={historyFor.deceased_name}
+          totalAmount={historyFor.totalamount}
+          totalPaid={historyFor.totalamountpaid}
           onClose={() => setHistoryFor(null)}
         />
       )}
@@ -126,6 +132,8 @@ export default function LifeplanTable() {
           key={`payment-${paymentFor.caseid}`}
           caseId={paymentFor.caseid}
           deceasedName={paymentFor.deceased_name}
+          totalAmount={paymentFor.totalamount}
+          totalPaid={paymentFor.totalamountpaid}
           onClose={() => setPaymentFor(null)}
           onSuccess={() => setRefreshKey((k) => k + 1)}
         />
