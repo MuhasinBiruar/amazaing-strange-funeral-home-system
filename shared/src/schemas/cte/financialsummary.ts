@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { bigNumberSchema } from '@/utils/big-number-schema';
 import { dateUnitEnum } from '@/utils/date-unit-enum';
-import { dateFilteredPaginationQuerySchema } from '@/utils/pagination-schema';
+import { dateFilteredQuerySchema } from '@/utils';
 
 export const getFinancialSummaryQuerySchema = z.intersection(
-  dateFilteredPaginationQuerySchema,
+  dateFilteredQuerySchema,
   z.object({
     unit: dateUnitEnum.default('month'),
     interval: z.coerce.number().int().min(1).max(1000).default(1),
