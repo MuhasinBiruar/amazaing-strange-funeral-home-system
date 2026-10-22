@@ -3,11 +3,11 @@
 import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import z from 'zod';
-import CasketTable from './_components/casketTable';
-import DeliveryTables, {
+import InventoryTab from './_components/inventoryTab';
+import DeliveryTab, {
   deliveryTypeEnum,
   type DeliveryType,
-} from './_components/deliveryTables';
+} from './_components/deliveryTab';
 
 const tabEnum = z.enum(['inventory', 'delivery']).catch('inventory');
 type Tab = z.infer<typeof tabEnum>;
@@ -17,14 +17,6 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'delivery', label: 'Delivery' },
 ];
 
-/**
- * @remarks
- * The active tab lives in the `tab` query parameter rather than in component
- * state, so the view survives a reload and is linkable
- * (e.g. `/dashboard/inventory?tab=delivery`). The Delivery tab's casket /
- * formalin toggle lives in `type` the same way
- * (e.g. `/dashboard/inventory?tab=delivery&type=formalin`).
- */
 function InventoryPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -74,12 +66,9 @@ function InventoryPageContent() {
           </div>
         </div>
         {activeTab === 'delivery' ? (
-          <DeliveryTables
-            type={deliveryType}
-            onTypeChange={changeDeliveryType}
-          />
+          <DeliveryTab type={deliveryType} onTypeChange={changeDeliveryType} />
         ) : (
-          <CasketTable />
+          <InventoryTab />
         )}
       </main>
     </div>
