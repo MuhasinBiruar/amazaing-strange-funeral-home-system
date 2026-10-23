@@ -94,7 +94,7 @@ export async function createDirectTransaction(
 
 export async function createLguCase(payload: CreateLguCaseQuery) {
   try {
-    await API.post('/financial/lgucases', payload);
+    await API.post('/lgucases', payload);
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.data?.error?.message)
       throw new Error(extractErrorMessage(error.response.data));

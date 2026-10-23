@@ -99,6 +99,7 @@ export function useSubmitIntake(
           reimbursementstatus: 'pending',
           reimbursementamount: Number(formData.lgu_reimbursementamount),
           caseid: generatedCaseId,
+          lguid: Number(formData.lguid),
         });
       }
 

@@ -24,6 +24,7 @@ import formalinInventoryRouter from './routes/formalininventory';
 import lifeplansRouter from './routes/lifeplans';
 import expensesRouter from './routes/expenses';
 import lguCasesRouter from './routes/lgucases';
+import lgusRouter from './routes/lgus';
 import auditLogsRouter from './routes/auditlogs';
 
 const app = express();
@@ -58,6 +59,7 @@ app.use('/contracts', contractsRouter);
 app.use('/packages', packagesRouter);
 app.use('/cases', casesRouter);
 app.use('/lgucases', lguCasesRouter);
+app.use('/lgus', lgusRouter);
 app.use('/lifeplans', lifeplansRouter);
 app.use('/casketinventory', casketInventoryRouter);
 app.use('/deliveries/casket', casketDeliveriesRouter);
