@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { startNotificationCleanupScheduler } from './lib/notification-cleanup.js';
-import { startNotificationScheduler } from './lib/notifications.js';
+import { startNotificationCleanupScheduler } from './lib/notification-cleanup';
+import { startNotificationScheduler } from './lib/notifications';
 import app from './app';
 import pool from './db';
 
