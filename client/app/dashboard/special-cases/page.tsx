@@ -4,16 +4,33 @@ import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import z from 'zod';
 import LifeplanCompanyTable from './_components/life-plan/lifeplanCompanyTable';
+import LguTable from './_components/lgu/lguTable';
 
-const tabEnum = z.enum(['inventory', 'delivery']).catch('inventory');
+const tabEnum = z.enum(['lifeplan', 'lgu']).catch('lifeplan');
 type Tab = z.infer<typeof tabEnum>;
 
 const TABS: { key: Tab; label: string }[] = [
-  { key: 'inventory', label: 'Inventory' },
-  { key: 'delivery', label: 'Delivery' },
+  { key: 'lifeplan', label: 'Life Plan' },
+  { key: 'lgu', label: 'LGU' },
 ];
 
+/**
+ * @remarks
+ * The active tab lives in the `tab` query parameter rather than in component
+ * state, so the view survives a reload and is linkable
+ * (e.g. `/dashboard/special-cases?tab=lgu`).
+ */
 function SpecialCasesPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const activeTab = tabEnum.parse(searchParams.get('tab'));
+  const changeTab = (tabName: Tab) => {
+    router.replace(`/dashboard/special-cases?tab=${tabName}`, {
+      scroll: false,
+    });
+  };
+
   return (
     <div className="flex-1 bg-gray-50 flex flex-col">
       <main className="flex-1 w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -26,7 +43,25 @@ function SpecialCasesPageContent() {
           </h1>
           <p className="text-sm text-gray-500 mt-1">Manage special cases.</p>
         </div>
-        <LifeplanCompanyTable />
+
+        <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+          <div className="flex border-b border-gray-200 px-2">
+            {TABS.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => changeTab(key)}
+                className={`px-4 py-3 text-sm font-medium border-b-2 transition cursor-pointer ${
+                  activeTab === key
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {activeTab === 'lgu' ? <LguTable /> : <LifeplanCompanyTable />}
       </main>
     </div>
   );

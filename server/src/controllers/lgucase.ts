@@ -17,6 +17,7 @@ const SORT_COLUMNS: Record<keyof GetLguCasesRow, string> = {
   reimbursementstatus: 'lc.reimbursementstatus',
   reimbursementamount: 'lc.reimbursementamount',
   caseid: 'lc.caseid',
+  lguid: 'lc.lguid',
   deceased_name: 'deceased_name',
 };
 
@@ -32,9 +33,15 @@ export async function createLguCase(
         INSERT INTO lgucase (
           reimbursementstatus,
           reimbursementamount,
-          caseid
-        ) VALUES ($1, $2, $3) RETURNING lgucaseid;`,
-      [parsed.reimbursementstatus, parsed.reimbursementamount, parsed.caseid],
+          caseid,
+          lguid
+        ) VALUES ($1, $2, $3, $4) RETURNING lgucaseid;`,
+      [
+        parsed.reimbursementstatus,
+        parsed.reimbursementamount,
+        parsed.caseid,
+        parsed.lguid,
+      ],
     );
 
     const deceasedName = await getDeceasedName(parsed.caseid);
@@ -63,6 +70,7 @@ export async function getLguCases(
           lc.reimbursementstatus,
           lc.reimbursementamount,
           lc.caseid AS caseid,
+          lc.lguid,
           CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name
       `;
 
@@ -153,13 +161,15 @@ export async function updateLguCase(
     const result = await pool.query(
       `UPDATE lgucase SET
         reimbursementstatus = COALESCE($1, reimbursementstatus),
-        reimbursementamount = COALESCE($2, reimbursementamount)
+        reimbursementamount = COALESCE($2, reimbursementamount),
+        lguid = COALESCE($4, lguid)
       WHERE lgucaseid = $3
       RETURNING *`,
       [
         parsed.reimbursementstatus ?? null,
         parsed.reimbursementamount ?? null,
         id,
+        parsed.lguid ?? null,
       ],
     );
 

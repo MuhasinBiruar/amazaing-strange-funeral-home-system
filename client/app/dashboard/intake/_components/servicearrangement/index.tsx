@@ -1,4 +1,5 @@
 import CompanySearchSelect from '@/components/companySearchSelect';
+import LguSearchSelect from '@/components/lguSearchSelect';
 import { AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
@@ -12,6 +13,7 @@ export default function ServiceArrangement({
   errors?: Record<string, string>;
 }) {
   const [companyName, setCompanyName] = useState('');
+  const [lguName, setLguName] = useState('');
 
   return (
     <section className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
@@ -177,6 +179,31 @@ export default function ServiceArrangement({
 
       {data.plantype === 'LGU' && (
         <div className="animate-fade-in-down space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              LGU
+            </label>
+            <div id="lguid">
+              <LguSearchSelect
+                lguid={
+                  !data.lguid || data.lguid.length === 0
+                    ? null
+                    : Number.parseInt(data.lguid)
+                }
+                lguname={lguName}
+                onChange={(l) => {
+                  onChange('lguid', l.lguid.toFixed(0));
+                  setLguName(l.lguname);
+                }}
+              />
+            </div>
+            {errors.lguid && (
+              <p className="text-red-700 text-xs font-bold mt-1">
+                {errors.lguid}
+              </p>
+            )}
+          </div>
+
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1">
               REIMBURSEMENT STATUS
