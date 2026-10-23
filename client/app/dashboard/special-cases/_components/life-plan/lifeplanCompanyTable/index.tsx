@@ -1,11 +1,13 @@
 'use client';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import DataTable from '@/components/dataTable';
 import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import type { LifeplanCompanyAggregate } from 'shared';
 import { getLifeplanCompanies } from '@/services/lifeplansService';
 import DateRangePicker from '@/app/dashboard/financials/_components/summaryPanel/dateRangePicker';
+import CreateLifeplanCompanyPanel from './createLifeplanCompanyPanel';
 
 type ColumnKey = keyof LifeplanCompanyAggregate;
 
@@ -53,9 +55,21 @@ export default function LifeplanCompanyTable() {
     endDate?: string;
   }>({});
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isCreating, setIsCreating] = useState(false);
 
   return (
     <>
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setIsCreating(true)}
+          className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition cursor-pointer shadow-sm"
+        >
+          <Plus size={16} />
+          Add Company
+        </button>
+      </div>
+
       <DataTable<LifeplanCompanyAggregate, ColumnKey>
         title="Life plan companies"
         columns={COLUMNS}
@@ -83,6 +97,16 @@ export default function LifeplanCompanyTable() {
         emptyMessage="No life plan companies match your search."
         loadErrorMessage="Could not load life plan companies. Try again."
       />
+
+      {isCreating && (
+        <CreateLifeplanCompanyPanel
+          onClose={() => setIsCreating(false)}
+          onSuccess={() => {
+            setIsCreating(false);
+            setRefreshKey((key) => key + 1);
+          }}
+        />
+      )}
     </>
   );
 }

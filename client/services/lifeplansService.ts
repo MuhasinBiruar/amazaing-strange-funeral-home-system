@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {
   type CreateLifeplanQuery,
   type GetLifeplansQuery,
@@ -7,6 +8,7 @@ import {
   type CreateLifeplanCompanyQuery,
 } from 'shared';
 import { API } from './api';
+import { extractErrorMessage } from './utils/extractErrorMessage';
 
 export async function getLifeplans({
   page,
@@ -93,8 +95,14 @@ export async function getLifeplanCompanies({
 }
 
 export async function createLifeplanCompany(data: CreateLifeplanCompanyQuery) {
-  const result = await API.post('/lifeplans/companies', data, {
-    withCredentials: true,
-  });
-  return result.data;
+  try {
+    const result = await API.post('/lifeplans/companies', data, {
+      withCredentials: true,
+    });
+    return result.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.error?.message)
+      throw new Error(extractErrorMessage(error.response.data));
+    throw error;
+  }
 }
