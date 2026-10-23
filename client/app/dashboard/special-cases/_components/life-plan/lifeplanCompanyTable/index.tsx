@@ -3,10 +3,13 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import DataTable from '@/components/dataTable';
 import { formatCurrency } from '@/utils/format';
-import type { DataTableColumn } from '@/components/dataTable/types';
+import type {
+  DataTableColumn,
+  DateRangeValue,
+  FilterDef,
+} from '@/components/dataTable/types';
 import type { LifeplanCompanyAggregate } from 'shared';
 import { getLifeplanCompanies } from '@/services/lifeplansService';
-import DateRangePicker from '@/app/dashboard/financials/_components/summaryPanel/dateRangePicker';
 import CreateLifeplanCompanyPanel from './createLifeplanCompanyPanel';
 
 type ColumnKey = keyof LifeplanCompanyAggregate;
@@ -49,11 +52,23 @@ const COLUMNS: DataTableColumn<LifeplanCompanyAggregate, ColumnKey>[] = [
   },
 ];
 
+type Filters = {
+  dateRange: DateRangeValue;
+};
+
+const DEFAULT_FILTERS: Filters = {
+  dateRange: { from: null, to: null },
+};
+
+const FILTERS: FilterDef<Filters>[] = [
+  {
+    type: 'dateRange',
+    key: 'dateRange',
+    label: 'Filter by date created',
+  },
+];
+
 export default function LifeplanCompanyTable() {
-  const [dateRange, setDateRange] = useState<{
-    startDate?: string;
-    endDate?: string;
-  }>({});
   const [refreshKey, setRefreshKey] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -70,28 +85,22 @@ export default function LifeplanCompanyTable() {
         </button>
       </div>
 
-      <DataTable<LifeplanCompanyAggregate, ColumnKey>
+      <DataTable<LifeplanCompanyAggregate, ColumnKey, Filters>
         title="Life plan companies"
         columns={COLUMNS}
         countLabel={(total) => `${total} companies`}
         searchPlaceholder="Search company..."
+        filters={FILTERS}
+        defaultFilters={DEFAULT_FILTERS}
         rowKey={(row) => row.companyid}
         defaultSortBy="companyname"
         defaultSortOrder="asc"
-        fetchData={({ filters: _filters, ...params }) =>
+        fetchData={({ filters, ...params }) =>
           getLifeplanCompanies({
             ...params,
-            startDate: dateRange.startDate,
-            endDate: dateRange.endDate,
+            startDate: filters.dateRange.from ?? undefined,
+            endDate: filters.dateRange.to ?? undefined,
           })
-        }
-        additionalFilterSlot={
-          <DateRangePicker
-            onApply={(startDate, endDate) => {
-              setDateRange({ startDate, endDate });
-              setRefreshKey((key) => key + 1);
-            }}
-          />
         }
         refreshKey={refreshKey}
         emptyMessage="No life plan companies match your search."

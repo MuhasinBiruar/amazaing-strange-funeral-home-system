@@ -3,10 +3,13 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import DataTable from '@/components/dataTable';
 import { formatCurrency } from '@/utils/format';
-import type { DataTableColumn } from '@/components/dataTable/types';
+import type {
+  DataTableColumn,
+  DateRangeValue,
+  FilterDef,
+} from '@/components/dataTable/types';
 import type { LguAggregate } from 'shared';
 import { getLgus } from '@/services/lgusService';
-import DateRangePicker from '@/app/dashboard/financials/_components/summaryPanel/dateRangePicker';
 import CreateLguPanel from './createLguPanel';
 
 type ColumnKey = keyof LguAggregate;
@@ -42,12 +45,24 @@ const COLUMNS: DataTableColumn<LguAggregate, ColumnKey>[] = [
   },
 ];
 
+type Filters = {
+  dateRange: DateRangeValue;
+};
+
+const DEFAULT_FILTERS: Filters = {
+  dateRange: { from: null, to: null },
+};
+
+const FILTERS: FilterDef<Filters>[] = [
+  {
+    type: 'dateRange',
+    key: 'dateRange',
+    label: 'Filter by date created',
+  },
+];
+
 /** The LGU counterpart of `LifeplanCompanyTable`, without a minimum threshold. */
 export default function LguTable() {
-  const [dateRange, setDateRange] = useState<{
-    startDate?: string;
-    endDate?: string;
-  }>({});
   const [refreshKey, setRefreshKey] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -64,28 +79,22 @@ export default function LguTable() {
         </button>
       </div>
 
-      <DataTable<LguAggregate, ColumnKey>
+      <DataTable<LguAggregate, ColumnKey, Filters>
         title="LGUs"
         columns={COLUMNS}
         countLabel={(total) => `${total} LGUs`}
         searchPlaceholder="Search LGU..."
+        filters={FILTERS}
+        defaultFilters={DEFAULT_FILTERS}
         rowKey={(row) => row.lguid}
         defaultSortBy="lguname"
         defaultSortOrder="asc"
-        fetchData={({ filters: _filters, ...params }) =>
+        fetchData={({ filters, ...params }) =>
           getLgus({
             ...params,
-            startDate: dateRange.startDate,
-            endDate: dateRange.endDate,
+            startDate: filters.dateRange.from ?? undefined,
+            endDate: filters.dateRange.to ?? undefined,
           })
-        }
-        additionalFilterSlot={
-          <DateRangePicker
-            onApply={(startDate, endDate) => {
-              setDateRange({ startDate, endDate });
-              setRefreshKey((key) => key + 1);
-            }}
-          />
         }
         refreshKey={refreshKey}
         emptyMessage="No LGUs match your search."
