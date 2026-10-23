@@ -5,7 +5,7 @@ interface LoadingButtonProps extends Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   'children'
 > {
-  /**Whether the button's action is currently running. */
+  /** Whether the button's action is currently running. */
   isLoading: boolean;
   /** Label shown while idle. */
   label: string;
