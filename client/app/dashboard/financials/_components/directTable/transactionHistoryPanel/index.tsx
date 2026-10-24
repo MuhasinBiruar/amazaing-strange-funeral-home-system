@@ -40,8 +40,12 @@ export default function TransactionHistoryPanel({
       setIsLoading(true);
       setErrorMsg(null);
       try {
-        const res = await getDirectTransactions(caseid, controller.signal);
-        setTransactions(res.data);
+        const [txRes, orRes] = await Promise.all([
+          getDirectTransactions(caseid, controller.signal),
+          getOfficialReceipts(caseid, controller.signal),
+        ]);
+        setTransactions(txRes.data);
+        setReceipts(orRes.data);
       } catch (error) {
         if (controller.signal.aborted) return;
         console.error('Failed to load transaction history:', error);
@@ -54,6 +58,12 @@ export default function TransactionHistoryPanel({
 
     return () => controller.abort();
   }, [caseid]);
+
+  const discount = receipts.reduce(
+    (sum, r) => sum + Number(r.pwd_discount ?? 0),
+    0,
+  );
+  const totalDue = Math.max((totalAmount ?? 0) - discount, 0);
 
   return (
     <SidePanel
@@ -74,6 +84,64 @@ export default function TransactionHistoryPanel({
 
         {!isLoading && errorMsg && (
           <p className="text-sm text-red-500">{errorMsg}</p>
+        )}
+
+        {!isLoading && !errorMsg && (
+          <>
+            <section className="mb-5 text-sm space-y-1">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Total amount</span>
+                <span>{formatCurrency(totalAmount ?? 0)}</span>
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">SC/PWD discount</span>
+                  <span>− {formatCurrency(discount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-medium">
+                <span>Total due</span>
+                <span>{formatCurrency(totalDue)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Paid</span>
+                <span>{formatCurrency(totalPaid)}</span>
+              </div>
+            </section>
+
+            <section className="mb-5">
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                Official receipt
+              </h3>
+              {receipts.length === 0 ? (
+                <p className="text-sm text-gray-400">
+                  No official receipt generated yet.
+                </p>
+              ) : (
+                <ul className="divide-y divide-gray-100">
+                  {receipts.map((r) => (
+                    <li
+                      key={r.orid}
+                      className="py-2 flex items-center justify-between text-sm"
+                    >
+                      <div>
+                        <span className="font-medium text-gray-900">
+                          OR #{r.ornumber}
+                        </span>
+                        <div className="text-xs text-gray-400">
+                          {formatDate(r.issuedate)}
+                          {r.withholding_tax
+                            ? ` · withholding ${formatCurrency(Number(r.withholding_tax))}`
+                            : ''}
+                        </div>
+                      </div>
+                      <span>{formatCurrency(Number(r.total_due))}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </>
         )}
 
         {!isLoading && !errorMsg && transactions.length === 0 && (
