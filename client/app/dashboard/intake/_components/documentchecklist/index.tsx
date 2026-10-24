@@ -36,7 +36,8 @@ export function initialStagedDocuments(
  * Lets staff pick a file per required document, and manage the list of
  * required documents itself. Staff decide what's required for each case.
  *
- * Files are held as plain `File` objects in the parent's state — not part of
+ * @remarks
+ * Files are held as plain `File` objects in the parent's state - not part of
  * the draft `formData`, since `useDraft` JSON-serialises that to localStorage
  * and `File` objects can't survive that. They're actually uploaded (to S3,
  * via the documents endpoint) only once the deceased record exists and has a

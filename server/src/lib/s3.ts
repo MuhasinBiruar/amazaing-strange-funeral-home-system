@@ -1,16 +1,6 @@
 import 'dotenv/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
-/**
- * S3-compatible client for Supabase Storage.
- *
- * @remarks
- * This must stay server-only: `S3_SECRET_ACCESS_KEY` can never reach the
- * browser. The bucket itself is public, so *viewing* an uploaded file needs
- * no credentials — {@link publicDocumentUrl} just builds a plain URL — only
- * *writing* to it does.
- */
-
 const region = process.env.S3_REGION;
 const endpoint = process.env.S3_ENDPOINT;
 const accessKeyId = process.env.S3_ACCESS_KEY_ID;
@@ -33,6 +23,14 @@ if (
 
 export const S3_BUCKET = bucket;
 
+/**
+ * S3-compatible client for Supabase Storage.
+ *
+ * @remarks
+ * This must stay server-only: `S3_SECRET_ACCESS_KEY` can never reach the
+ * browser. The bucket itself is public, so *viewing* an uploaded file needs
+ * no credentials (only *writing* to it does).
+ */
 const s3Client = new S3Client({
   forcePathStyle: true,
   region,

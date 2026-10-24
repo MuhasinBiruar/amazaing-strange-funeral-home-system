@@ -30,6 +30,7 @@ const intakeFormSchema = z
     lifeplan_planholdername: z.string().trim().optional(),
     lifeplan_totalamount: z.string().trim().optional(),
     lifeplan_use_benefits: z.string().default('true'),
+    lguid: z.string().trim().optional(),
     lgu_reimbursementamount: z.string().trim().optional(),
     lgu_reimbursementstatus: z.string().trim().optional(),
 
@@ -117,6 +118,17 @@ const intakeFormSchema = z
     (data) =>
       !(
         data.plantype === 'LGU' &&
+        (!data.lguid || data.lguid.trim().length === 0)
+      ),
+    {
+      error: 'Please select an LGU.',
+      path: ['lguid'],
+    },
+  )
+  .refine(
+    (data) =>
+      !(
+        data.plantype === 'LGU' &&
         (!data.lgu_reimbursementamount ||
           data.lgu_reimbursementamount.trim().length === 0)
       ),
@@ -186,6 +198,7 @@ function normalizeIntakeInput(data: Record<string, string | undefined>) {
         .join(' '),
     lifeplan_totalamount: data.lifeplan_totalamount ?? '',
     lifeplan_use_benefits: data.lifeplan_use_benefits ?? 'true',
+    lguid: data.lguid ?? '',
     lgu_reimbursementamount: data.lgu_reimbursementamount ?? '',
     lgu_reimbursementstatus: data.lgu_reimbursementstatus ?? '',
     rep_firstname: data.rep_firstname ?? '',
@@ -228,6 +241,7 @@ const INTAKE_FIELD_ORDER: (keyof ReturnType<typeof normalizeIntakeInput>)[] = [
   'lifeplan_planholdername',
   'lifeplan_totalamount',
   'lifeplan_use_benefits',
+  'lguid',
   'lgu_reimbursementamount',
   'lgu_reimbursementstatus',
   'rep_firstname',

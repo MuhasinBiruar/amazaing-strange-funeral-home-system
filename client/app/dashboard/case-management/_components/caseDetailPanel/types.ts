@@ -1,13 +1,5 @@
+import { toDateInputValue } from '@/utils/toDateInputValue';
 import type { DeceasedRecord, Representative } from 'shared';
-
-/** `<input type="date">` wants `yyyy-mm-dd`; the API gives back a Date (or null). */
-function toDateInputValue(date: Date | string | null): string {
-  if (!date) return '';
-  const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return '';
-  const offsetMs = d.getTimezoneOffset() * 60 * 1000;
-  return new Date(d.getTime() - offsetMs).toISOString().slice(0, 10);
-}
 
 export interface DeceasedForm {
   firstname: string;

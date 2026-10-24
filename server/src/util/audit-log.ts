@@ -18,7 +18,7 @@ export async function writeAuditLog(
  * Looks up a deceased record's full name by case id, for audit descriptions.
  *
  * @remarks
- * Never throws — a lookup failure falls back to identifying the case by
+ * Never throws - a lookup failure falls back to identifying the case by
  * number rather than jeopardizing the response for the request that
  * triggered it. Audit description text is best-effort by design.
  */
@@ -60,8 +60,6 @@ export async function getRepresentativeName(
 }
 
 /** Joins name parts, skipping empty/nullish ones. */
-export function joinName(
-  ...parts: (string | null | undefined)[]
-): string {
+export function joinName(...parts: (string | null | undefined)[]): string {
   return parts.filter((part) => part && part.trim() !== '').join(' ');
 }

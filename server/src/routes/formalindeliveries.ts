@@ -29,11 +29,24 @@ const SORT_COLUMNS: Record<keyof FormalinDelivery, string> = {
   deliverydate: 'deliverydate',
   formalinid: 'formalinid',
   totalamountpaid: 'totalamountpaid',
+  unitcost: 'unitcost',
 };
+
+const SELECT_FORMALIN_DELIVERY = `
+  SELECT
+    deliveryid,
+    quantityreceived,
+    deliverydate,
+    formalinid,
+    totalamountpaid,
+    totalamountpaid / NULLIF(quantityreceived, 0) AS unitcost
+  FROM public.formalindelivery
+` as const;
 
 /**
  * Sample URLs
  * `http://localhost:4000/deliveries/formalin`
+ * `http://localhost:4000/deliveries/formalin?search=50`
  * `http://localhost:4000/deliveries/formalin?startDate=2026-01-01&endDate=2026-12-31`
  * `http://localhost:4000/deliveries/formalin?sortBy=totalamountpaid&sortOrder=asc&page=1&limit=20`
  */
@@ -42,13 +55,28 @@ router.get(
   requireAuth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { page, limit, startDate, endDate, sortBy, sortOrder } =
+      const { page, limit, search, startDate, endDate, sortBy, sortOrder } =
         getFormalinDeliveriesQuerySchema.parse(req.query);
 
       // Start building `whereClause`
       const whereConditions: string[] = [];
       const queryParams: unknown[] = [];
       let paramIndex = 1;
+
+      // Searches through: formalindelivery.quantityreceived. Anything that
+      // isn't part of a number (e.g. a trailing "L") is ignored, so "50 L"
+      // and "50" search the same. A search with no number in it at all (e.g.
+      // "abc") matches nothing, rather than being ignored.
+      if (search?.trim()) {
+        const quantitySearch = search.replace(/[^\d.]/g, '');
+        if (quantitySearch) {
+          whereConditions.push(`quantityreceived::text ILIKE $${paramIndex}`);
+          queryParams.push(`%${quantitySearch}%`);
+          paramIndex++;
+        } else {
+          whereConditions.push('FALSE');
+        }
+      }
 
       if (startDate) {
         whereConditions.push(`deliverydate >= $${paramIndex}`);
@@ -74,9 +102,9 @@ router.get(
       const [dataResult, countResult] = await withRepeatableRead(
         async (client) => {
           const dataQuery = `
-            SELECT * FROM formalindelivery
+            ${SELECT_FORMALIN_DELIVERY}
             ${whereClause}
-            ${orderByClause}
+            ${orderByClause}, deliveryid DESC
             ${paginationClause}
           `;
 
@@ -119,7 +147,7 @@ router.get(
     try {
       const { id } = req.params as unknown as IdParam;
       const result = await pool.query(
-        'SELECT * FROM formalindelivery WHERE deliveryid = $1',
+        `${SELECT_FORMALIN_DELIVERY} WHERE deliveryid = $1`,
         [id],
       );
       if (result.rows.length === 0) throw new NotFoundError();
@@ -132,8 +160,19 @@ router.get(
 );
 
 /**
- * Records a formalin delivery and, if it's linked to an inventory item,
- * increments that item's stock by the quantity received.
+ * Records a formalin delivery and adds it to the current stock.
+ *
+ * @remarks
+ * Formalin stock is a ledger. The newest `formalininventory` row (by `date`,
+ * then `formalinid`) is the current stock, and every change appends a new row
+ * rather than editing an old one. So this locks the newest row, appends
+ * a row with the delivery added (keeping the same minimum threshold), and
+ * links the delivery to that new row.
+ *
+ * The new row's `date` is when the delivery was *recorded* (`now()`), not
+ * `deliverydate`, so a back-dated delivery can't sort below the current stock.
+ *
+ * Responds with a `warning` when stock is still at or below the minimum.
  */
 router.post(
   '/',
@@ -147,24 +186,38 @@ router.post(
     try {
       const parsed = req.body;
 
-      const delivery = await withTransaction(async (client) => {
-        if (parsed.formalinid !== null) {
-          const formalinResult = await client.query(
-            `SELECT formalinid FROM formalininventory WHERE formalinid = $1 FOR UPDATE`,
-            [parsed.formalinid],
-          );
-          if (formalinResult.rows.length === 0) {
-            throw new NotFoundError(
-              'Referenced formalin inventory item does not exist.',
-            );
-          }
+      const { delivery, warning } = await withTransaction(async (client) => {
+        // `FOR UPDATE` below can't lock anything while the ledger is still
+        // empty, so this transaction-scoped lock keeps two first-ever
+        // deliveries from both starting at 0.
+        await client.query(
+          `SELECT pg_advisory_xact_lock(hashtext('formalininventory'))`,
+        );
 
-          await client.query(
-            `UPDATE formalininventory SET currentstock = currentstock + $1
-             WHERE formalinid = $2`,
-            [parsed.quantityreceived, parsed.formalinid],
-          );
-        }
+        const latestResult = await client.query(
+          `SELECT currentstock, minimumthreshold
+           FROM formalininventory
+           ORDER BY date DESC, formalinid DESC
+           LIMIT 1
+           FOR UPDATE`,
+        );
+
+        // No ledger row yet (fresh database): the first delivery starts it
+        // at 0 stock with no minimum; the minimum can be set when recording
+        // usage.
+        const latest = latestResult.rows[0] ?? {
+          currentstock: 0,
+          minimumthreshold: 0,
+        };
+        const newStock = Number(latest.currentstock) + parsed.quantityreceived;
+        const minimum = Number(latest.minimumthreshold);
+
+        const inventoryResult = await client.query(
+          `INSERT INTO formalininventory (currentstock, minimumthreshold, date)
+           VALUES ($1, $2, now())
+           RETURNING formalinid`,
+          [newStock, minimum],
+        );
 
         const deliveryResult = await client.query(
           `
@@ -173,24 +226,32 @@ router.post(
             deliverydate,
             formalinid,
             totalamountpaid
-          ) VALUES ($1, $2, $3, $4) RETURNING *;`,
+          ) VALUES ($1, $2, $3, $4)
+          RETURNING *, totalamountpaid / NULLIF(quantityreceived, 0) AS unitcost;`,
           [
             parsed.quantityreceived,
             parsed.deliverydate,
-            parsed.formalinid,
+            inventoryResult.rows[0].formalinid,
             parsed.totalamountpaid,
           ],
         );
 
-        return deliveryResult.rows[0];
+        return {
+          delivery: deliveryResult.rows[0],
+          warning:
+            newStock <= minimum
+              ? `Formalin stock is still at or below the minimum threshold (${newStock} liters, minimum ${minimum}).`
+              : null,
+        };
       });
 
       triggerNotificationSweep();
 
-      res.locals.auditAction = `${res.locals.session.user.name} recorded a formalin delivery of ${parsed.quantityreceived}`;
+      res.locals.auditAction = `${res.locals.session.user.name} recorded a formalin delivery of ${parsed.quantityreceived} liters`;
 
       res.status(201).json({
         data: delivery,
+        warning,
       });
     } catch (error) {
       next(error);

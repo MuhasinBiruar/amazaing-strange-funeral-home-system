@@ -1,5 +1,6 @@
 export * from './utils/big-number-schema';
 export * from './utils/contact-number-schema';
+export * from './utils/date-filtered-query-schema';
 export * from './utils/date-unit-enum';
 export * from './utils/id-param-schema';
 export * from './utils/is-object-empty';

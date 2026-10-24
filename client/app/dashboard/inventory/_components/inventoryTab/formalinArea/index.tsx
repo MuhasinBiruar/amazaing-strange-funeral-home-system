@@ -1,26 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { AlertTriangle, ClipboardList, History, Plus } from 'lucide-react';
 import type { FormalinInventory } from 'shared';
 import { useInfoModal } from '@/components/infoModal/useInfoModal';
 import { getFormalinInventory } from '@/services/formalinInventoryService';
 import { formatDate } from '@/utils/format';
-import FormalinDeliveryHistoryPanel from './deliveryHistoryPanel';
 import FormalinRecordPanel from './recordPanel';
 import FormalinUsageHistoryPanel from './usageHistoryPanel';
 
 /**
- * Displays the current formalin stock and opens formalin recording and
- * history panels.
+ * Displays the current formalin stock and opens the usage panels.
+ *
+ * @remarks
+ * Stock is added by recording a formalin delivery on the Delivery tab, so
+ * "Deliveries" links there instead of duplicating that log here.
  */
 export default function FormalinArea() {
   const [inventory, setInventory] = useState<FormalinInventory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [panel, setPanel] = useState<'record' | 'deliveries' | 'usage' | null>(
-    null,
-  );
+  const [panel, setPanel] = useState<'record' | 'usage' | null>(null);
   const { infoModal, showInfo } = useInfoModal();
 
   async function loadInventory() {
@@ -29,8 +30,8 @@ export default function FormalinArea() {
     try {
       setInventory(await getFormalinInventory());
     } catch (requestError) {
-      console.error('Failed to load formalin inventory:', requestError);
-      setError('Could not load formalin inventory. Try again.');
+      console.error('Failed to load formalin stock:', requestError);
+      setError('Could not load formalin stock. Try again.');
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +63,7 @@ export default function FormalinArea() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-base font-semibold text-gray-900">
-              Formalin Inventory
+              Formalin Stock
             </h2>
             <p className="mt-1 text-sm text-gray-500">
               Current formalin stock and usage records.
@@ -76,13 +77,14 @@ export default function FormalinArea() {
             >
               <Plus size={16} /> Record Usage
             </button>
-            <button
-              type="button"
-              onClick={() => setPanel('deliveries')}
+            <Link
+              href="/dashboard/inventory?tab=delivery&type=formalin"
+              replace
+              scroll={false}
               className="inline-flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
-              <ClipboardList size={16} /> Delivery History
-            </button>
+              <ClipboardList size={16} /> Deliveries
+            </Link>
             <button
               type="button"
               onClick={() => setPanel('usage')}
@@ -94,7 +96,7 @@ export default function FormalinArea() {
         </div>
 
         {isLoading && (
-          <p className="text-sm text-gray-500">Loading formalin inventory...</p>
+          <p className="text-sm text-gray-500">Loading formalin stock...</p>
         )}
         {!isLoading && error && <p className="text-sm text-red-600">{error}</p>}
         {!isLoading && !error && inventory && (
@@ -140,9 +142,6 @@ export default function FormalinArea() {
           onClose={() => setPanel(null)}
           onSaved={handleSaved}
         />
-      )}
-      {panel === 'deliveries' && (
-        <FormalinDeliveryHistoryPanel onClose={() => setPanel(null)} />
       )}
       {panel === 'usage' && (
         <FormalinUsageHistoryPanel onClose={() => setPanel(null)} />

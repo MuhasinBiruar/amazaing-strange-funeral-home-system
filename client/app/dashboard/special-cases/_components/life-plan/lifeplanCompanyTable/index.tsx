@@ -43,8 +43,7 @@ const COLUMNS: DataTableColumn<LifeplanCompanyAggregate, ColumnKey>[] = [
     label: 'Contact Info',
     widthClassName: 'w-55',
     cellClassName: 'px-5 py-3 text-gray-700 wrap-break-word',
-    render: (d) =>
-      d.contactinfo === null ? 'no contact info provided' : d.contactinfo,
+    render: (d) => (d.contactinfo === null ? '—' : d.contactinfo),
   },
 ];
 

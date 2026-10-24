@@ -13,12 +13,7 @@ import {
   paymentCategoryEnum,
   paymentMethodEnum,
 } from 'shared';
-
-/** `<input type="date">` wants `yyyy-mm-dd` in the viewer's local time. */
-function toDateInputValue(date: Date) {
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 10);
-}
+import { toDateInputValue } from '@/utils/toDateInputValue';
 
 export default function RecordTransactionPanel({
   caseId,

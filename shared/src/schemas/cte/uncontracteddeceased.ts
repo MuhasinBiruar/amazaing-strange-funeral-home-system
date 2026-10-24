@@ -6,17 +6,8 @@ import {
 } from '@/utils/pagination-schema';
 
 /**
- * A deceased record that has no contract yet, joined with its representative
- * and managing staff.
- *
- * @remarks
- * Contract is 1:1 with case (see the `contract_caseid_key` unique constraint),
- * so these are exactly the records eligible for a new contract. They are the
- * complement of `GET /cases`, which inner-joins `contract` and therefore only
- * ever shows records that already have one.
- *
- * Carries the panel's detail fields alongside the table's columns so selecting
- * a row needs no follow-up request.
+ * A deceased record that has no contract yet, joined with its representative,
+ * managing staff, and (direct) lifeplan.
  */
 export const uncontractedDeceasedSchema = z.object({
   caseid: deceasedRecordSchema.shape.caseid,

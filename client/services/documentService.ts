@@ -47,8 +47,8 @@ export async function getDocumentsByCase(
  *
  * @remarks
  * `Content-Type` is explicitly unset so the browser computes the multipart
- * boundary itself — the API instance's default `application/json` header
- * would otherwise override it and the server couldn't parse the body.
+ * boundary itself. The API instance's default `application/json` header
+ * would otherwise override it and the server will fail to parse the body.
  */
 export async function uploadDocument(
   caseid: number,
