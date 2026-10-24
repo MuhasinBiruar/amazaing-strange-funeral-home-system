@@ -46,7 +46,14 @@ const nonNegativeBigNumber = bigNumberSchema.refine((v) => Number(v) >= 0, {
  */
 export const createOfficialReceiptQuerySchema = z.object({
   ornumber: z.string().trim().min(1),
-  tin: withNullDefault(z.string().trim()),
+  tin: withNullDefault(
+    z
+      .string()
+      .trim()
+      .regex(/^\d{3}-\d{3}-\d{3}-\d{3,5}$/, {
+        error: 'TIN must look like 123-456-789-000.',
+      }),
+  ),
   withholding_tax: withNullDefault(nonNegativeBigNumber),
   discount_id: withNullDefault(z.string().trim()),
   pwd_discount: withNullDefault(nonNegativeBigNumber),

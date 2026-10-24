@@ -220,7 +220,9 @@ export async function createDirectTransaction(
       );
 
       const newPaid = new BigNumber(paidResult.rows[0].paid).plus(delta);
-      const remaining = new BigNumber(totalamount).minus(newPaid);
+      const remaining = new BigNumber(totalamount)
+        .minus(discount)
+        .minus(newPaid);
 
       if (newPaid.isLessThan(0))
         throw new BadRequestError('Refund is larger than the amount paid.');
