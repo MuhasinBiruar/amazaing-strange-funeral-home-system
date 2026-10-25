@@ -82,6 +82,7 @@ export default function AdminPage() {
             getStaffList({
               ...params,
               isActive: filters.isActive ?? undefined,
+              role: filters.role ?? undefined,
             })
           }
           onRowClick={(row) => {

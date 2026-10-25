@@ -25,7 +25,7 @@ const DEFAULT_FILTERS: Filters = {
 
 const FILTERS: FilterDef<Filters>[] = [
   {
-    type: 'dateRangePicker',
+    type: 'dateRange',
     key: 'dateRange',
     label: 'Filter by date created',
   },

@@ -1,7 +1,7 @@
 import z from 'zod';
 import { bigNumberSchema } from '@/utils/big-number-schema';
 import {
-  paginationQuerySchema,
+  dateFilteredPaginationQuerySchema,
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
 
@@ -39,12 +39,20 @@ export const expenseLogSchema = z.object({
 
 export type ExpenseLog = z.infer<typeof expenseLogSchema>;
 
-export const getExpenseLogQuerySchema = paginationQuerySchema.extend({
-  search: z.string().optional(),
-  source: expenseLogSourceEnum.optional(),
-  sortBy: z.keyof(expenseLogSchema).default('expensedate'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
-});
+/**
+ * @remarks
+ * `startDate`/`endDate` filter on `expensedate` (the delivery date for
+ * delivery rows).
+ */
+export const getExpenseLogQuerySchema = z.intersection(
+  dateFilteredPaginationQuerySchema,
+  z.object({
+    search: z.string().optional(),
+    source: expenseLogSourceEnum.optional(),
+    sortBy: z.keyof(expenseLogSchema).default('expensedate'),
+    sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  }),
+);
 
 export type GetExpenseLogQuery = z.infer<typeof getExpenseLogQuerySchema>;
 

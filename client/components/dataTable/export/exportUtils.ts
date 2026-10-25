@@ -1,10 +1,23 @@
 import { isValidElement, type ReactNode } from 'react';
-import type { DataTableColumn } from '../types';
+import type { DataTableColumn, DateRangeValue } from '../types';
 
 /** A table flattened to plain text, ready to write as CSV or PDF. */
 export interface ExportTable {
   headers: string[];
   rows: string[][];
+}
+
+/** What the user picked in the export modal. */
+export interface ExportOptions {
+  /** `page`: just the rows on screen; `all`: every matching row. */
+  scope: 'page' | 'all';
+  /** Keys of the columns to include, in table order. */
+  columnKeys: string[];
+  /**
+   * Date range for this export only (overrides the table's date filter);
+   * only used with `scope: 'all'` on tables that have a date filter.
+   */
+  dateRange?: DateRangeValue;
 }
 
 /** The text a user would read inside a rendered cell. */

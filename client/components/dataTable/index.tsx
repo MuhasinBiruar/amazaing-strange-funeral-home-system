@@ -9,9 +9,14 @@ import TableHeader from './tableHeader';
 import TableBody from './tableBody';
 import FilterBar from './filterBar';
 import ExportModal from './export/exportModal';
-import { toExportTable } from './export/exportUtils';
+import { toExportTable, type ExportOptions } from './export/exportUtils';
 import { Download } from 'lucide-react';
-import type { DataTableColumn, FetchDataParams, FilterDef } from './types';
+import type {
+  DataTableColumn,
+  DateRangeValue,
+  FetchDataParams,
+  FilterDef,
+} from './types';
 import type { PaginatedResponse, SortOrder } from 'shared/utils';
 
 const SEARCH_DEBOUNCE_MS = 500 as const;
@@ -172,11 +177,31 @@ export default function DataTable<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dboSearch, sortBy, sortOrder, page, limit, filterValues, refreshKey]);
 
+  // The table's date filter (if it has one), which the export modal can
+  // narrow for an export without changing the table itself.
+  const dateFilter = filters?.find(
+    (f): f is Extract<FilterDef<F>, { type: 'dateRange' }> =>
+      f.type === 'dateRange',
+  );
+
   /**
-   * Every row matching the current search, sort, and filters (not just the
-   * page on screen), fetched page by page and flattened to text.
+   * Rows to export, flattened to text: either the page on screen, or every
+   * row matching the current search, sort, and filters (with the export's
+   * own date range, if one was picked), fetched page by page.
    */
-  async function loadExportTable() {
+  async function loadExportTable({
+    scope,
+    columnKeys,
+    dateRange,
+  }: ExportOptions) {
+    const exportColumns = columns.filter((col) => columnKeys.includes(col.key));
+    if (scope === 'page') return toExportTable(exportColumns, rows);
+
+    const exportFilters =
+      dateFilter && dateRange
+        ? { ...filterValues, [dateFilter.key]: dateRange }
+        : filterValues;
+
     const all: T[] = [];
     for (let exportPage = 1; exportPage <= EXPORT_MAX_PAGES; exportPage++) {
       const res = await fetchData({
@@ -185,12 +210,12 @@ export default function DataTable<
         sortBy,
         sortOrder,
         search: dboSearch,
-        filters: filterValues,
+        filters: exportFilters,
       });
       all.push(...res.data);
       if (res.data.length === 0 || exportPage >= res.meta.totalPages) break;
     }
-    return toExportTable(columns, all);
+    return toExportTable(exportColumns, all);
   }
 
   return (
@@ -237,6 +262,21 @@ export default function DataTable<
           title={title}
           fileName={exportFileName}
           total={total}
+          pageCount={rows.length}
+          columns={columns
+            .filter((col) => col.exportable !== false)
+            .map((col) => ({ key: col.key, label: col.label }))}
+          dateFilter={
+            dateFilter
+              ? {
+                  label: dateFilter.label,
+                  value: (filterValues[dateFilter.key] as DateRangeValue) ?? {
+                    from: null,
+                    to: null,
+                  },
+                }
+              : undefined
+          }
           loadTable={loadExportTable}
           onClose={() => setIsExportOpen(false)}
         />

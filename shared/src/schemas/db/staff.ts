@@ -109,6 +109,7 @@ export const getStaffQuerySchema = paginationQuerySchema.extend({
     .enum(['true', 'false'])
     .transform((v) => v === 'true')
     .optional(),
+  role: staffRoleEnum.optional(),
   sortBy: z.keyof(getStaffRowSchema).default('jobRole'),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
 });
