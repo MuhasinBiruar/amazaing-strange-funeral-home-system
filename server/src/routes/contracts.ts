@@ -48,21 +48,8 @@ router.get('/:id', requireAuth, async (req, res, next) => {
 
 /**
  * Creates a contract and, if its package has a casket linked, decrements
- * that casket's stock by one — assigning a package to a case consumes one
+ * that casket's stock by one - assigning a package to a case consumes one
  * physical casket.
- *
- * @remarks
- * Runs as a single transaction: the casket row is locked with `FOR UPDATE`
- * before checking/decrementing stock, so two contracts created for the same
- * casket at once can't both succeed past a stock count of 1. Plain
- * `BEGIN`/`COMMIT` (READ COMMITTED) rather than {@link withRepeatableRead} —
- * `FOR UPDATE` under REPEATABLE READ can raise serialization errors under
- * concurrent writes to the same row, needing a retry loop this app's actual
- * concurrency doesn't warrant. `FOR UPDATE` alone is the standard, sufficient
- * pattern for "decrement stock safely."
- *
- * A package created before this feature existed may have no casket linked
- * (`casketid IS NULL`) — in that case stock handling is skipped entirely.
  */
 router.post(
   '/',
@@ -102,8 +89,10 @@ router.post(
               packagePrice - Number(lifeplan.totalamount),
             );
             if (
-              (lifeplan.use_benefits && packagePrice !== Number(lifeplan.totalamount)) ||
-              (!lifeplan.use_benefits && packagePrice <= Number(lifeplan.totalamount))
+              (lifeplan.use_benefits &&
+                packagePrice !== Number(lifeplan.totalamount)) ||
+              (!lifeplan.use_benefits &&
+                packagePrice <= Number(lifeplan.totalamount))
             ) {
               throw new BadRequestError(
                 lifeplan.use_benefits

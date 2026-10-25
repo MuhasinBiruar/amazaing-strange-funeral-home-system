@@ -1,6 +1,6 @@
 import z from 'zod';
 import {
-  paginationQuerySchema,
+  dateFilteredPaginationQuerySchema,
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
 import { lguCaseSchema } from '../db/lgucase';
@@ -17,11 +17,21 @@ export const getLguCasesRowSchema = lguCaseSchema.extend({
 
 export type GetLguCasesRow = z.infer<typeof getLguCasesRowSchema>;
 
-export const getLguCasesQuerySchema = paginationQuerySchema.extend({
-  search: z.string().optional(),
-  sortBy: z.keyof(getLguCasesRowSchema).default('lgucaseid'),
-  sortOrder: z.enum(['asc', 'desc']).default('asc'),
-});
+/**
+ * @remarks
+ * `startDate`/`endDate` filter on `deceasedrecord.datecreated`, the same date
+ * the LGU summary's `totalrecords` is counted by, so a summary row's count
+ * and its record list agree.
+ */
+export const getLguCasesQuerySchema = z.intersection(
+  dateFilteredPaginationQuerySchema,
+  z.object({
+    search: z.string().optional(),
+    lguid: z.coerce.number().int().positive().optional(),
+    sortBy: z.keyof(getLguCasesRowSchema).default('lgucaseid'),
+    sortOrder: z.enum(['asc', 'desc']).default('asc'),
+  }),
+);
 
 export type GetLguCasesQuery = z.infer<typeof getLguCasesQuerySchema>;
 

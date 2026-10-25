@@ -23,10 +23,10 @@ export const packageSchema = createPackageQuerySchema.extend({
 export type Package = z.infer<typeof packageSchema>;
 
 /**
- * A package row plus its linked casket's display details, joined in by
- * `GET /packages` so the guided picker can show what casket an existing
- * package uses without a follow-up request. `casketid` can predate this
- * feature and be unset — hence the nullable joined fields.
+ * A package row with its linked casket's display details. `GET /packages`
+ * includes these details so the guided picker can show which casket a package
+ * uses without another request. Older packages may not have a `casketid`, so
+ * the casket details are nullable.
  */
 export const packageWithCasketSchema = packageSchema.extend({
   caskettype: z.string().nullable(),

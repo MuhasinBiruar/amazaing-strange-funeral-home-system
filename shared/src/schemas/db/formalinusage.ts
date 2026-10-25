@@ -1,8 +1,9 @@
 import z from 'zod';
 import {
-  paginationQuerySchema,
+  dateFilteredPaginationQuerySchema,
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
+import { formalinInventorySchema } from './formalininventory';
 
 export const formalinUsageSchema = z.object({
   usageid: z.int32(),
@@ -24,16 +25,22 @@ export const createFormalinUsageSchema = z.object({
 
 export type CreateFormalinUsage = z.infer<typeof createFormalinUsageSchema>;
 
-export const formalinUsageResponseSchema = z.object({
-  data: formalinUsageSchema,
-  inventory: z.object({
-    currentstock: z.float64().nonnegative(),
-    minimumthreshold: z.float64().nonnegative(),
+export const createFormalinUsageResponseSchema = z.object({
+  data: z.object({
+    usage: formalinUsageSchema,
+    inventory: formalinInventorySchema.pick({
+      currentstock: true,
+      minimumthreshold: true,
+    }),
   }),
-  warning: z.string().nullable(),
+  meta: z.object({
+    warning: z.string().nullable(),
+  }),
 });
 
-export type FormalinUsageResponse = z.infer<typeof formalinUsageResponseSchema>;
+export type CreateFormalinUsageResponse = z.infer<
+  typeof createFormalinUsageResponseSchema
+>;
 
 export const getFormalinUsageResponseSchema = paginationResponseSchema.extend({
   data: z.array(formalinUsageSchema),
@@ -43,29 +50,15 @@ export type GetFormalinUsageResponse = z.infer<
   typeof getFormalinUsageResponseSchema
 >;
 
-const formalinUsageDateRangeQuerySchema = paginationQuerySchema.extend({
-  startDate: z.coerce.date().optional(),
-  endDate: z.iso.datetime().or(z.iso.date()).optional(),
-});
-
-export const getFormalinUsageSummaryQuerySchema =
-  formalinUsageDateRangeQuerySchema
-    .extend({
-      sortBy: z.enum(['usagedate', 'totalquantityused', 'actions']).default(
-        'usagedate',
-      ),
-      sortOrder: z.enum(['asc', 'desc']).default('desc'),
-    })
-    .refine(
-      (data) =>
-        !data.startDate ||
-        !data.endDate ||
-        data.startDate <= new Date(data.endDate),
-      {
-        message: 'endDate must be on or after startDate.',
-        path: ['endDate'],
-      },
-    );
+export const getFormalinUsageSummaryQuerySchema = z.intersection(
+  dateFilteredPaginationQuerySchema,
+  z.object({
+    sortBy: z
+      .enum(['usagedate', 'totalquantityused', 'actions'])
+      .default('usagedate'),
+    sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  }),
+);
 
 export type GetFormalinUsageSummaryQuery = z.infer<
   typeof getFormalinUsageSummaryQuerySchema
@@ -87,24 +80,15 @@ export type GetFormalinUsageSummaryResponse = z.infer<
   typeof getFormalinUsageSummaryResponseSchema
 >;
 
-export const getFormalinUsageBreakdownQuerySchema =
-  formalinUsageDateRangeQuerySchema
-    .extend({
-      sortBy: z
-        .enum(['usageid', 'quantityused', 'usagedate', 'casetype'])
-        .default('usagedate'),
-      sortOrder: z.enum(['asc', 'desc']).default('desc'),
-    })
-    .refine(
-      (data) =>
-        !data.startDate ||
-        !data.endDate ||
-        data.startDate <= new Date(data.endDate),
-      {
-        message: 'endDate must be on or after startDate.',
-        path: ['endDate'],
-      },
-    );
+export const getFormalinUsageBreakdownQuerySchema = z.intersection(
+  dateFilteredPaginationQuerySchema,
+  z.object({
+    sortBy: z
+      .enum(['usageid', 'quantityused', 'usagedate', 'casetype'])
+      .default('usagedate'),
+    sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  }),
+);
 
 export type GetFormalinUsageBreakdownQuery = z.infer<
   typeof getFormalinUsageBreakdownQuerySchema

@@ -4,18 +4,53 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import DataTable from '@/components/dataTable';
 import { formatCurrency } from '@/utils/format';
-import type { DataTableColumn } from '@/components/dataTable/types';
+import type { DataTableColumn, FilterDef } from '@/components/dataTable/types';
 import { getExpenses } from '@/services/expensesService';
-import type { GetExpensesRow } from 'shared';
+import type { ExpenseLog, ExpenseLogSource } from 'shared';
 import RecordExpensePanel from './recordExpensePanel';
 
-type ColumnKey = keyof GetExpensesRow;
+type ColumnKey = keyof ExpenseLog;
 
+type Filters = {
+  source: ExpenseLogSource | null;
+};
+
+const DEFAULT_FILTERS: Filters = { source: null };
+
+const SOURCE_LABELS: Record<
+  ExpenseLogSource,
+  { label: string; className: string }
+> = {
+  expense: { label: 'General', className: 'bg-gray-100 text-gray-700' },
+  casket: { label: 'Casket delivery', className: 'bg-amber-50 text-amber-700' },
+  formalin: {
+    label: 'Formalin delivery',
+    className: 'bg-sky-50 text-sky-700',
+  },
+};
+
+const FILTERS: FilterDef<Filters>[] = [
+  {
+    type: 'select',
+    key: 'source',
+    options: [
+      { label: 'All categories', value: null },
+      { label: 'General', value: 'expense' },
+      { label: 'Casket deliveries', value: 'casket' },
+      { label: 'Formalin deliveries', value: 'formalin' },
+    ],
+  },
+];
+
+/**
+ * Everything paid out: general expenses recorded here, plus what was paid
+ * for each casket and formalin delivery (recorded from the inventory page).
+ */
 export default function ExpenseTable() {
   const [isCreating, setIsCreating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const columns: DataTableColumn<GetExpensesRow, ColumnKey>[] = [
+  const columns: DataTableColumn<ExpenseLog, ColumnKey>[] = [
     {
       key: 'expensedate',
       label: 'Date',
@@ -28,6 +63,21 @@ export default function ExpenseTable() {
         }),
     },
     {
+      key: 'source',
+      label: 'Category',
+      widthClassName: 'w-40',
+      render: (e) => {
+        const { label, className } = SOURCE_LABELS[e.source];
+        return (
+          <span
+            className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${className}`}
+          >
+            {label}
+          </span>
+        );
+      },
+    },
+    {
       key: 'description',
       label: 'Description',
       widthClassName: 'w-full',
@@ -35,11 +85,11 @@ export default function ExpenseTable() {
       render: (e) => e.description,
     },
     {
-      key: 'recordedby',
+      key: 'staff_name',
       label: 'Recorded By',
       widthClassName: 'w-40',
       cellClassName: 'text-gray-500',
-      render: (e) => e.staff_name,
+      render: (e) => e.staff_name ?? '—',
     },
     {
       key: 'amount',
@@ -63,18 +113,23 @@ export default function ExpenseTable() {
         </button>
       </div>
 
-      <DataTable<GetExpensesRow, ColumnKey>
-        title="General Expenses"
+      <DataTable<ExpenseLog, ColumnKey, Filters>
+        title="Expenses"
         countLabel={(total) => `${total} records`}
         searchPlaceholder="Search expenses..."
+        filters={FILTERS}
+        defaultFilters={DEFAULT_FILTERS}
         columns={columns}
-        rowKey={(e) => e.expenseid}
+        // `id` is only unique within its own source table.
+        rowKey={(e) => `${e.source}-${e.id}`}
         defaultSortBy="expensedate"
         defaultSortOrder="desc"
-        fetchData={({ filters: _filters, ...params }) => getExpenses(params)}
+        fetchData={({ filters, ...params }) =>
+          getExpenses({ ...params, source: filters.source ?? undefined })
+        }
         emptyMessage="No expenses recorded yet."
         loadErrorMessage="Could not load expenses."
-        bodyOffsetClassName="top-13"
+        bodyOffsetClassName="top-17.25"
         refreshKey={refreshKey}
       />
 

@@ -1,5 +1,6 @@
 import pool from '@/db';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
+import { toExclusiveEndBound } from '@/util/date';
 import { getDeceasedName } from '@/util/audit-log';
 import type { NextFunction, Request, Response } from 'express';
 import {
@@ -18,6 +19,7 @@ const SORT_COLUMNS: Record<keyof GetLguCasesRow, string> = {
   reimbursementstatus: 'lc.reimbursementstatus',
   reimbursementamount: 'lc.reimbursementamount',
   caseid: 'lc.caseid',
+  lguid: 'lc.lguid',
   deceased_name: 'deceased_name',
   servicestatus: 'dr.servicestatus',
 };
@@ -34,9 +36,15 @@ export async function createLguCase(
         INSERT INTO lgucase (
           reimbursementstatus,
           reimbursementamount,
-          caseid
-        ) VALUES ($1, $2, $3) RETURNING lgucaseid;`,
-      [parsed.reimbursementstatus, parsed.reimbursementamount, parsed.caseid],
+          caseid,
+          lguid
+        ) VALUES ($1, $2, $3, $4) RETURNING lgucaseid;`,
+      [
+        parsed.reimbursementstatus,
+        parsed.reimbursementamount,
+        parsed.caseid,
+        parsed.lguid,
+      ],
     );
 
     const deceasedName = await getDeceasedName(parsed.caseid);
@@ -57,8 +65,16 @@ export async function getLguCases(
   next: NextFunction,
 ) {
   try {
-    const { page, limit, search, sortBy, sortOrder } =
-      getLguCasesQuerySchema.parse(req.query);
+    const {
+      page,
+      limit,
+      search,
+      lguid,
+      startDate,
+      endDate,
+      sortBy,
+      sortOrder,
+    } = getLguCasesQuerySchema.parse(req.query);
 
     const selectClause = `
         SELECT 
@@ -79,6 +95,24 @@ export async function getLguCases(
     const whereConditions: string[] = [];
     const queryParams: unknown[] = [];
     let paramIndex = 1;
+
+    if (lguid !== undefined) {
+      whereConditions.push(`lc.lguid = $${paramIndex}`);
+      queryParams.push(lguid);
+      paramIndex++;
+    }
+
+    if (startDate) {
+      whereConditions.push(`dr.datecreated >= $${paramIndex}`);
+      queryParams.push(startDate);
+      paramIndex++;
+    }
+
+    if (endDate) {
+      whereConditions.push(`dr.datecreated < $${paramIndex}`);
+      queryParams.push(toExclusiveEndBound(endDate));
+      paramIndex++;
+    }
 
     if (search) {
       // Searches through: lgucase.caseid, lgucase.reimbursementstatus,
@@ -157,13 +191,15 @@ export async function updateLguCase(
     const result = await pool.query(
       `UPDATE lgucase SET
         reimbursementstatus = COALESCE($1, reimbursementstatus),
-        reimbursementamount = COALESCE($2, reimbursementamount)
+        reimbursementamount = COALESCE($2, reimbursementamount),
+        lguid = COALESCE($4, lguid)
       WHERE lgucaseid = $3
       RETURNING *`,
       [
         parsed.reimbursementstatus ?? null,
         parsed.reimbursementamount ?? null,
         id,
+        parsed.lguid ?? null,
       ],
     );
 

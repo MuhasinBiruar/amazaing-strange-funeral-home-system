@@ -11,9 +11,7 @@
   "[jsonc]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
   "[markdown]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
   "eslint.validate": ["javascript", "typescript", "typescriptreact"],
-  "eslint.workingDirectories": [
-    { "directory": "client", "changeProcessCWD": true },
-    { "directory": "server", "changeProcessCWD": true },
-    { "directory": "shared", "changeProcessCWD": true }
-  ]
+  "eslint.workingDirectories": ["client", "server", "shared"],
+  "tailwindCSS.classFunctions": [".*Class"],
+  "tailwindCSS.classAttributes": ["class", "className", ".*ClassName.*"]
 }

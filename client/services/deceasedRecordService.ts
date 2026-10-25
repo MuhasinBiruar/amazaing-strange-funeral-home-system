@@ -1,16 +1,15 @@
 import {
+  deceasedRecordSchema,
   getDeceasedRecordResponseSchema,
   getUncontractedDeceasedResponseSchema,
+  type CreateDeceasedRecordQuery,
   type GetUncontractedDeceasedQuery,
   type UpdateDeceasedRecordQuery,
 } from 'shared';
 import { API } from './api';
 import { isAxiosError } from 'axios';
+import { extractErrorMessage } from './utils/extractErrorMessage';
 
-/**
- * Fetches deceased records that do not have a contract yet — the candidates
- * shown by the "New contract" picker.
- */
 export async function getUncontractedDeceased({
   page,
   limit,
@@ -35,6 +34,17 @@ export async function getUncontractedDeceased({
     signal: signal,
   });
   return getUncontractedDeceasedResponseSchema.parse(result.data);
+}
+
+export async function createDeceasedRecord(payload: CreateDeceasedRecordQuery) {
+  try {
+    const res = await API.post('/deceasedrecords', payload);
+
+    return deceasedRecordSchema.parse(res.data.data);
+  } catch (error) {
+    console.error('Error creating deceased record:', error);
+    throw error;
+  }
 }
 
 export async function getDeceasedRecord(id: number) {
@@ -62,6 +72,20 @@ export async function updateDeceasedRecord(
       if (typeof msg === 'string') throw new Error(msg);
     }
 
+    throw err;
+  }
+}
+
+export async function deleteDeceasedRecord(caseid: number) {
+  try {
+    const res = await API.delete(`/deceasedrecords/${caseid}`);
+
+    return deceasedRecordSchema.parse(res.data.data);
+  } catch (err) {
+    if (isAxiosError(err) && err.response?.data?.error?.message)
+      throw new Error(extractErrorMessage(err.response.data));
+
+    console.error('Error deleting deceased record:', err);
     throw err;
   }
 }

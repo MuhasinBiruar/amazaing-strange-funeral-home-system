@@ -7,7 +7,7 @@ import pool from '@/db';
  *
  * @remarks
  * Use this for **read-only** work that issues more than one query and needs
- * them to see a single consistent snapshot of the database — most commonly a
+ * them to see a single consistent snapshot of the database - most commonly a
  * paginated list's data query and its count query, so the `total` reported
  * matches the page returned even if rows are inserted/deleted concurrently.
  *

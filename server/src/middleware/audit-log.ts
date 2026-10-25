@@ -10,10 +10,9 @@ const AUDITED_METHODS = new Set(['POST', 'PATCH', 'DELETE']);
  * @remarks
  * Registered once, globally. Doing the write on `res.on('finish')` means it
  * runs only after the response has already been sent, so it can never delay
- * or fail the actual request — a route that doesn't set `auditAction`, or a
+ * or fail the actual request - a route that doesn't set `auditAction`, or a
  * request that fails (`requireAuth` rejects it, validation fails, the
- * response isn't 2xx), is simply not logged. Logging failures themselves are
- * swallowed and reported to the console rather than surfaced to the client.
+ * response isn't 2xx), is simply not logged.
  */
 export default function auditLog(
   req: Request,

@@ -20,6 +20,12 @@ export interface DataTableColumn<T, K extends string = string> {
   widthClassName?: string;
   /** Overrides the default `px-5 py-3 text-gray-500 whitespace-nowrap`. */
   cellClassName?: string;
+  /**
+   * Set `false` for columns that don't hold sortable data (e.g. action
+   * buttons): the header renders as plain text with no sort toggle.
+   * Defaults to `true`.
+   */
+  sortable?: boolean;
   render: (row: T) => ReactNode;
 }
 
@@ -45,6 +51,21 @@ export interface DateRangeFilterDef<
 }
 
 /**
+ * Same `DateRangeValue` as `dateRange`, but picked with the two-month
+ * `DateRangePicker` popover (presets, Apply/Clear) instead of the inline
+ * calendar.
+ */
+export interface DateRangePickerFilterDef<
+  F extends Record<string, unknown>,
+  K extends keyof F,
+> {
+  type: 'dateRangePicker';
+  key: K;
+  /** Shown on the button while no range is applied. */
+  label: string;
+}
+
+/**
  * An inclusive `[from, to]` range of `yyyy-mm-dd` strings, either end optional.
  */
 export interface DateRangeValue {
@@ -53,5 +74,8 @@ export interface DateRangeValue {
 }
 
 export type FilterDef<F extends Record<string, unknown>> = {
-  [K in keyof F]: SelectFilterDef<F, K> | DateRangeFilterDef<F, K>;
+  [K in keyof F]:
+    | SelectFilterDef<F, K>
+    | DateRangeFilterDef<F, K>
+    | DateRangePickerFilterDef<F, K>;
 }[keyof F];

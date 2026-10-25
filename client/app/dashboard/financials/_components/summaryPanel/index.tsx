@@ -11,7 +11,7 @@ import {
   isPartialWeek,
   toIsoDateInput,
 } from './dateHelpers';
-import DateRangePicker from './dateRangePicker';
+import DateRangePicker from '@/components/dateRangePicker';
 import DayDetailsPanel from './dayDetailsPanel';
 import type { FinancialBucket } from 'shared';
 import type { DateUnit } from 'shared/utils';

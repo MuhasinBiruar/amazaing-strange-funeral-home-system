@@ -15,7 +15,7 @@ type Mode = 'create' | 'guided';
 
 /**
  * Attaches a package to this contract. Staff either build a brand new one
- * (flat form) or are guided to an existing one — pick a package type, then
+ * (flat form) or are guided to an existing one - pick a package type, then
  * choose from the (usually short) list of packages of that type. Once
  * confirmed, collapses into a summary card with an Edit action.
  */
