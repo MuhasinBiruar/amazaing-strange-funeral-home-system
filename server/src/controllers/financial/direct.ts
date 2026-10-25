@@ -14,6 +14,7 @@ import { BadRequestError, NotFoundError } from '@/errors';
 import { getDeceasedName } from '@/util/audit-log';
 import { withTransaction } from '@/util/with-transaction';
 import { toExclusiveEndBound } from '@/util/date';
+import { refreshServiceStatuses } from '@/lib/service-status';
 
 const SORT_COLUMNS: Record<string, string> = {
   caseid: 'dr.caseid',
@@ -23,6 +24,7 @@ const SORT_COLUMNS: Record<string, string> = {
   contractid: 'c.contractid',
   totalamount: 'c.totalamount',
   totalamountpaid: 'totalamountpaid',
+  servicestatus: 'dr.servicestatus',
 };
 
 export async function getDirect(
@@ -42,7 +44,8 @@ export async function getDirect(
         CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
         c.contractid,
         c.totalamount,
-        COALESCE(t.totalpaid, 0) AS totalamountpaid
+        COALESCE(t.totalpaid, 0) AS totalamountpaid,
+        dr.servicestatus
     `;
 
     const fromAndJoins = `
@@ -263,6 +266,8 @@ export async function createDirectTransaction(
           caseid,
         ],
       );
+
+      await refreshServiceStatuses(client, caseid);
 
       return insertResult.rows[0];
     });
