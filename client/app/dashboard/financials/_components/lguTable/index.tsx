@@ -54,6 +54,26 @@ export default function LguTable() {
       render: (l) => formatCurrency(l.reimbursementamount),
     },
     {
+      key: 'servicestatus',
+      label: 'Service status',
+      widthClassName: 'w-32.5',
+      render: (l) => (
+        <PillBadge
+          variant={
+            l.servicestatus === 'completed'
+              ? 'info'
+              : l.servicestatus === 'active'
+                ? 'success'
+                : l.servicestatus === 'pending'
+                  ? 'warning'
+                  : 'error'
+          }
+        >
+          {titleCase(l.servicestatus)}
+        </PillBadge>
+      ),
+    },
+    {
       key: 'lgucaseid',
       label: 'Actions',
       widthClassName: 'w-28',

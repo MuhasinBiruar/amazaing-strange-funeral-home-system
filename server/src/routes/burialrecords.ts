@@ -13,6 +13,7 @@ import {
   type Request,
   type Response,
 } from 'express';
+import { triggerServiceStatusSweep } from '@/lib/service-status';
 
 const router = Router();
 
@@ -71,6 +72,7 @@ router.post(
       const deceasedName = await getDeceasedName(parsed.caseid);
       res.locals.auditAction = `${res.locals.session.user.name} added a burial record for ${deceasedName}`;
 
+      triggerServiceStatusSweep();
       res.status(201).json({
         data: result.rows[0],
       });

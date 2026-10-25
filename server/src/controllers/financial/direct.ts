@@ -13,6 +13,7 @@ import BigNumber from 'bignumber.js';
 import { BadRequestError, NotFoundError } from '@/errors';
 import { getDeceasedName } from '@/util/audit-log';
 import { withTransaction } from '@/util/with-transaction';
+import { triggerServiceStatusSweep } from '@/lib/service-status';
 
 const SORT_COLUMNS: Record<string, string> = {
   caseid: 'dr.caseid',
@@ -22,6 +23,7 @@ const SORT_COLUMNS: Record<string, string> = {
   contractid: 'c.contractid',
   totalamount: 'c.totalamount',
   totalamountpaid: 'totalamountpaid',
+  servicestatus: 'dr.servicestatus',
 };
 
 export async function getDirect(
@@ -41,7 +43,8 @@ export async function getDirect(
         CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
         c.contractid,
         c.totalamount,
-        COALESCE(t.totalpaid, 0) AS totalamountpaid
+        COALESCE(t.totalpaid, 0) AS totalamountpaid,
+        dr.servicestatus
     `;
 
     const fromAndJoins = `
@@ -257,6 +260,7 @@ export async function createDirectTransaction(
     const deceasedName = await getDeceasedName(caseid);
     res.locals.auditAction = `${res.locals.session.user.name} recorded a ${paymentcategory} of ${amount} for ${deceasedName}`;
 
+    triggerServiceStatusSweep();
     res.status(201).json({ data: transaction });
   } catch (error) {
     next(error);

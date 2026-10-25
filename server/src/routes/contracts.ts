@@ -171,6 +171,13 @@ router.post(
             ],
           );
 
+          await client.query(
+            `UPDATE public.deceasedrecord
+             SET servicestatus = 'active'
+             WHERE caseid = $1`,
+            [parsed.caseid],
+          );
+
           return { contract: contractResult.rows[0], casketWarning };
         },
       );

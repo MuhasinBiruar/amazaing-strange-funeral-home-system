@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import DataTable from '@/components/dataTable';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, titleCase } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import type { GetLifeplansQueryRow } from 'shared';
 import { getLifeplans } from '@/services/lifeplansService';
 import TransactionHistoryPanel from '../directTable/transactionHistoryPanel';
 import RecordTransactionPanel from '../directTable/recordTransactionPanel';
+import PillBadge from '@/components/pillBadge';
 
 type ColumnKey = keyof GetLifeplansQueryRow;
 
@@ -71,6 +72,25 @@ export default function LifeplanTable() {
       label: 'Extra remaining',
       render: (l) =>
         l.remainingbalance != null ? formatCurrency(l.remainingbalance) : '—',
+    },
+    {
+      key: 'servicestatus',
+      label: 'Service status',
+      render: (l) => (
+        <PillBadge
+          variant={
+            l.servicestatus === 'completed'
+              ? 'info'
+              : l.servicestatus === 'active'
+                ? 'success'
+                : l.servicestatus === 'pending'
+                  ? 'warning'
+                  : 'error'
+          }
+        >
+          {titleCase(l.servicestatus)}
+        </PillBadge>
+      ),
     },
     {
       key: 'caseid',

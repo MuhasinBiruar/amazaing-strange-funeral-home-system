@@ -4,6 +4,7 @@ import {
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
 import { lguCaseSchema } from '../db/lgucase';
+import { deceasedRecordSchema } from '../db/deceasedrecord';
 
 /**
  * Combination of the following tables:
@@ -11,6 +12,7 @@ import { lguCaseSchema } from '../db/lgucase';
  */
 export const getLguCasesRowSchema = lguCaseSchema.extend({
   deceased_name: z.string(),
+  servicestatus: deceasedRecordSchema.shape.servicestatus,
 });
 
 export type GetLguCasesRow = z.infer<typeof getLguCasesRowSchema>;

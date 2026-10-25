@@ -11,6 +11,7 @@ import {
 } from 'shared';
 import type { IdParam } from 'shared/utils';
 import { BadRequestError, NotFoundError } from '@/errors';
+import { triggerServiceStatusSweep } from '@/lib/service-status';
 
 const SORT_COLUMNS: Record<keyof GetLguCasesRow, string> = {
   lgucaseid: 'lc.lgucaseid',
@@ -18,6 +19,7 @@ const SORT_COLUMNS: Record<keyof GetLguCasesRow, string> = {
   reimbursementamount: 'lc.reimbursementamount',
   caseid: 'lc.caseid',
   deceased_name: 'deceased_name',
+  servicestatus: 'dr.servicestatus',
 };
 
 export async function createLguCase(
@@ -40,6 +42,7 @@ export async function createLguCase(
     const deceasedName = await getDeceasedName(parsed.caseid);
     res.locals.auditAction = `${res.locals.session.user.name} created an LGU case for ${deceasedName}`;
 
+    triggerServiceStatusSweep();
     res.status(201).json({
       data: result.rows[0],
     });
@@ -63,6 +66,7 @@ export async function getLguCases(
           lc.reimbursementstatus,
           lc.reimbursementamount,
           lc.caseid AS caseid,
+          dr.servicestatus,
           CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name
       `;
 
@@ -170,6 +174,7 @@ export async function updateLguCase(
     const deceasedName = await getDeceasedName(updated.caseid);
     res.locals.auditAction = `${res.locals.session.user.name} updated the LGU case for ${deceasedName} (status: ${updated.reimbursementstatus}, amount: ${updated.reimbursementamount})`;
 
+    triggerServiceStatusSweep();
     res.json({ data: updated });
   } catch (error) {
     next(error);

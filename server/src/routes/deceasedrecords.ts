@@ -21,6 +21,7 @@ import {
 import validateParams from '@/middleware/validate-params';
 import { idParamSchema, type IdParam } from 'shared/utils';
 import { triggerNotificationSweep } from '@/lib/notifications';
+import { triggerServiceStatusSweep } from '@/lib/service-status';
 import type { Locals } from '@/types/controllers';
 
 const router = Router();
@@ -356,6 +357,7 @@ router.patch(
         repName ? `${deceasedName} & ${repName}` : deceasedName
       }`;
 
+      if (parsed.plantype !== undefined) triggerServiceStatusSweep();
       res.json({ data: updated });
     } catch (error) {
       next(error);

@@ -8,6 +8,8 @@ import TransactionHistoryPanel from './transactionHistoryPanel';
 import RecordTransactionPanel from './recordTransactionPanel';
 import type { DirectPlan } from 'shared';
 import { getDirectPlans } from '@/services/financialService';
+import PillBadge from '@/components/pillBadge';
+import { titleCase } from '@/utils/format';
 
 type ColumnKey = keyof DirectPlan;
 
@@ -43,6 +45,26 @@ export default function DirectTable() {
       label: 'Total amount paid',
       widthClassName: 'w-32.5',
       render: (d) => formatCurrency(d.totalamountpaid),
+    },
+    {
+      key: 'servicestatus',
+      label: 'Service status',
+      widthClassName: 'w-32.5',
+      render: (d) => (
+        <PillBadge
+          variant={
+            d.servicestatus === 'completed'
+              ? 'info'
+              : d.servicestatus === 'active'
+                ? 'success'
+                : d.servicestatus === 'pending'
+                  ? 'warning'
+                  : 'error'
+          }
+        >
+          {titleCase(d.servicestatus)}
+        </PillBadge>
+      ),
     },
     {
       key: 'caseid',
