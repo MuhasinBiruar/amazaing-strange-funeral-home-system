@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import DataTable from '@/components/dataTable';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, titleCase } from '@/utils/format';
 import type {
   DataTableColumn,
   DateRangeValue,
@@ -12,6 +12,7 @@ import TransactionHistoryPanel from './transactionHistoryPanel';
 import RecordTransactionPanel from './recordTransactionPanel';
 import type { DirectPlan } from 'shared';
 import { getDirectPlans } from '@/services/financialService';
+import ServiceStatusPill from '@/components/serviceStatusPill';
 
 type ColumnKey = keyof DirectPlan;
 
@@ -63,6 +64,13 @@ export default function DirectTable() {
       label: 'Total amount paid',
       widthClassName: 'w-32.5',
       render: (d) => formatCurrency(d.totalamountpaid),
+    },
+    {
+      key: 'servicestatus',
+      label: 'Service status',
+      widthClassName: 'w-32',
+      render: (d) => <ServiceStatusPill status={d.servicestatus} />,
+      exportValue: (d) => titleCase(d.servicestatus),
     },
     {
       key: 'caseid',

@@ -12,6 +12,7 @@ import { getLguCases } from '@/services/lguCasesService';
 import type { GetLguCasesRow } from 'shared';
 import EditLguCasePanel from './editLguCasePanel';
 import ReimbursementStatusPill from '@/components/reimbursementStatusPill';
+import ServiceStatusPill from '@/components/serviceStatusPill';
 
 type ColumnKey = keyof GetLguCasesRow;
 
@@ -68,6 +69,13 @@ export default function LguTable() {
       label: 'Reimbursement amount',
       widthClassName: 'w-40',
       render: (l) => formatCurrency(l.reimbursementamount),
+    },
+    {
+      key: 'servicestatus',
+      label: 'Service status',
+      widthClassName: 'w-32',
+      render: (l) => <ServiceStatusPill status={l.servicestatus} />,
+      exportValue: (l) => titleCase(l.servicestatus),
     },
     {
       key: 'lgucaseid',

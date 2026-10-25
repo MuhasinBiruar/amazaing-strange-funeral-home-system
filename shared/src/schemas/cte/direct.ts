@@ -4,6 +4,7 @@ import {
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
 import { transactionSchema } from '../db/transaction';
+import { deceasedRecordSchema } from '../db/deceasedrecord';
 
 /**
  * Combination of the following tables:
@@ -17,6 +18,7 @@ export const directPlanSchema = z.object({
   contractid: z.int32().nullable(),
   totalamount: z.float64().nullable(),
   totalamountpaid: z.float64(),
+  servicestatus: deceasedRecordSchema.shape.servicestatus,
 });
 
 export type DirectPlan = z.infer<typeof directPlanSchema>;

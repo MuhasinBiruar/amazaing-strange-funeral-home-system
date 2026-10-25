@@ -1,4 +1,3 @@
-import pool from '@/db';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 import { toExclusiveEndBound } from '@/util/date';
 import { getDeceasedName } from '@/util/audit-log';
@@ -12,6 +11,8 @@ import {
 } from 'shared';
 import type { IdParam } from 'shared/utils';
 import { BadRequestError, NotFoundError } from '@/errors';
+import { withTransaction } from '@/util/with-transaction';
+import { refreshServiceStatuses } from '@/lib/service-status';
 
 const SORT_COLUMNS: Record<keyof GetLguCasesRow, string> = {
   lgucaseid: 'lc.lgucaseid',
@@ -20,6 +21,7 @@ const SORT_COLUMNS: Record<keyof GetLguCasesRow, string> = {
   caseid: 'lc.caseid',
   lguid: 'lc.lguid',
   deceased_name: 'deceased_name',
+  servicestatus: 'dr.servicestatus',
 };
 
 export async function createLguCase(
@@ -29,21 +31,25 @@ export async function createLguCase(
 ) {
   try {
     const parsed = req.body;
-    const result = await pool.query(
-      `
-        INSERT INTO lgucase (
-          reimbursementstatus,
-          reimbursementamount,
-          caseid,
-          lguid
-        ) VALUES ($1, $2, $3, $4) RETURNING lgucaseid;`,
-      [
-        parsed.reimbursementstatus,
-        parsed.reimbursementamount,
-        parsed.caseid,
-        parsed.lguid,
-      ],
-    );
+    const result = await withTransaction(async (client) => {
+      const insertResult = await client.query(
+        `
+          INSERT INTO lgucase (
+            reimbursementstatus,
+            reimbursementamount,
+            caseid,
+            lguid
+          ) VALUES ($1, $2, $3, $4) RETURNING lgucaseid;`,
+        [
+          parsed.reimbursementstatus,
+          parsed.reimbursementamount,
+          parsed.caseid,
+          parsed.lguid,
+        ],
+      );
+      await refreshServiceStatuses(client, parsed.caseid);
+      return insertResult;
+    });
 
     const deceasedName = await getDeceasedName(parsed.caseid);
     res.locals.auditAction = `${res.locals.session.user.name} created an LGU case for ${deceasedName}`;
@@ -81,6 +87,7 @@ export async function getLguCases(
           lc.reimbursementamount,
           lc.caseid AS caseid,
           lc.lguid,
+          dr.servicestatus,
           CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name
       `;
 
@@ -192,20 +199,28 @@ export async function updateLguCase(
     if (Object.keys(parsed).length === 0)
       throw new BadRequestError('No fields provided for update.');
 
-    const result = await pool.query(
-      `UPDATE lgucase SET
-        reimbursementstatus = COALESCE($1, reimbursementstatus),
-        reimbursementamount = COALESCE($2, reimbursementamount),
-        lguid = COALESCE($4, lguid)
-      WHERE lgucaseid = $3
-      RETURNING *`,
-      [
-        parsed.reimbursementstatus ?? null,
-        parsed.reimbursementamount ?? null,
-        id,
-        parsed.lguid ?? null,
-      ],
-    );
+    const result = await withTransaction(async (client) => {
+      const updateResult = await client.query(
+        `UPDATE lgucase SET
+          reimbursementstatus = COALESCE($1, reimbursementstatus),
+          reimbursementamount = COALESCE($2, reimbursementamount),
+          lguid = COALESCE($4, lguid)
+        WHERE lgucaseid = $3
+        RETURNING *`,
+        [
+          parsed.reimbursementstatus ?? null,
+          parsed.reimbursementamount ?? null,
+          id,
+          parsed.lguid ?? null,
+        ],
+      );
+      if (updateResult.rows.length > 0)
+        await refreshServiceStatuses(
+          client,
+          Number(updateResult.rows[0].caseid),
+        );
+      return updateResult;
+    });
 
     if (result.rows.length === 0)
       throw new NotFoundError('LGU case not found.');

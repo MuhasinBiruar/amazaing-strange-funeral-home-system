@@ -4,6 +4,7 @@ import {
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
 import { lifeplanSchema } from '../db/lifeplan';
+import { deceasedRecordSchema } from '../db/deceasedrecord';
 
 /**
  * Combination of the following tables:
@@ -18,6 +19,7 @@ export const getLifeplansQueryRowSchema = lifeplanSchema.extend({
   totalamountpaid: z.float64(),
   remainingbalance: z.float64().nullable(),
   datecreated: z.coerce.date(),
+  servicestatus: deceasedRecordSchema.shape.servicestatus,
 });
 
 export type GetLifeplansQueryRow = z.infer<typeof getLifeplansQueryRowSchema>;

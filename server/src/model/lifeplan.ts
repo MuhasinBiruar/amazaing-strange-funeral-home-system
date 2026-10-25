@@ -18,6 +18,7 @@ const SORT_COLUMNS: Record<keyof GetLifeplansQueryRow, string> = {
   totalamountpaid: 'COALESCE(t.totalpaid, 0)',
   remainingbalance: 'c.totalamount - COALESCE(t.totalpaid, 0)',
   datecreated: 'dr.datecreated',
+  servicestatus: 'dr.servicestatus',
 };
 
 export const getLifeplans = async ({
@@ -48,7 +49,8 @@ export const getLifeplans = async ({
       CASE WHEN c.totalamount IS NULL THEN NULL
         ELSE GREATEST(c.totalamount - COALESCE(t.totalpaid, 0), 0)
       END AS remainingbalance,
-      dr.datecreated
+      dr.datecreated,
+      dr.servicestatus
   `;
 
   const fromAndJoins = `

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import DataTable from '@/components/dataTable';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, titleCase } from '@/utils/format';
 import type {
   DataTableColumn,
   DateRangeValue,
@@ -12,6 +12,7 @@ import type { GetLifeplansQueryRow } from 'shared';
 import { getLifeplans } from '@/services/lifeplansService';
 import TransactionHistoryPanel from '../directTable/transactionHistoryPanel';
 import RecordTransactionPanel from '../directTable/recordTransactionPanel';
+import ServiceStatusPill from '@/components/serviceStatusPill';
 
 type ColumnKey = keyof GetLifeplansQueryRow;
 
@@ -91,6 +92,13 @@ export default function LifeplanTable() {
       label: 'Extra remaining',
       render: (l) =>
         l.remainingbalance != null ? formatCurrency(l.remainingbalance) : '—',
+    },
+    {
+      key: 'servicestatus',
+      label: 'Service status',
+      widthClassName: 'w-32',
+      render: (l) => <ServiceStatusPill status={l.servicestatus} />,
+      exportValue: (l) => titleCase(l.servicestatus),
     },
     {
       key: 'caseid',
