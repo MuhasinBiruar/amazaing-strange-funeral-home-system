@@ -22,6 +22,7 @@ const SORT_COLUMNS: Record<string, string> = {
   contractid: 'c.contractid',
   totalamount: 'c.totalamount',
   totalamountpaid: 'totalamountpaid',
+  totaldeductions: 'totaldeductions',
 };
 
 export async function getDirect(
@@ -41,7 +42,8 @@ export async function getDirect(
         CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
         c.contractid,
         c.totalamount,
-        COALESCE(t.totalpaid, 0) AS totalamountpaid
+        COALESCE(t.totalpaid, 0) AS totalamountpaid,
+        COALESCE(d.totaldeductions, 0) AS totaldeductions
     `;
 
     const fromAndJoins = `
@@ -60,6 +62,16 @@ export async function getDirect(
         FROM public.transaction
         GROUP BY caseid
       ) t ON dr.caseid = t.caseid
+      LEFT JOIN (
+        SELECT
+          t2.caseid,
+          COALESCE(SUM(
+            COALESCE(o.pwd_discount, 0) + COALESCE(o.withholding_tax, 0)
+          ), 0) AS totaldeductions
+        FROM public.officialreceipt o
+        JOIN public.transaction t2 ON t2.transactionid = o.transactionid
+        GROUP BY t2.caseid
+      ) d ON dr.caseid = d.caseid
     `;
 
     // Start building `whereClause`
@@ -207,8 +219,26 @@ export async function createDirectTransaction(
         );
 
       const discount = new BigNumber(receipt?.pwd_discount ?? 0);
-      if (discount.isGreaterThan(totalamount))
-        throw new BadRequestError('Discount is larger than the total amount.');
+      const withholding = new BigNumber(receipt?.withholding_tax ?? 0);
+
+      const priorResult = await client.query<{ deducted: string }>(
+        `SELECT COALESCE(SUM(
+           COALESCE(o.pwd_discount, 0) + COALESCE(o.withholding_tax, 0)
+         ), 0)::text AS deducted
+         FROM public.officialreceipt o
+         JOIN public.transaction t ON t.transactionid = o.transactionid
+         WHERE t.caseid = $1`,
+        [caseid],
+      );
+
+      const deductions = new BigNumber(priorResult.rows[0].deducted)
+        .plus(discount)
+        .plus(withholding);
+
+      if (deductions.isGreaterThan(totalamount))
+        throw new BadRequestError(
+          'Discount and withholding tax are larger than the total amount.',
+        );
 
       const paidResult = await client.query<{ paid: string }>(
         `SELECT COALESCE(SUM(
@@ -221,7 +251,7 @@ export async function createDirectTransaction(
 
       const newPaid = new BigNumber(paidResult.rows[0].paid).plus(delta);
       const remaining = new BigNumber(totalamount)
-        .minus(discount)
+        .minus(deductions)
         .minus(newPaid);
 
       if (newPaid.isLessThan(0))

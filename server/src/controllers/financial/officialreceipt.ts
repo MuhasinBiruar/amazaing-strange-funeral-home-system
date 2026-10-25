@@ -19,7 +19,7 @@ export async function getDirectOfficialReceipts(
         o.reissuancecount,
         o.transactionid,
         o.total_due::text AS total_due,
-        o.witholding_tax::text AS withholding_tax,
+        o.withholding_tax::text AS withholding_tax,
         o.tin,
         o.discount_id,
         o.pwd_discount::text AS pwd_discount
