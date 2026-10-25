@@ -69,6 +69,7 @@ export default function AdminPage() {
 
         <DataTable<GetStaffRow, ColumnKey, Filters>
           title="Staff"
+          exportFileName="staff"
           countLabel={(total) => `${total} members`}
           searchPlaceholder="Search staff..."
           filters={FILTERS}

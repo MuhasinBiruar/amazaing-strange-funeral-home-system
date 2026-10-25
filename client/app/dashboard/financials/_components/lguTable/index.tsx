@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import DataTable from '@/components/dataTable';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, titleCase } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import { getLguCases } from '@/services/lguCasesService';
 import type { GetLguCasesRow } from 'shared';
@@ -28,6 +28,7 @@ export default function LguTable() {
       label: 'Reimbursement status',
       widthClassName: 'w-40',
       render: (l) => <ReimbursementStatusPill status={l.reimbursementstatus} />,
+      exportValue: (l) => titleCase(l.reimbursementstatus),
     },
     {
       key: 'reimbursementamount',
@@ -38,6 +39,7 @@ export default function LguTable() {
     {
       key: 'lgucaseid',
       label: 'Actions',
+      exportable: false,
       widthClassName: 'w-28',
       render: (row) => (
         <button
@@ -55,6 +57,7 @@ export default function LguTable() {
     <>
       <DataTable<GetLguCasesRow, ColumnKey>
         title="LGU reimbursement log"
+        exportFileName="lgu-reimbursements"
         countLabel={(total) => `${total} cases`}
         searchPlaceholder="Search by deceased name or case ID..."
         columns={columns}

@@ -89,6 +89,7 @@ export default function CasketDeliveryTable({
   return (
     <DataTable<CasketDelivery, ColumnKey, Filters>
       title="Casket deliveries"
+      exportFileName="casket-deliveries"
       countLabel={(total) => `${total} deliveries`}
       searchPlaceholder="Search casket or tier..."
       filters={FILTERS}

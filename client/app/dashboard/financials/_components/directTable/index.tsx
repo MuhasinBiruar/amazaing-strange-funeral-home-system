@@ -47,6 +47,7 @@ export default function DirectTable() {
     {
       key: 'caseid',
       label: 'Actions',
+      exportable: false,
       widthClassName: 'w-48',
       render: (row) => (
         <div className="flex justify-center items-center gap-4">
@@ -73,6 +74,7 @@ export default function DirectTable() {
     <>
       <DataTable<DirectPlan, ColumnKey>
         title="Direct payment log"
+        exportFileName="direct-payments"
         countLabel={(total) => `${total} plans`}
         searchPlaceholder="Search by deceased or representative..."
         columns={columns}

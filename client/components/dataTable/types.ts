@@ -27,6 +27,14 @@ export interface DataTableColumn<T, K extends string = string> {
    */
   sortable?: boolean;
   render: (row: T) => ReactNode;
+  /**
+   * Plain-text value of this column for CSV/PDF export. Only needed when
+   * `render` returns something other than text (e.g. a pill component);
+   * otherwise the text inside what `render` returns is used.
+   */
+  exportValue?: (row: T) => string | number | null | undefined;
+  /** Set `false` to leave this column (e.g. action buttons) out of exports. */
+  exportable?: boolean;
 }
 
 export interface SelectFilterDef<

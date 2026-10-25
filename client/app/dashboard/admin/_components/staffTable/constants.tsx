@@ -75,6 +75,7 @@ export const COLUMNS: DataTableColumn<GetStaffRow, ColumnKey>[] = [
         title={r.isActive ? 'Active' : 'Inactive'}
       />
     ),
+    exportValue: (r) => (r.isActive ? 'Active' : 'Inactive'),
   },
   {
     key: 'access',

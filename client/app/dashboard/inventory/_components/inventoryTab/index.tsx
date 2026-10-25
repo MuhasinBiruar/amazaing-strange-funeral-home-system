@@ -78,6 +78,7 @@ export default function InventoryTab() {
       label: 'Edit / Delete',
       widthClassName: 'w-32',
       sortable: false,
+      exportable: false,
       render: (row) => (
         <div className="flex items-center justify-center gap-1">
           <button
@@ -110,6 +111,7 @@ export default function InventoryTab() {
     {
       key: 'casketid',
       label: 'Actions',
+      exportable: false,
       widthClassName: 'w-45',
       render: (row) => (
         <div className="flex items-center justify-center gap-6 whitespace-nowrap">
@@ -135,6 +137,7 @@ export default function InventoryTab() {
       <FormalinArea />
       <DataTable<CasketInventoryTable, ColumnKey>
         title="Casket Inventory"
+        exportFileName="casket-inventory"
         countLabel={(total) => `${total} caskets in inventory`}
         searchPlaceholder="Search by Casket or Package Name..."
         columns={columns}

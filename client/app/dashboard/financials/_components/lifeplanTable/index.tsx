@@ -75,6 +75,7 @@ export default function LifeplanTable() {
     {
       key: 'caseid',
       label: 'Actions',
+      exportable: false,
       render: (l) => (
         <div className="flex justify-center gap-3">
           <button
@@ -101,6 +102,7 @@ export default function LifeplanTable() {
     <>
       <DataTable<GetLifeplansQueryRow, ColumnKey>
         title="Life plan log"
+        exportFileName="life-plans"
         countLabel={(total) => `${total} plans`}
         searchPlaceholder="Search by plan holder, number, or company..."
         columns={columns}

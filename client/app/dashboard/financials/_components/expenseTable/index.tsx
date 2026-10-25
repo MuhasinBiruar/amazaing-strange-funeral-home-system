@@ -115,6 +115,7 @@ export default function ExpenseTable() {
 
       <DataTable<ExpenseLog, ColumnKey, Filters>
         title="Expenses"
+        exportFileName="expenses"
         countLabel={(total) => `${total} records`}
         searchPlaceholder="Search expenses..."
         filters={FILTERS}
