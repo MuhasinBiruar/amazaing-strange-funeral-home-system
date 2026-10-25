@@ -1,19 +1,22 @@
 import axios from 'axios';
-import { API } from '@/services/api';
 import {
   createDocumentRequirement,
   uploadDocument,
 } from '@/services/documentService';
 import { createLifeplan } from '@/services/lifeplansService';
-import type {
-  CreateDeceasedRecordQuery,
-  CreateLguCaseQuery,
-  CreateLifeplanQuery,
-  CreateRepresentativeQuery,
-} from 'shared';
+import type { CreateDeceasedRecordQuery } from 'shared';
 import type { SubmitEvent } from 'react';
 import type { StagedDocument } from '../_components/documentchecklist';
 import type { InfoModalOptions } from '@/components/infoModal/types';
+import {
+  createRepresentative,
+  deleteRepresentative,
+} from '@/services/representativeService';
+import {
+  createDeceasedRecord,
+  deleteDeceasedRecord,
+} from '@/services/deceasedRecordService';
+import { createLguCase } from '@/services/financialService';
 
 function getPlantype(
   rawPlantype: string,
@@ -35,13 +38,13 @@ export function useSubmitIntake(
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
 
-    let generatedRepId: number | null = null;
-    let generatedCaseId: number | null = null;
+    const generatedRepId: number | null = null;
+    const generatedCaseId: number | null = null;
 
     try {
       // STEP 1: REPRESENTATIVE
       setStatus('Saving representative…');
-      const repPayload: CreateRepresentativeQuery = {
+      const { representativeid: generatedRepId } = await createRepresentative({
         firstname: formData.rep_firstname as string,
         middlename: formData.rep_middlename as string,
         lastname: formData.rep_lastname as string,
@@ -49,13 +52,11 @@ export function useSubmitIntake(
         contactnumber: formData.rep_contactnumber as string,
         address: formData.rep_address as string,
         datecreated: new Date(),
-      };
-      const repResponse = await API.post('/representatives', repPayload);
-      generatedRepId = repResponse.data.data.representativeid as number;
+      });
 
       // STEP 2: DECEASED RECORD
       setStatus('Saving deceased record…');
-      const recordPayload: CreateDeceasedRecordQuery = {
+      const { caseid: generatedCaseId } = await createDeceasedRecord({
         firstname: formData.firstname as string,
         middlename: formData.middlename as string | null,
         lastname: formData.lastname as string,
@@ -75,13 +76,11 @@ export function useSubmitIntake(
         managedby: null,
         representedby: generatedRepId,
         hasadvanceddecomposition: formData.hasadvanceddecomposition === true,
-      };
-      const recordResponse = await API.post('/deceasedrecords', recordPayload);
-      generatedCaseId = recordResponse.data.data.caseid as number;
+      });
 
       if (formData.plantype === 'Life') {
         setStatus('Saving life plan…');
-        const lifeplanPayload: CreateLifeplanQuery = {
+        await createLifeplan({
           plannumber: formData.lifeplan_plannumber as string,
           planholdername:
             (formData.lifeplan_planholdername as string) ||
@@ -92,17 +91,16 @@ export function useSubmitIntake(
           use_benefits: formData.lifeplan_use_benefits !== 'false',
           caseid: generatedCaseId,
           companyid: Number(formData.lifeplancompanyid),
-        };
-        await createLifeplan(lifeplanPayload);
+        });
       } else if (formData.plantype === 'LGU') {
         setStatus('Saving LGU case…');
         // STEP 3: LGU CASE
-        const lguCasePayload: CreateLguCaseQuery = {
+        await createLguCase({
           reimbursementstatus: 'pending',
           reimbursementamount: Number(formData.lgu_reimbursementamount),
           caseid: generatedCaseId,
-        };
-        await API.post('/financial/lgucases', lguCasePayload);
+          lguid: Number(formData.lguid),
+        });
       }
 
       // STEP 5: SAVE REQUIRED DOCUMENTS AND UPLOAD ANY STAGED FILES
@@ -155,7 +153,7 @@ export function useSubmitIntake(
 
       if (generatedCaseId) {
         try {
-          await API.delete(`/deceasedrecords/${generatedCaseId}`);
+          await deleteDeceasedRecord(generatedCaseId);
         } catch (err) {
           rollbackFailures.push(`deceased record (case #${generatedCaseId})`);
           console.error('Failed to clean up orphaned deceased record:', err);
@@ -164,7 +162,7 @@ export function useSubmitIntake(
 
       if (generatedRepId) {
         try {
-          await API.delete(`/representatives/${generatedRepId}`);
+          await deleteRepresentative(generatedRepId);
         } catch (err) {
           rollbackFailures.push(`representative (ID ${generatedRepId})`);
           console.error('Failed to clean up orphaned representative:', err);

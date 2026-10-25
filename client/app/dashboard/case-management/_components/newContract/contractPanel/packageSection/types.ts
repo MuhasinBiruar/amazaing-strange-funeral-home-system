@@ -1,4 +1,8 @@
-import type { CasketInventory, CreatePackageQuery, PackageWithCasket } from 'shared';
+import type {
+  CasketInventory,
+  CreatePackageQuery,
+  PackageWithCasket,
+} from 'shared';
 import emptyToNull from '@/utils/emptyToNull';
 
 export const PACKAGE_TYPES = [
@@ -57,7 +61,7 @@ function toCreatePackageQuery(draft: PackageDraft): CreatePackageQuery | null {
 }
 
 /**
- * A package ready to attach to the contract — either brand new
+ * A package ready to attach to the contract - either brand new
  * (`packageid: null`, created at submit time via `POST /packages`) or picked
  * from the existing catalog through the guided flow (`packageid` already
  * known, nothing to create).
@@ -66,8 +70,13 @@ export type ConfirmedPackage = Omit<PackageWithCasket, 'packageid'> & {
   packageid: number | null;
 };
 
-/** Converts a complete draft into a to-be-created `ConfirmedPackage`, or `null` if it isn't complete yet. */
-export function toConfirmedPackage(draft: PackageDraft): ConfirmedPackage | null {
+/**
+ * Converts a complete draft into a to-be-created `ConfirmedPackage`, or `null`
+ * if it isn't complete yet.
+ */
+export function toConfirmedPackage(
+  draft: PackageDraft,
+): ConfirmedPackage | null {
   const query = toCreatePackageQuery(draft);
   if (!query) return null;
 

@@ -4,6 +4,7 @@ import {
   getDirectTransactionsResponseSchema,
   getFinancialDetailsResponseSchema,
   getFinancialSummaryResponseSchema,
+  type CreateLguCaseQuery,
   type CreateTransactionQuery,
   type GetDirectPlansQuery,
   type GetFinancialSummaryQuery,
@@ -87,6 +88,18 @@ export async function createDirectTransaction(
       throw new Error(extractErrorMessage(error.response.data));
 
     console.error('Error recording transaction:', error);
+    throw error;
+  }
+}
+
+export async function createLguCase(payload: CreateLguCaseQuery) {
+  try {
+    await API.post('/lgucases', payload);
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.error?.message)
+      throw new Error(extractErrorMessage(error.response.data));
+
+    console.error('Error creating lgu case:', error);
     throw error;
   }
 }

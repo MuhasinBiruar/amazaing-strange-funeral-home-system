@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 import type { DateRangeValue, FilterDef } from '../types';
 import DateRangeFilter from './dateRangeFilter';
+import DateRangePicker from '@/components/dateRangePicker';
 import SelectFilter from './selectFilter';
 
 export default function FilterBar<F extends Record<string, unknown>>({
@@ -48,6 +49,29 @@ export default function FilterBar<F extends Record<string, unknown>>({
               value={current}
               onChange={(next) =>
                 updateFilter(filter.key, next as F[typeof filter.key])
+              }
+            />
+          );
+        }
+
+        if (filter.type === 'dateRangePicker') {
+          const current = (values[filter.key] as DateRangeValue) ?? {
+            from: null,
+            to: null,
+          };
+          return (
+            <DateRangePicker
+              key={String(filter.key)}
+              value={current}
+              placeholder={filter.label}
+              onApply={(from, to) =>
+                updateFilter(filter.key, { from, to } as F[typeof filter.key])
+              }
+              onClear={() =>
+                updateFilter(filter.key, {
+                  from: null,
+                  to: null,
+                } as F[typeof filter.key])
               }
             />
           );

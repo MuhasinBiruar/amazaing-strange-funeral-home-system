@@ -1,157 +1,62 @@
-import { Router, type Request } from 'express';
-import { getPaginatedCasketInventoryQuerySchema } from 'shared';
-import pool from '@/db';
+import { Router } from 'express';
+import {
+  createCasketInventoryQuerySchema,
+  updateCasketInventoryQuerySchema,
+} from 'shared';
+import { idParamSchema } from 'shared/utils';
 import requireAuth from '@/middleware/require-auth';
+import validate from '@/middleware/validate';
+import validateParams from '@/middleware/validate-params';
+import {
+  createCasketInventory,
+  getCasketInventory,
+  getPackagesOfCasket,
+  getPaginatedCasketInventory,
+  updateCasketInventory,
+  getDeliveryHistoryOfCasket,
+  deleteCasketInventory,
+} from '@/controllers/casketinventory';
 
 const router = Router();
 
-const SORT_COLUMNS = {
-  casketid: 'casketid',
-  caskettype: 'caskettype',
-  currentstock: 'currentstock',
-} as const;
+router.get('/', requireAuth, getCasketInventory);
 
-router.get('/paginated', requireAuth, async (req, res, next) => {
-  try {
-    const { page, limit, search, sortBy, sortOrder } =
-      getPaginatedCasketInventoryQuerySchema.parse(req.query);
-    const queryParams: unknown[] = [];
-    const whereConditions: string[] = [];
+router.get('/paginated', requireAuth, getPaginatedCasketInventory);
 
-    if (search) {
-      queryParams.push(`%${search}%`);
-      whereConditions.push(`(
-        casketid::text ILIKE $1 OR
-        caskettype ILIKE $1 OR
-        currentstock::text ILIKE $1
-      )`);
-    }
-
-    const whereClause =
-      whereConditions.length > 0
-        ? `WHERE ${whereConditions.join(' AND ')}`
-        : '';
-    const limitParam = queryParams.length + 1;
-    const offsetParam = queryParams.length + 2;
-    const orderBy = SORT_COLUMNS[sortBy];
-    const direction = sortOrder === 'desc' ? 'DESC' : 'ASC';
-
-    const [dataResult, countResult] = await Promise.all([
-      pool.query(
-        `
-          SELECT casketid, caskettype, currentstock
-          FROM casketinventory
-          ${whereClause}
-          ORDER BY ${orderBy} ${direction}
-          LIMIT $${limitParam} OFFSET $${offsetParam}
-        `,
-        [...queryParams, limit, (page - 1) * limit],
-      ),
-      pool.query(
-        `SELECT COUNT(*)::int AS total FROM casketinventory ${whereClause}`,
-        queryParams,
-      ),
-    ]);
-
-    const [{ total }] = countResult.rows;
-    res.json({
-      data: dataResult.rows,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * @description Get all packages for a specific casket
- * @param casketid - The ID of the casket
- * @returns A list of packages for the specified casket
- **/
-router.get(
-  '/casket/:casketid/packages',
+router.post(
+  '/',
   requireAuth,
-  async (req: Request<{ casketid: string }>, res, next) => {
-    try {
-      const casketId = parseInt(req.params.casketid, 10);
-      const result = await pool.query(
-        `
-      SELECT
-        p.packageid,
-        p.casketid,
-        p.packagename,
-        p.packagetype,
-        p.price,
-        p.embalmingperiod,
-        p.inclusions,
-        c.caskettype,
-        c.currentstock AS casket_currentstock
-    FROM package AS p
-    JOIN casketinventory AS c
-      ON c.casketid = p.casketid
-      WHERE p.casketid = $1
-      ORDER BY p.packageid;
-      `,
-        [casketId],
-      );
-      res.json({
-        data: result.rows,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  validate(createCasketInventoryQuerySchema),
+  createCasketInventory,
 );
 
 router.get(
-  '/casket/:casketid/deliveryhistory',
+  '/:id/packages',
   requireAuth,
-  async (req: Request<{ casketid: string }>, res, next) => {
-    try {
-      const casketId = parseInt(req.params.casketid, 10);
-      const result = await pool.query(
-        `
-      SELECT
-        c.deliveryid,
-        c.deliverydate,
-        c.quantityreceived,
-        c.totalamountpaid,
-        c.deliverydate,
-        cc.caskettype
-      FROM casketdelivery AS c
-      JOIN casketinventory AS cc
-        ON c.casketid = cc.casketid
-      WHERE c.casketid = $1
-      ORDER BY c.deliverydate DESC;
-      `,
-        [casketId],
-      );
-      res.json({
-        data: result.rows,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  validateParams(idParamSchema),
+  getPackagesOfCasket,
 );
 
-router.get('/', requireAuth, async (_req, res, next) => {
-  try {
-    const result = await pool.query(
-      'SELECT * FROM casketinventory ORDER BY caskettier, caskettype',
-    );
+router.get(
+  '/:id/deliveryhistory',
+  requireAuth,
+  validateParams(idParamSchema),
+  getDeliveryHistoryOfCasket,
+);
 
-    res.json({
-      data: result.rows,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+router.patch(
+  '/:id',
+  requireAuth,
+  validateParams(idParamSchema),
+  validate(updateCasketInventoryQuerySchema),
+  updateCasketInventory,
+);
+
+router.delete(
+  '/:id',
+  requireAuth,
+  validateParams(idParamSchema),
+  deleteCasketInventory,
+);
 
 export default router;

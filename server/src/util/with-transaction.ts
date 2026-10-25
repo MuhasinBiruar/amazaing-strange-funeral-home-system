@@ -7,14 +7,14 @@ import pool from '@/db';
  *
  * @remarks
  * Use this whenever the transaction takes a row lock (`SELECT ... FOR
- * UPDATE`) to safely read-then-mutate a row — e.g. incrementing/decrementing
+ * UPDATE`) to safely read-then-mutate a row - e.g. incrementing/decrementing
  * a stock count without losing a concurrent update to the same row. Under
  * `READ COMMITTED`, `FOR UPDATE` simply waits for any conflicting lock to
- * release and then proceeds with the current committed data — no snapshot to
+ * release and then proceeds with the current committed data - no snapshot to
  * violate, so no serialization retry is ever needed.
  *
  * Do NOT use this for multi-query reads that need to agree on one consistent
- * snapshot (e.g. a paginated list's data query and its count query) — use
+ * snapshot (e.g. a paginated list's data query and its count query) - use
  * {@link withRepeatableRead} for that instead.
  */
 export async function withTransaction<T>(

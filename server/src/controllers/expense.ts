@@ -3,10 +3,10 @@ import type { Locals } from '@/types/controllers';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 import type { NextFunction, Request, Response } from 'express';
 import {
-  getExpensesQuerySchema,
+  getExpenseLogQuerySchema,
   type CreateExpenseQuery,
-  type GetExpensesResponse,
-  type GetExpensesRow,
+  type ExpenseLog,
+  type GetExpenseLogResponse,
 } from 'shared';
 
 export const createExpense = async (
@@ -33,49 +33,110 @@ export const createExpense = async (
   }
 };
 
-const SORT_COLUMNS: Record<keyof GetExpensesRow, string> = {
-  expenseid: 'e.expenseid',
-  description: 'e.description',
-  amount: 'e.amount',
-  expensedate: 'e.expensedate',
-  recordedby: 'e.recordedby',
-  staff_name: 's.name',
+const SORT_COLUMNS: Record<keyof ExpenseLog, string> = {
+  source: 'l.source',
+  id: 'l.id',
+  description: 'l.description',
+  amount: 'l.amount',
+  expensedate: 'l.expensedate',
+  recordedby: 'l.recordedby',
+  staff_name: 'l.staff_name',
 };
 
+/**
+ * `expense` + `casketdelivery` + `formalindelivery` = `expense_log`
+ *
+ * Deliveries are listed with what was paid for them; ones with nothing paid
+ * aren't a cost, so they're left out. `amount` is cast to `numeric` on every
+ * side so it comes back as the same numeric string `expense.amount` does.
+ */
+const EXPENSE_LOG_CTE = `
+  WITH expense_log AS (
+    SELECT
+      'expense' AS source,
+      e.expenseid AS id,
+      e.description,
+      e.amount::numeric AS amount,
+      e.expensedate,
+      e.recordedby,
+      s.name AS staff_name
+    FROM public.expense e
+    LEFT JOIN public.staff s ON e.recordedby = s.id
+
+    UNION ALL
+
+    SELECT
+      'casket' AS source,
+      cd.deliveryid AS id,
+      'Casket delivery: ' || cd.quantityreceived || 'x ' ||
+        COALESCE(ci.caskettype, 'unlinked casket') AS description,
+      cd.totalamountpaid::numeric AS amount,
+      cd.deliverydate AS expensedate,
+      NULL AS recordedby,
+      NULL AS staff_name
+    FROM public.casketdelivery cd
+    LEFT JOIN public.casketinventory ci ON ci.casketid = cd.casketid
+    WHERE cd.totalamountpaid > 0
+
+    UNION ALL
+
+    SELECT
+      'formalin' AS source,
+      fd.deliveryid AS id,
+      'Formalin delivery: ' || fd.quantityreceived || ' L' AS description,
+      fd.totalamountpaid::numeric AS amount,
+      fd.deliverydate AS expensedate,
+      NULL AS recordedby,
+      NULL AS staff_name
+    FROM public.formalindelivery fd
+    WHERE fd.totalamountpaid > 0
+  )
+` as const;
+
+/**
+ * Sample URLs
+ * `http://localhost:4000/expenses`
+ * `http://localhost:4000/expenses?source=casket`
+ * `http://localhost:4000/expenses?search=Mahogany&sortBy=amount&sortOrder=desc`
+ */
 export const getExpenses = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { page, limit, search, sortBy, sortOrder } =
-      getExpensesQuerySchema.parse(req.query);
+    const { page, limit, search, source, sortBy, sortOrder } =
+      getExpenseLogQuerySchema.parse(req.query);
 
     const selectClause = `
       SELECT
-        e.expenseid,
-        e.description,
-        e.amount,
-        e.expensedate,
-        e.recordedby,
-        s.name AS staff_name
+        l.source,
+        l.id,
+        l.description,
+        l.amount,
+        l.expensedate,
+        l.recordedby,
+        l.staff_name
     `;
 
-    const fromAndJoins = `
-      FROM public.expense e
-      LEFT JOIN public.staff s ON e.recordedby = s.id
-    `;
+    const fromAndJoins = `FROM expense_log l`;
 
     // Start building `whereClause`
     const whereConditions: string[] = [];
     const queryParams: unknown[] = [];
     let paramIndex = 1;
 
+    if (source) {
+      whereConditions.push(`l.source = $${paramIndex}`);
+      queryParams.push(source);
+      paramIndex++;
+    }
+
     if (search) {
-      // Searches through: expense.description, staff.name
+      // Searches through: description (incl. delivery item names), staff name
       whereConditions.push(`(
-        e.description ILIKE $${paramIndex} OR
-        s.name ILIKE $${paramIndex}
+        l.description ILIKE $${paramIndex} OR
+        l.staff_name ILIKE $${paramIndex}
       )`);
       queryParams.push(`%${search}%`);
       paramIndex++;
@@ -93,15 +154,17 @@ export const getExpenses = async (
     const [dataResult, countResult] = await withRepeatableRead(
       async (client) => {
         const dataQuery = `
+            ${EXPENSE_LOG_CTE}
             ${selectClause}
             ${fromAndJoins}
             ${whereClause}
-            ${orderByClause}
+            ${orderByClause}, l.source, l.id DESC
             ${paginationClause}
           `;
 
         const countQuery = `
-            SELECT COUNT(e.expenseid) as total
+            ${EXPENSE_LOG_CTE}
+            SELECT COUNT(*) as total
             ${fromAndJoins}
             ${whereClause}
           `;
@@ -125,7 +188,7 @@ export const getExpenses = async (
         limit,
         totalPages: Math.ceil(total / limit),
       },
-    } satisfies GetExpensesResponse);
+    } satisfies GetExpenseLogResponse);
   } catch (error) {
     next(error);
   }

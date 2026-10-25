@@ -12,12 +12,7 @@ import PackageSection from './packageSection';
 import type { ConfirmedPackage } from './packageSection/types';
 import LoadingButton from '@/components/loadingButton';
 import { useInfoModal } from '@/components/infoModal/useInfoModal';
-
-/** `<input type="date">` wants `yyyy-mm-dd` in the viewer's local time. */
-function toDateInputValue(date: Date) {
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 10);
-}
+import { toDateInputValue } from '@/utils/toDateInputValue';
 
 interface ContractForm {
   signeddate: string;
@@ -47,7 +42,7 @@ function initialForm(): ContractForm {
  *
  * {@link PackageSection} either builds a brand new package or guides staff to
  * an existing one by type. Submitting creates the package first if it's new
- * (`POST /packages`) — an existing pick already has a `packageid` — then the
+ * (`POST /packages`) - an existing pick already has a `packageid` - then the
  * contract with that id.
  *
  * The parent keys this component by `caseid`, so picking a different record
@@ -74,7 +69,7 @@ export default function ContractPanel({
   /**
    * Confirming a package (new or existing) prefills the contract's own
    * amount, embalming period and inclusions from it. All three stay
-   * editable — the package is a starting point, not a lock.
+   * editable - the package is a starting point, not a lock.
    */
   function handlePackageConfirmed(pkg: ConfirmedPackage) {
     setConfirmedPackage(pkg);

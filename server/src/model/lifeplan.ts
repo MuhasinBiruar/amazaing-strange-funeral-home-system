@@ -1,5 +1,6 @@
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 import type { GetLifeplansQuery, GetLifeplansQueryRow } from 'shared';
+import { toExclusiveEndBound } from '@/util/date';
 
 const SORT_COLUMNS: Record<keyof GetLifeplansQueryRow, string> = {
   planid: 'l.planid',
@@ -19,9 +20,16 @@ const SORT_COLUMNS: Record<keyof GetLifeplansQueryRow, string> = {
   servicestatus: 'dr.servicestatus',
 };
 
-export const getLifeplans = async (query: GetLifeplansQuery) => {
-  const { page, limit, search, companyid, sortBy, sortOrder } = query;
-
+export const getLifeplans = async ({
+  page,
+  limit,
+  search,
+  companyid,
+  startDate,
+  endDate,
+  sortBy,
+  sortOrder,
+}: GetLifeplansQuery) => {
   const selectClause = `
     SELECT 
       l.planid,
@@ -33,11 +41,11 @@ export const getLifeplans = async (query: GetLifeplansQuery) => {
       CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
       CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
       l.companyid,
-      lc.companyname
-      ,c.contractid
-      ,c.totalamount AS contractamount
-      ,COALESCE(t.totalpaid, 0) AS totalamountpaid
-      ,CASE WHEN c.totalamount IS NULL THEN NULL
+      lc.companyname,
+      c.contractid,
+      c.totalamount AS contractamount,
+      COALESCE(t.totalpaid, 0) AS totalamountpaid,
+      CASE WHEN c.totalamount IS NULL THEN NULL
         ELSE GREATEST(c.totalamount - COALESCE(t.totalpaid, 0), 0)
        END AS remainingbalance
       ,dr.servicestatus
@@ -84,6 +92,18 @@ export const getLifeplans = async (query: GetLifeplansQuery) => {
       lc.companyname ILIKE $${paramIndex}
     )`);
     queryParams.push(`%${search}%`);
+    paramIndex++;
+  }
+
+  if (startDate) {
+    whereConditions.push(`dr.datecreated >= $${paramIndex}`);
+    queryParams.push(startDate);
+    paramIndex++;
+  }
+
+  if (endDate) {
+    whereConditions.push(`dr.datecreated < $${paramIndex}`);
+    queryParams.push(toExclusiveEndBound(endDate));
     paramIndex++;
   }
 

@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {
   type CreateLifeplanQuery,
   type GetLifeplansQuery,
@@ -7,6 +8,7 @@ import {
   type CreateLifeplanCompanyQuery,
 } from 'shared';
 import { API } from './api';
+import { extractErrorMessage } from './utils/extractErrorMessage';
 
 export async function getLifeplans({
   page,
@@ -14,14 +16,23 @@ export async function getLifeplans({
   sortBy,
   sortOrder,
   search,
+  companyid,
+  startDate,
+  endDate,
   signal,
-}: GetLifeplansQuery & { signal?: AbortSignal }) {
+}: Omit<GetLifeplansQuery, 'startDate'> & {
+  startDate?: string | undefined;
+  signal?: AbortSignal;
+}) {
   const params = new URLSearchParams();
   params.append('page', String(page));
   params.append('limit', String(limit));
   params.append('sortBy', sortBy);
   params.append('sortOrder', sortOrder);
   if (search) params.append('search', search);
+  if (companyid !== undefined) params.append('companyid', String(companyid));
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
 
   const result = await API.get(`/lifeplans?${params}`, {
     withCredentials: true,
@@ -36,14 +47,21 @@ export async function getMyLifeplans({
   sortBy,
   sortOrder,
   search,
+  startDate,
+  endDate,
   signal,
-}: GetLifeplansQuery & { signal?: AbortSignal }) {
+}: Omit<GetLifeplansQuery, 'startDate'> & {
+  startDate?: string | undefined;
+  signal?: AbortSignal;
+}) {
   const params = new URLSearchParams();
   params.append('page', String(page));
   params.append('limit', String(limit));
   params.append('sortBy', sortBy);
   params.append('sortOrder', sortOrder);
   if (search) params.append('search', search);
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
 
   const result = await API.get(`/lifeplans/mine?${params}`, {
     withCredentials: true,
@@ -86,8 +104,14 @@ export async function getLifeplanCompanies({
 }
 
 export async function createLifeplanCompany(data: CreateLifeplanCompanyQuery) {
-  const result = await API.post('/lifeplans/companies', data, {
-    withCredentials: true,
-  });
-  return result.data;
+  try {
+    const result = await API.post('/lifeplans/companies', data, {
+      withCredentials: true,
+    });
+    return result.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.error?.message)
+      throw new Error(extractErrorMessage(error.response.data));
+    throw error;
+  }
 }

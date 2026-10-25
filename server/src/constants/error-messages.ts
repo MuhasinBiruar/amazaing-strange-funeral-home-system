@@ -47,6 +47,10 @@ export const FK_CONSTRAINTS: Record<
     field: 'caseid',
     message: 'Referenced deceased record does not exist.',
   },
+  lgucase_lguid_fkey: {
+    field: 'lguid',
+    message: 'Referenced LGU does not exist.',
+  },
   casketdelivery_casketid_fkey: {
     field: 'casketid',
     message: 'Referenced casket does not exist.',
@@ -67,7 +71,7 @@ export const FK_CONSTRAINTS: Record<
     field: 'caseid',
     message: 'Referenced deceased record does not exist.',
   },
-  lifeplan_agent_companyid_fkey: {
+  lifeplanagent_companyid_fkey: {
     field: 'companyid',
     message: 'Referenced life plan company does not exist.',
   },
@@ -92,6 +96,11 @@ export const UNIQUE_CONSTRAINTS: Record<
   lgucase_caseid_key: {
     field: 'caseid',
     message: 'An LGU case for this case already exists.',
+  },
+  // Case-insensitive unique index on lower(lguname).
+  lgu_lguname_key: {
+    field: 'lguname',
+    message: 'An LGU with this name already exists.',
   },
   staff_username_key: {
     field: 'username',

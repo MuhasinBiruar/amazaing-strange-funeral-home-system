@@ -1,8 +1,4 @@
 import { bigNumberSchema } from '@/utils/big-number-schema';
-import {
-  paginationQuerySchema,
-  paginationResponseSchema,
-} from '@/utils/pagination-schema';
 import z from 'zod';
 
 export const expenseSchema = z.object({
@@ -14,26 +10,6 @@ export const expenseSchema = z.object({
 });
 
 export type Expense = z.infer<typeof expenseSchema>;
-
-export const getExpensesRowSchema = expenseSchema.extend({
-  staff_name: z.string(),
-});
-
-export type GetExpensesRow = z.infer<typeof getExpensesRowSchema>;
-
-export const getExpensesQuerySchema = paginationQuerySchema.extend({
-  search: z.string().optional(),
-  sortBy: z.keyof(getExpensesRowSchema).default('expensedate'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
-});
-
-export type GetExpensesQuery = z.infer<typeof getExpensesQuerySchema>;
-
-export const getExpensesResponseSchema = paginationResponseSchema.extend({
-  data: z.array(getExpensesRowSchema),
-});
-
-export type GetExpensesResponse = z.infer<typeof getExpensesResponseSchema>;
 
 export const createExpenseQuerySchema = expenseSchema.omit({
   expenseid: true,

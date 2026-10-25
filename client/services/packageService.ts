@@ -21,10 +21,6 @@ export async function getPackages(signal?: AbortSignal) {
 
 /**
  * Creates a new service package.
- *
- * @remarks
- * Used by the new-contract panel's "Create package" mode — the package is
- * created only once the contract itself is submitted.
  */
 export async function createPackage(
   payload: CreatePackageQuery,
