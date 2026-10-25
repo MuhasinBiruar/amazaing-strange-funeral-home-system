@@ -13,8 +13,11 @@ export async function getExpenses({
   sortOrder,
   search,
   source,
+  startDate,
+  endDate,
   signal,
-}: GetExpenseLogQuery & {
+}: Omit<GetExpenseLogQuery, 'startDate'> & {
+  startDate?: string | undefined;
   signal?: AbortSignal;
 }) {
   const params = new URLSearchParams();
@@ -24,6 +27,8 @@ export async function getExpenses({
   params.append('sortOrder', sortOrder);
   if (search) params.append('search', search);
   if (source) params.append('source', source);
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
 
   const result = await API.get(`/expenses?${params}`, {
     withCredentials: true,

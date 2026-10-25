@@ -9,6 +9,7 @@ export default function TableHeader({
   commitDboSearch,
   searchPlaceholder = 'Search...',
   filterSlot,
+  actionSlot,
 }: {
   title: string;
   countLabel: string;
@@ -17,6 +18,8 @@ export default function TableHeader({
   commitDboSearch: () => void;
   searchPlaceholder?: string;
   filterSlot?: ReactNode;
+  /** Rendered after the Search button, e.g. the Export button. */
+  actionSlot?: ReactNode;
 }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-4 border-b border-gray-200">
@@ -51,6 +54,7 @@ export default function TableHeader({
         >
           Search
         </button>
+        {actionSlot}
       </div>
     </div>
   );

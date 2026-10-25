@@ -25,6 +25,8 @@ export async function getPaginatedCasketInventory({
   sortBy,
   sortOrder,
   search,
+  tier,
+  lowstock,
   signal,
 }: GetPaginatedCasketInventoryQuery & { signal?: AbortSignal }) {
   const params = new URLSearchParams({
@@ -34,6 +36,8 @@ export async function getPaginatedCasketInventory({
     sortOrder,
   });
   if (search) params.set('search', search);
+  if (tier) params.set('tier', tier);
+  if (lowstock !== undefined) params.set('lowstock', String(lowstock));
 
   const result = await API.get(`/casketinventory/paginated?${params}`, {
     withCredentials: true,

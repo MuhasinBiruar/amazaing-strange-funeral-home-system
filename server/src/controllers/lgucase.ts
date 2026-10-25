@@ -67,6 +67,7 @@ export async function getLguCases(
       limit,
       search,
       lguid,
+      status,
       startDate,
       endDate,
       sortBy,
@@ -96,6 +97,12 @@ export async function getLguCases(
     if (lguid !== undefined) {
       whereConditions.push(`lc.lguid = $${paramIndex}`);
       queryParams.push(lguid);
+      paramIndex++;
+    }
+
+    if (status) {
+      whereConditions.push(`lc.reimbursementstatus = $${paramIndex}`);
+      queryParams.push(status);
       paramIndex++;
     }
 

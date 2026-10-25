@@ -69,6 +69,7 @@ export default function AdminPage() {
 
         <DataTable<GetStaffRow, ColumnKey, Filters>
           title="Staff"
+          exportFileName="staff"
           countLabel={(total) => `${total} members`}
           searchPlaceholder="Search staff..."
           filters={FILTERS}
@@ -81,6 +82,7 @@ export default function AdminPage() {
             getStaffList({
               ...params,
               isActive: filters.isActive ?? undefined,
+              role: filters.role ?? undefined,
             })
           }
           onRowClick={(row) => {

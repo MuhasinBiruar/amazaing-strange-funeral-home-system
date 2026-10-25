@@ -8,11 +8,23 @@ import TableFooter from './tableFooter';
 import TableHeader from './tableHeader';
 import TableBody from './tableBody';
 import FilterBar from './filterBar';
-import type { DataTableColumn, FetchDataParams, FilterDef } from './types';
+import ExportModal from './export/exportModal';
+import { toExportTable, type ExportOptions } from './export/exportUtils';
+import { Download } from 'lucide-react';
+import type {
+  DataTableColumn,
+  DateRangeValue,
+  FetchDataParams,
+  FilterDef,
+} from './types';
 import type { PaginatedResponse, SortOrder } from 'shared/utils';
 
 const SEARCH_DEBOUNCE_MS = 500 as const;
 const ROW_HEIGHT_PX = 45 as const;
+/** The largest page size every list endpoint accepts. */
+const EXPORT_PAGE_SIZE = 100 as const;
+/** Caps an export at 10,000 rows. */
+const EXPORT_MAX_PAGES = 100 as const;
 
 /**
  * Generic paginated, sortable, searchable, filterable data table.
@@ -42,6 +54,7 @@ export default function DataTable<
   loadErrorMessage = 'Could not load records. Try again.',
   bodyOffsetClassName,
   refreshKey,
+  exportFileName,
 }: {
   title: string;
   /**
@@ -76,8 +89,15 @@ export default function DataTable<
    * Bump to force a refetch (e.g. after a mutation elsewhere invalidates this list).
    */
   refreshKey?: number;
+  /**
+   * Base file name (no extension), e.g. `"cases"`. Setting it adds an Export
+   * button that downloads every row matching the current search, sort, and
+   * filters as CSV or PDF. Omit to hide exporting.
+   */
+  exportFileName?: string;
 }) {
   const [search, setSearch] = useState('');
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [sortBy, setSortBy] = useState<K>(defaultSortBy);
   const [sortOrder, setSortDir] = useState<SortOrder>(defaultSortOrder);
   const [filterValues, setFilterValues] = useState<F>(
@@ -157,6 +177,47 @@ export default function DataTable<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dboSearch, sortBy, sortOrder, page, limit, filterValues, refreshKey]);
 
+  // The table's date filter (if it has one), which the export modal can
+  // narrow for an export without changing the table itself.
+  const dateFilter = filters?.find(
+    (f): f is Extract<FilterDef<F>, { type: 'dateRange' }> =>
+      f.type === 'dateRange',
+  );
+
+  /**
+   * Rows to export, flattened to text: either the page on screen, or every
+   * row matching the current search, sort, and filters (with the export's
+   * own date range, if one was picked), fetched page by page.
+   */
+  async function loadExportTable({
+    scope,
+    columnKeys,
+    dateRange,
+  }: ExportOptions) {
+    const exportColumns = columns.filter((col) => columnKeys.includes(col.key));
+    if (scope === 'page') return toExportTable(exportColumns, rows);
+
+    const exportFilters =
+      dateFilter && dateRange
+        ? { ...filterValues, [dateFilter.key]: dateRange }
+        : filterValues;
+
+    const all: T[] = [];
+    for (let exportPage = 1; exportPage <= EXPORT_MAX_PAGES; exportPage++) {
+      const res = await fetchData({
+        page: exportPage,
+        limit: EXPORT_PAGE_SIZE,
+        sortBy,
+        sortOrder,
+        search: dboSearch,
+        filters: exportFilters,
+      });
+      all.push(...res.data);
+      if (res.data.length === 0 || exportPage >= res.meta.totalPages) break;
+    }
+    return toExportTable(exportColumns, all);
+  }
+
   return (
     <div
       ref={containerRef}
@@ -180,8 +241,46 @@ export default function DataTable<
               />
             ) : undefined
           }
+          actionSlot={
+            exportFileName ? (
+              <button
+                type="button"
+                onClick={() => setIsExportOpen(true)}
+                disabled={total === 0}
+                className="flex items-center gap-1.5 text-sm border border-gray-200 bg-white text-gray-700 rounded-md px-3 py-1.5 hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download size={14} />
+                Export
+              </button>
+            ) : undefined
+          }
         />
       </div>
+
+      {isExportOpen && exportFileName && (
+        <ExportModal
+          title={title}
+          fileName={exportFileName}
+          total={total}
+          pageCount={rows.length}
+          columns={columns
+            .filter((col) => col.exportable !== false)
+            .map((col) => ({ key: col.key, label: col.label }))}
+          dateFilter={
+            dateFilter
+              ? {
+                  label: dateFilter.label,
+                  value: (filterValues[dateFilter.key] as DateRangeValue) ?? {
+                    from: null,
+                    to: null,
+                  },
+                }
+              : undefined
+          }
+          loadTable={loadExportTable}
+          onClose={() => setIsExportOpen(false)}
+        />
+      )}
 
       <TableBody
         columns={columns}

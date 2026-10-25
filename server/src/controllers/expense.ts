@@ -1,6 +1,7 @@
 import pool from '@/db';
 import type { Locals } from '@/types/controllers';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
+import { toExclusiveEndBound } from '@/util/date';
 import type { NextFunction, Request, Response } from 'express';
 import {
   getExpenseLogQuerySchema,
@@ -105,8 +106,16 @@ export const getExpenses = async (
   next: NextFunction,
 ) => {
   try {
-    const { page, limit, search, source, sortBy, sortOrder } =
-      getExpenseLogQuerySchema.parse(req.query);
+    const {
+      page,
+      limit,
+      search,
+      source,
+      startDate,
+      endDate,
+      sortBy,
+      sortOrder,
+    } = getExpenseLogQuerySchema.parse(req.query);
 
     const selectClause = `
       SELECT
@@ -125,6 +134,18 @@ export const getExpenses = async (
     const whereConditions: string[] = [];
     const queryParams: unknown[] = [];
     let paramIndex = 1;
+
+    if (startDate) {
+      whereConditions.push(`l.expensedate >= $${paramIndex}`);
+      queryParams.push(startDate);
+      paramIndex++;
+    }
+
+    if (endDate) {
+      whereConditions.push(`l.expensedate < $${paramIndex}`);
+      queryParams.push(toExclusiveEndBound(endDate));
+      paramIndex++;
+    }
 
     if (source) {
       whereConditions.push(`l.source = $${paramIndex}`);

@@ -27,6 +27,14 @@ export interface DataTableColumn<T, K extends string = string> {
    */
   sortable?: boolean;
   render: (row: T) => ReactNode;
+  /**
+   * Plain-text value of this column for CSV/PDF export. Only needed when
+   * `render` returns something other than text (e.g. a pill component);
+   * otherwise the text inside what `render` returns is used.
+   */
+  exportValue?: (row: T) => string | number | null | undefined;
+  /** Set `false` to leave this column (e.g. action buttons) out of exports. */
+  exportable?: boolean;
 }
 
 export interface SelectFilterDef<
@@ -41,25 +49,15 @@ export interface SelectFilterDef<
   }[];
 }
 
+/**
+ * A date range filter, picked with the app-wide `DateRangePicker` (calendar
+ * with presets, Apply/Clear).
+ */
 export interface DateRangeFilterDef<
   F extends Record<string, unknown>,
   K extends keyof F,
 > {
   type: 'dateRange';
-  key: K;
-  label: string;
-}
-
-/**
- * Same `DateRangeValue` as `dateRange`, but picked with the two-month
- * `DateRangePicker` popover (presets, Apply/Clear) instead of the inline
- * calendar.
- */
-export interface DateRangePickerFilterDef<
-  F extends Record<string, unknown>,
-  K extends keyof F,
-> {
-  type: 'dateRangePicker';
   key: K;
   /** Shown on the button while no range is applied. */
   label: string;
@@ -74,8 +72,5 @@ export interface DateRangeValue {
 }
 
 export type FilterDef<F extends Record<string, unknown>> = {
-  [K in keyof F]:
-    | SelectFilterDef<F, K>
-    | DateRangeFilterDef<F, K>
-    | DateRangePickerFilterDef<F, K>;
+  [K in keyof F]: SelectFilterDef<F, K> | DateRangeFilterDef<F, K>;
 }[keyof F];

@@ -4,7 +4,11 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import DataTable from '@/components/dataTable';
 import { formatCurrency } from '@/utils/format';
-import type { DataTableColumn, FilterDef } from '@/components/dataTable/types';
+import type {
+  DataTableColumn,
+  DateRangeValue,
+  FilterDef,
+} from '@/components/dataTable/types';
 import { getExpenses } from '@/services/expensesService';
 import type { ExpenseLog, ExpenseLogSource } from 'shared';
 import RecordExpensePanel from './recordExpensePanel';
@@ -13,9 +17,13 @@ type ColumnKey = keyof ExpenseLog;
 
 type Filters = {
   source: ExpenseLogSource | null;
+  dateRange: DateRangeValue;
 };
 
-const DEFAULT_FILTERS: Filters = { source: null };
+const DEFAULT_FILTERS: Filters = {
+  source: null,
+  dateRange: { from: null, to: null },
+};
 
 const SOURCE_LABELS: Record<
   ExpenseLogSource,
@@ -39,6 +47,11 @@ const FILTERS: FilterDef<Filters>[] = [
       { label: 'Casket deliveries', value: 'casket' },
       { label: 'Formalin deliveries', value: 'formalin' },
     ],
+  },
+  {
+    type: 'dateRange',
+    key: 'dateRange',
+    label: 'Filter by date',
   },
 ];
 
@@ -115,6 +128,7 @@ export default function ExpenseTable() {
 
       <DataTable<ExpenseLog, ColumnKey, Filters>
         title="Expenses"
+        exportFileName="expenses"
         countLabel={(total) => `${total} records`}
         searchPlaceholder="Search expenses..."
         filters={FILTERS}
@@ -125,7 +139,12 @@ export default function ExpenseTable() {
         defaultSortBy="expensedate"
         defaultSortOrder="desc"
         fetchData={({ filters, ...params }) =>
-          getExpenses({ ...params, source: filters.source ?? undefined })
+          getExpenses({
+            ...params,
+            source: filters.source ?? undefined,
+            startDate: filters.dateRange.from ?? undefined,
+            endDate: filters.dateRange.to ?? undefined,
+          })
         }
         emptyMessage="No expenses recorded yet."
         loadErrorMessage="Could not load expenses."

@@ -15,6 +15,7 @@ export async function getLguCases({
   sortOrder,
   search,
   lguid,
+  status,
   startDate,
   endDate,
   signal,
@@ -29,6 +30,7 @@ export async function getLguCases({
   params.append('sortOrder', sortOrder);
   if (search) params.append('search', search);
   if (lguid !== undefined) params.append('lguid', String(lguid));
+  if (status) params.append('status', status);
   if (startDate) params.append('startDate', startDate);
   if (endDate) params.append('endDate', endDate);
 

@@ -13,6 +13,7 @@ import BigNumber from 'bignumber.js';
 import { BadRequestError, NotFoundError } from '@/errors';
 import { getDeceasedName } from '@/util/audit-log';
 import { withTransaction } from '@/util/with-transaction';
+import { toExclusiveEndBound } from '@/util/date';
 
 const SORT_COLUMNS: Record<string, string> = {
   caseid: 'dr.caseid',
@@ -30,7 +31,7 @@ export async function getDirect(
   next: NextFunction,
 ) {
   try {
-    const { page, limit, search, sortBy, sortOrder } =
+    const { page, limit, search, startDate, endDate, sortBy, sortOrder } =
       getDirectPlansQuerySchema.parse(req.query);
 
     const selectClause = `
@@ -74,6 +75,18 @@ export async function getDirect(
         CONCAT_WS(' ', r.firstname, r.middlename, r.lastname) ILIKE $${paramIndex}
       )`);
       queryParams.push(`%${search}%`);
+      paramIndex++;
+    }
+
+    if (startDate) {
+      whereConditions.push(`dr.datecreated >= $${paramIndex}`);
+      queryParams.push(startDate);
+      paramIndex++;
+    }
+
+    if (endDate) {
+      whereConditions.push(`dr.datecreated < $${paramIndex}`);
+      queryParams.push(toExclusiveEndBound(endDate));
       paramIndex++;
     }
 

@@ -66,6 +66,7 @@ export default function FormalinDeliveryTable({
   return (
     <DataTable<FormalinDelivery, ColumnKey, Filters>
       title="Formalin deliveries"
+      exportFileName="formalin-deliveries"
       countLabel={(total) => `${total} deliveries`}
       searchPlaceholder="Search qty received..."
       filters={FILTERS}

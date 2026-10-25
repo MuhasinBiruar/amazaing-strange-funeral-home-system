@@ -26,6 +26,7 @@ export const getLguCasesQuerySchema = z.intersection(
   z.object({
     search: z.string().optional(),
     lguid: z.coerce.number().int().positive().optional(),
+    status: lguCaseSchema.shape.reimbursementstatus.optional(),
     sortBy: z.keyof(getLguCasesRowSchema).default('lgucaseid'),
     sortOrder: z.enum(['asc', 'desc']).default('asc'),
   }),

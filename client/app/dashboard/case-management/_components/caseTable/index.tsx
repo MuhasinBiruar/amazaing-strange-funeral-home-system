@@ -132,6 +132,7 @@ export default function CaseTable() {
     <>
       <DataTable<Case, ColumnKey, Filters>
         title="Log"
+        exportFileName="cases"
         countLabel={(total) => `${total} items`}
         searchPlaceholder="Search contracts..."
         filters={FILTERS}
