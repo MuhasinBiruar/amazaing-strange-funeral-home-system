@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import DataTable from '@/components/dataTable';
-import { formatCurrency, titleCase } from '@/utils/format';
+import { formatCurrency } from '@/utils/format';
 import type { DataTableColumn } from '@/components/dataTable/types';
 import { getLguCases } from '@/services/lguCasesService';
 import type { GetLguCasesRow } from 'shared';
 import EditLguCasePanel from './editLguCasePanel';
-import PillBadge from '@/components/pillBadge';
+import ReimbursementStatusPill from '@/components/reimbursementStatusPill';
 
 type ColumnKey = keyof GetLguCasesRow;
 
@@ -27,25 +27,7 @@ export default function LguTable() {
       key: 'reimbursementstatus',
       label: 'Reimbursement status',
       widthClassName: 'w-40',
-      render: (l) => {
-        const status = l.reimbursementstatus.toLowerCase();
-
-        return (
-          <PillBadge
-            variant={
-              status === 'released'
-                ? 'info'
-                : status === 'approved'
-                  ? 'success'
-                  : status === 'pending'
-                    ? 'warning'
-                    : 'error'
-            }
-          >
-            {titleCase(status)}
-          </PillBadge>
-        );
-      },
+      render: (l) => <ReimbursementStatusPill status={l.reimbursementstatus} />,
     },
     {
       key: 'reimbursementamount',

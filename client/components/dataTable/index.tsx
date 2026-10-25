@@ -9,7 +9,6 @@ import TableHeader from './tableHeader';
 import TableBody from './tableBody';
 import FilterBar from './filterBar';
 import type { DataTableColumn, FetchDataParams, FilterDef } from './types';
-import type { ReactNode } from 'react';
 import type { PaginatedResponse, SortOrder } from 'shared/utils';
 
 const SEARCH_DEBOUNCE_MS = 500 as const;
@@ -43,7 +42,6 @@ export default function DataTable<
   loadErrorMessage = 'Could not load records. Try again.',
   bodyOffsetClassName,
   refreshKey,
-  additionalFilterSlot,
 }: {
   title: string;
   /**
@@ -78,8 +76,6 @@ export default function DataTable<
    * Bump to force a refetch (e.g. after a mutation elsewhere invalidates this list).
    */
   refreshKey?: number;
-  /** Optional custom control rendered beside the built-in filters. */
-  additionalFilterSlot?: ReactNode;
 }) {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<K>(defaultSortBy);
@@ -175,17 +171,14 @@ export default function DataTable<
           commitDboSearch={commitDboSearch}
           searchPlaceholder={searchPlaceholder}
           filterSlot={
-            <>
-              {filters && filters.length > 0 && (
-                <FilterBar
-                  filters={filters}
-                  values={filterValues}
-                  setValues={setFilterValues}
-                  setPage={setPage}
-                />
-              )}
-              {additionalFilterSlot}
-            </>
+            filters && filters.length > 0 ? (
+              <FilterBar
+                filters={filters}
+                values={filterValues}
+                setValues={setFilterValues}
+                setPage={setPage}
+              />
+            ) : undefined
           }
         />
       </div>
