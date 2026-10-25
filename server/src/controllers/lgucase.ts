@@ -18,6 +18,7 @@ const SORT_COLUMNS: Record<keyof GetLguCasesRow, string> = {
   reimbursementstatus: 'lc.reimbursementstatus',
   reimbursementamount: 'lc.reimbursementamount',
   caseid: 'lc.caseid',
+  lguid: 'lc.lguid',
   deceased_name: 'deceased_name',
   servicestatus: 'dr.servicestatus',
 };
@@ -66,6 +67,7 @@ export async function getLguCases(
           lc.reimbursementstatus,
           lc.reimbursementamount,
           lc.caseid AS caseid,
+          lc.lguid,
           dr.servicestatus,
           CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name
       `;

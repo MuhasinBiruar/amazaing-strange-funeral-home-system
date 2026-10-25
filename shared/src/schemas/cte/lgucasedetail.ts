@@ -11,6 +11,7 @@ import { deceasedRecordSchema } from '../db/deceasedrecord';
  * `lgucase` + `deceasedrecord`
  */
 export const getLguCasesRowSchema = lguCaseSchema.extend({
+  lguid: z.int32().nullable(),
   deceased_name: z.string(),
   servicestatus: deceasedRecordSchema.shape.servicestatus,
 });
