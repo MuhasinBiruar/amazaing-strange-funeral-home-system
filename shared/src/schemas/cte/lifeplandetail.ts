@@ -8,6 +8,7 @@ import { lifeplanSchema } from '../db/lifeplan';
 /**
  * Combination of the following tables:
  * `lifeplan` + `deceasedrecord` + `representative` + `lifeplancompany`
+ * + `contract` + `transaction` + `officialreceipt` (summed into `totaldeductions`)
  */
 export const getLifeplansQueryRowSchema = lifeplanSchema.extend({
   deceased_name: z.string(),
@@ -16,6 +17,7 @@ export const getLifeplansQueryRowSchema = lifeplanSchema.extend({
   contractid: z.int32().nullable(),
   contractamount: z.float64().nullable(),
   totalamountpaid: z.float64(),
+  totaldeductions: z.float64(),
   remainingbalance: z.float64().nullable(),
   datecreated: z.coerce.date(),
 });

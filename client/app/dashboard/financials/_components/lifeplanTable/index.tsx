@@ -9,6 +9,12 @@ import { getLifeplans } from '@/services/lifeplansService';
 import TransactionHistoryPanel from '../directTable/transactionHistoryPanel';
 import RecordTransactionPanel from '../directTable/recordTransactionPanel';
 
+/** What is still unpaid on the extra amount once receipt deductions apply. */
+function extraLeft(l: GetLifeplansQueryRow) {
+  if (l.contractamount == null) return null;
+  return Math.max(l.contractamount - l.totaldeductions - l.totalamountpaid, 0);
+}
+
 type ColumnKey = keyof GetLifeplansQueryRow;
 
 export default function LifeplanTable() {
@@ -63,7 +69,9 @@ export default function LifeplanTable() {
       key: 'contractamount',
       label: 'Extra amount',
       render: (l) =>
-        l.contractamount != null ? formatCurrency(l.contractamount) : '—',
+        l.contractamount != null
+          ? formatCurrency(l.contractamount - l.totaldeductions)
+          : '—',
     },
     {
       key: 'totalamountpaid',
@@ -73,8 +81,10 @@ export default function LifeplanTable() {
     {
       key: 'remainingbalance',
       label: 'Extra remaining',
-      render: (l) =>
-        l.remainingbalance != null ? formatCurrency(l.remainingbalance) : '—',
+      render: (l) => {
+        const left = extraLeft(l);
+        return left != null ? formatCurrency(left) : '—';
+      },
     },
     {
       key: 'caseid',
@@ -83,7 +93,7 @@ export default function LifeplanTable() {
         <div className="flex justify-center gap-3">
           <button
             type="button"
-            disabled={l.remainingbalance === null || l.remainingbalance <= 0}
+            disabled={(extraLeft(l) ?? 0) <= 0}
             onClick={() => setPaymentFor(l)}
             className="text-emerald-600 hover:underline disabled:text-gray-300 disabled:no-underline cursor-pointer disabled:cursor-not-allowed"
           >
@@ -122,7 +132,7 @@ export default function LifeplanTable() {
           key={historyFor.caseid}
           caseid={historyFor.caseid}
           deceasedName={historyFor.deceased_name}
-          totalAmount={historyFor.totalamount}
+          totalAmount={historyFor.contractamount}
           totalPaid={historyFor.totalamountpaid}
           onClose={() => setHistoryFor(null)}
         />
@@ -132,8 +142,9 @@ export default function LifeplanTable() {
           key={`payment-${paymentFor.caseid}`}
           caseId={paymentFor.caseid}
           deceasedName={paymentFor.deceased_name}
-          totalAmount={paymentFor.totalamount}
+          totalAmount={paymentFor.contractamount}
           totalPaid={paymentFor.totalamountpaid}
+          totalDeductions={paymentFor.totaldeductions}
           onClose={() => setPaymentFor(null)}
           onSuccess={() => setRefreshKey((k) => k + 1)}
         />
