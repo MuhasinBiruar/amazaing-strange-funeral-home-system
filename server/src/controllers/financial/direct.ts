@@ -46,7 +46,7 @@ export async function getDirect(
         c.contractid,
         c.totalamount,
         COALESCE(t.totalpaid, 0) AS totalamountpaid,
-        COALESCE(d.totaldeductions, 0) AS totaldeductions
+        COALESCE(d.totaldeductions, 0) AS totaldeductions,
         dr.servicestatus
     `;
 
