@@ -63,7 +63,15 @@ export default function TransactionHistoryPanel({
     (sum, r) => sum + Number(r.pwd_discount ?? 0),
     0,
   );
+
   const totalDue = Math.max((totalAmount ?? 0) - discount, 0);
+
+  const withholding = receipts.reduce(
+    (sum, r) => sum + Number(r.withholding_tax ?? 0),
+    0,
+  );
+
+  const paymentDue = Math.max(totalDue - withholding, 0);
 
   return (
     <SidePanel
@@ -103,6 +111,18 @@ export default function TransactionHistoryPanel({
                 <span>Total due</span>
                 <span>{formatCurrency(totalDue)}</span>
               </div>
+              {withholding > 0 && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Withholding tax</span>
+                    <span>− {formatCurrency(withholding)}</span>
+                  </div>
+                  <div className="flex justify-between font-medium">
+                    <span>Payment due</span>
+                    <span>{formatCurrency(paymentDue)}</span>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between">
                 <span className="text-gray-500">Paid</span>
                 <span>{formatCurrency(totalPaid)}</span>
@@ -130,12 +150,13 @@ export default function TransactionHistoryPanel({
                         </span>
                         <div className="text-xs text-gray-400">
                           {formatDate(r.issuedate)}
+                          {` · total due ${formatCurrency(Number(r.total_due))}`}
                           {r.withholding_tax
                             ? ` · withholding ${formatCurrency(Number(r.withholding_tax))}`
                             : ''}
                         </div>
                       </div>
-                      <span>{formatCurrency(Number(r.total_due))}</span>
+                      <span>{formatCurrency(Number(r.amount))}</span>
                     </li>
                   ))}
                 </ul>
