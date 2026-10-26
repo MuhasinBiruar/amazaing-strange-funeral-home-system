@@ -13,6 +13,8 @@ import BigNumber from 'bignumber.js';
 import { BadRequestError, NotFoundError } from '@/errors';
 import { getDeceasedName } from '@/util/audit-log';
 import { withTransaction } from '@/util/with-transaction';
+import { toExclusiveEndBound } from '@/util/date';
+import { refreshServiceStatuses } from '@/lib/service-status';
 
 const SORT_COLUMNS: Record<string, string> = {
   caseid: 'dr.caseid',
@@ -23,6 +25,7 @@ const SORT_COLUMNS: Record<string, string> = {
   totalamount: 'c.totalamount',
   totalamountpaid: 'totalamountpaid',
   totaldeductions: 'totaldeductions',
+  servicestatus: 'dr.servicestatus',
 };
 
 export async function getDirect(
@@ -31,7 +34,7 @@ export async function getDirect(
   next: NextFunction,
 ) {
   try {
-    const { page, limit, search, sortBy, sortOrder } =
+    const { page, limit, search, startDate, endDate, sortBy, sortOrder } =
       getDirectPlansQuerySchema.parse(req.query);
 
     const selectClause = `
@@ -44,6 +47,7 @@ export async function getDirect(
         c.totalamount,
         COALESCE(t.totalpaid, 0) AS totalamountpaid,
         COALESCE(d.totaldeductions, 0) AS totaldeductions
+        dr.servicestatus
     `;
 
     const fromAndJoins = `
@@ -86,6 +90,18 @@ export async function getDirect(
         CONCAT_WS(' ', r.firstname, r.middlename, r.lastname) ILIKE $${paramIndex}
       )`);
       queryParams.push(`%${search}%`);
+      paramIndex++;
+    }
+
+    if (startDate) {
+      whereConditions.push(`dr.datecreated >= $${paramIndex}`);
+      queryParams.push(startDate);
+      paramIndex++;
+    }
+
+    if (endDate) {
+      whereConditions.push(`dr.datecreated < $${paramIndex}`);
+      queryParams.push(toExclusiveEndBound(endDate));
       paramIndex++;
     }
 
@@ -329,6 +345,9 @@ export async function createDirectTransaction(
       }
 
       return created;
+      await refreshServiceStatuses(client, caseid);
+
+      return insertResult.rows[0];
     });
 
     const deceasedName = await getDeceasedName(caseid);

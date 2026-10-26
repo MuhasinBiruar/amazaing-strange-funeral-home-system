@@ -28,7 +28,7 @@ const ACCESS_COUNT_EXPR = accessPageEnum.options
   .join(' + ');
 
 export const getStaff = async (query: GetStaffQuery) => {
-  const { page, limit, search, isActive, sortBy, sortOrder } = query;
+  const { page, limit, search, isActive, role, sortBy, sortOrder } = query;
 
   const selectClause = `
     SELECT
@@ -68,6 +68,12 @@ export const getStaff = async (query: GetStaffQuery) => {
   if (isActive !== undefined) {
     whereConditions.push(`s."isActive" = $${paramIndex}`);
     queryParams.push(isActive);
+    paramIndex++;
+  }
+
+  if (role) {
+    whereConditions.push(`s.role = $${paramIndex}`);
+    queryParams.push(role);
     paramIndex++;
   }
 

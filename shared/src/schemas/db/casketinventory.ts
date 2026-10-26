@@ -87,6 +87,12 @@ export type CasketInventoryTable = z.infer<typeof casketInventoryTableSchema>;
 export const getPaginatedCasketInventoryQuerySchema =
   paginationQuerySchema.extend({
     search: z.string().optional(),
+    tier: z.string().optional(),
+    /** `true`: only caskets at or below their minimum; `false`: only above. */
+    lowstock: z
+      .enum(['true', 'false'])
+      .transform((v) => v === 'true')
+      .optional(),
     sortBy: z
       .enum(['casketid', 'caskettype', 'currentstock'])
       .default('caskettype'),

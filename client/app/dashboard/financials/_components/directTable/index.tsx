@@ -2,14 +2,35 @@
 
 import { useState } from 'react';
 import DataTable from '@/components/dataTable';
-import { formatCurrency } from '@/utils/format';
-import type { DataTableColumn } from '@/components/dataTable/types';
+import { formatCurrency, titleCase } from '@/utils/format';
+import type {
+  DataTableColumn,
+  DateRangeValue,
+  FilterDef,
+} from '@/components/dataTable/types';
 import TransactionHistoryPanel from './transactionHistoryPanel';
 import RecordTransactionPanel from './recordTransactionPanel';
 import type { DirectPlan } from 'shared';
 import { getDirectPlans } from '@/services/financialService';
+import ServiceStatusPill from '@/components/serviceStatusPill';
 
 type ColumnKey = keyof DirectPlan;
+
+type Filters = {
+  dateRange: DateRangeValue;
+};
+
+const DEFAULT_FILTERS: Filters = {
+  dateRange: { from: null, to: null },
+};
+
+const FILTERS: FilterDef<Filters>[] = [
+  {
+    type: 'dateRange',
+    key: 'dateRange',
+    label: 'Filter by date created',
+  },
+];
 
 export default function DirectTable() {
   const [historyFor, setHistoryFor] = useState<DirectPlan | null>(null);
@@ -47,8 +68,16 @@ export default function DirectTable() {
       render: (d) => formatCurrency(d.totalamountpaid),
     },
     {
+      key: 'servicestatus',
+      label: 'Service status',
+      widthClassName: 'w-32',
+      render: (d) => <ServiceStatusPill status={d.servicestatus} />,
+      exportValue: (d) => titleCase(d.servicestatus),
+    },
+    {
       key: 'caseid',
       label: 'Actions',
+      exportable: false,
       widthClassName: 'w-48',
       render: (row) => (
         <div className="flex justify-center items-center gap-4">
@@ -73,16 +102,25 @@ export default function DirectTable() {
 
   return (
     <>
-      <DataTable<DirectPlan, ColumnKey>
+      <DataTable<DirectPlan, ColumnKey, Filters>
         title="Direct payment log"
+        exportFileName="direct-payments"
         countLabel={(total) => `${total} plans`}
         searchPlaceholder="Search by deceased or representative..."
+        filters={FILTERS}
+        defaultFilters={DEFAULT_FILTERS}
         columns={columns}
         rowKey={(d) => d.caseid}
         defaultSortBy="deceased_name"
         defaultSortOrder="desc"
-        bodyOffsetClassName="top-12"
-        fetchData={({ filters: _filters, ...params }) => getDirectPlans(params)}
+        bodyOffsetClassName="top-17.25"
+        fetchData={({ filters, ...params }) =>
+          getDirectPlans({
+            ...params,
+            startDate: filters.dateRange.from ?? undefined,
+            endDate: filters.dateRange.to ?? undefined,
+          })
+        }
         emptyMessage="No direct payment plans match your search."
         loadErrorMessage="Could not load direct payment plans. Try again."
         refreshKey={refreshKey}

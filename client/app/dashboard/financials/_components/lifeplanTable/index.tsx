@@ -2,12 +2,17 @@
 
 import { useState } from 'react';
 import DataTable from '@/components/dataTable';
-import { formatCurrency } from '@/utils/format';
-import type { DataTableColumn } from '@/components/dataTable/types';
+import { formatCurrency, titleCase } from '@/utils/format';
+import type {
+  DataTableColumn,
+  DateRangeValue,
+  FilterDef,
+} from '@/components/dataTable/types';
 import type { GetLifeplansQueryRow } from 'shared';
 import { getLifeplans } from '@/services/lifeplansService';
 import TransactionHistoryPanel from '../directTable/transactionHistoryPanel';
 import RecordTransactionPanel from '../directTable/recordTransactionPanel';
+import ServiceStatusPill from '@/components/serviceStatusPill';
 
 /** What is still unpaid on the extra amount once receipt deductions apply. */
 function extraLeft(l: GetLifeplansQueryRow) {
@@ -16,6 +21,22 @@ function extraLeft(l: GetLifeplansQueryRow) {
 }
 
 type ColumnKey = keyof GetLifeplansQueryRow;
+
+type Filters = {
+  dateRange: DateRangeValue;
+};
+
+const DEFAULT_FILTERS: Filters = {
+  dateRange: { from: null, to: null },
+};
+
+const FILTERS: FilterDef<Filters>[] = [
+  {
+    type: 'dateRange',
+    key: 'dateRange',
+    label: 'Filter by date created',
+  },
+];
 
 export default function LifeplanTable() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -87,8 +108,16 @@ export default function LifeplanTable() {
       },
     },
     {
+      key: 'servicestatus',
+      label: 'Service status',
+      widthClassName: 'w-32',
+      render: (l) => <ServiceStatusPill status={l.servicestatus} />,
+      exportValue: (l) => titleCase(l.servicestatus),
+    },
+    {
       key: 'caseid',
       label: 'Actions',
+      exportable: false,
       render: (l) => (
         <div className="flex justify-center gap-3">
           <button
@@ -113,16 +142,25 @@ export default function LifeplanTable() {
 
   return (
     <>
-      <DataTable<GetLifeplansQueryRow, ColumnKey>
+      <DataTable<GetLifeplansQueryRow, ColumnKey, Filters>
         title="Life plan log"
+        exportFileName="life-plans"
         countLabel={(total) => `${total} plans`}
         searchPlaceholder="Search by plan holder, number, or company..."
+        filters={FILTERS}
+        defaultFilters={DEFAULT_FILTERS}
         columns={columns}
         rowKey={(l) => l.planid}
         defaultSortBy="deceased_name"
         defaultSortOrder="desc"
-        fetchData={({ filters: _filters, ...params }) => getLifeplans(params)}
-        bodyOffsetClassName="top-12"
+        fetchData={({ filters, ...params }) =>
+          getLifeplans({
+            ...params,
+            startDate: filters.dateRange.from ?? undefined,
+            endDate: filters.dateRange.to ?? undefined,
+          })
+        }
+        bodyOffsetClassName="top-17.25"
         emptyMessage="No life plans match your search."
         loadErrorMessage="Could not load life plans. Try again."
         refreshKey={refreshKey}

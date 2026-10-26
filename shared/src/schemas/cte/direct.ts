@@ -1,9 +1,10 @@
 import z from 'zod';
 import {
-  paginationQuerySchema,
+  dateFilteredPaginationQuerySchema,
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
 import { transactionSchema } from '../db/transaction';
+import { deceasedRecordSchema } from '../db/deceasedrecord';
 
 /**
  * Combination of the following tables:
@@ -19,15 +20,24 @@ export const directPlanSchema = z.object({
   totalamount: z.float64().nullable(),
   totalamountpaid: z.float64(),
   totaldeductions: z.float64(),
+  servicestatus: deceasedRecordSchema.shape.servicestatus,
 });
 
 export type DirectPlan = z.infer<typeof directPlanSchema>;
 
-export const getDirectPlansQuerySchema = paginationQuerySchema.extend({
-  search: z.string().optional(),
-  sortBy: z.keyof(directPlanSchema).default('caseid'),
-  sortOrder: z.enum(['asc', 'desc']).default('asc'),
-});
+/**
+ * @remarks
+ * `startDate`/`endDate` filter on `deceasedrecord.datecreated`, like the life
+ * plan and LGU case lists.
+ */
+export const getDirectPlansQuerySchema = z.intersection(
+  dateFilteredPaginationQuerySchema,
+  z.object({
+    search: z.string().optional(),
+    sortBy: z.keyof(directPlanSchema).default('caseid'),
+    sortOrder: z.enum(['asc', 'desc']).default('asc'),
+  }),
+);
 
 export type GetDirectPlansQuery = z.infer<typeof getDirectPlansQuerySchema>;
 

@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import {
+  casketTierEnum,
   type CasketInventoryTable,
   type GetPaginatedCasketInventoryQuery,
 } from 'shared';
-import type { DataTableColumn } from '@/components/dataTable/types';
+import type { DataTableColumn, FilterDef } from '@/components/dataTable/types';
 import DataTable from '@/components/dataTable';
 import { useInfoModal } from '@/components/infoModal/useInfoModal';
 import {
@@ -20,6 +21,33 @@ import FormalinArea from './formalinArea';
 
 /** Sortable columns, plus the unsortable edit/delete column. */
 type ColumnKey = GetPaginatedCasketInventoryQuery['sortBy'] | 'manage';
+
+type Filters = {
+  tier: string | null;
+  lowstock: boolean | null;
+};
+
+const DEFAULT_FILTERS: Filters = { tier: null, lowstock: null };
+
+const FILTERS: FilterDef<Filters>[] = [
+  {
+    type: 'select',
+    key: 'tier',
+    options: [
+      { label: 'All tiers', value: null },
+      ...casketTierEnum.options.map((tier) => ({ label: tier, value: tier })),
+    ],
+  },
+  {
+    type: 'select',
+    key: 'lowstock',
+    options: [
+      { label: 'All stock levels', value: null },
+      { label: 'Low stock', value: true },
+      { label: 'In stock', value: false },
+    ],
+  },
+];
 
 /** Displays casket inventory alongside formalin stock and history controls. */
 export default function InventoryTab() {
@@ -78,6 +106,7 @@ export default function InventoryTab() {
       label: 'Edit / Delete',
       widthClassName: 'w-32',
       sortable: false,
+      exportable: false,
       render: (row) => (
         <div className="flex items-center justify-center gap-1">
           <button
@@ -110,6 +139,7 @@ export default function InventoryTab() {
     {
       key: 'casketid',
       label: 'Actions',
+      exportable: false,
       widthClassName: 'w-45',
       render: (row) => (
         <div className="flex items-center justify-center gap-6 whitespace-nowrap">
@@ -133,17 +163,22 @@ export default function InventoryTab() {
   return (
     <>
       <FormalinArea />
-      <DataTable<CasketInventoryTable, ColumnKey>
+      <DataTable<CasketInventoryTable, ColumnKey, Filters>
         title="Casket Inventory"
+        exportFileName="casket-inventory"
         countLabel={(total) => `${total} caskets in inventory`}
         searchPlaceholder="Search by Casket or Package Name..."
+        filters={FILTERS}
+        defaultFilters={DEFAULT_FILTERS}
         columns={columns}
         rowKey={(d) => d.casketid}
         defaultSortBy="caskettype"
         defaultSortOrder="desc"
-        fetchData={({ filters: _filters, sortBy, ...params }) =>
+        fetchData={({ filters, sortBy, ...params }) =>
           getPaginatedCasketInventory({
             ...params,
+            tier: filters.tier ?? undefined,
+            lowstock: filters.lowstock ?? undefined,
             // 'manage' is never sortable, so this is only for the type.
             sortBy: sortBy === 'manage' ? 'caskettype' : sortBy,
           })
@@ -151,7 +186,7 @@ export default function InventoryTab() {
         refreshKey={refreshKey}
         emptyMessage="No caskets in inventory match your search."
         loadErrorMessage="Could not load casket inventory. Try again."
-        bodyOffsetClassName="top-12"
+        bodyOffsetClassName="top-17.25"
       />
       {packagesApartOf?.[0] && (
         <PackagesPanel

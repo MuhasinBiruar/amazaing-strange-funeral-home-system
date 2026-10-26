@@ -19,6 +19,7 @@ const SORT_COLUMNS: Record<keyof GetLifeplansQueryRow, string> = {
   totaldeductions: 'COALESCE(od.totaldeductions, 0)',
   remainingbalance: 'c.totalamount - COALESCE(t.totalpaid, 0)',
   datecreated: 'dr.datecreated',
+  servicestatus: 'dr.servicestatus',
 };
 
 export const getLifeplans = async ({
@@ -51,6 +52,7 @@ export const getLifeplans = async ({
       END AS remainingbalance,
       dr.datecreated,
       COALESCE(d.totaldeductions, 0) AS totaldeductions
+      dr.servicestatus
   `;
 
   const fromAndJoins = `

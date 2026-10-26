@@ -14,6 +14,8 @@ export const getPaginatedCasketInventory = async ({
   page,
   limit,
   search,
+  tier,
+  lowstock,
   sortBy,
   sortOrder,
 }: GetPaginatedCasketInventoryQuery) => {
@@ -21,6 +23,20 @@ export const getPaginatedCasketInventory = async ({
   const whereConditions: string[] = [];
   const queryParams: unknown[] = [];
   let paramIndex = 1;
+
+  if (tier) {
+    whereConditions.push(`caskettier = $${paramIndex}`);
+    queryParams.push(tier);
+    paramIndex++;
+  }
+
+  if (lowstock !== undefined) {
+    whereConditions.push(
+      lowstock
+        ? 'currentstock <= minimumthreshold'
+        : 'currentstock > minimumthreshold',
+    );
+  }
 
   if (search) {
     whereConditions.push(`(

@@ -27,6 +27,14 @@ export interface DataTableColumn<T, K extends string = string> {
    */
   sortable?: boolean;
   render: (row: T) => ReactNode;
+  /**
+   * Plain-text value of this column for CSV/PDF export. Only needed when
+   * `render` returns something other than text (e.g. a pill component);
+   * otherwise the text inside what `render` returns is used.
+   */
+  exportValue?: (row: T) => string | number | null | undefined;
+  /** Set `false` to leave this column (e.g. action buttons) out of exports. */
+  exportable?: boolean;
 }
 
 export interface SelectFilterDef<
@@ -41,12 +49,17 @@ export interface SelectFilterDef<
   }[];
 }
 
+/**
+ * A date range filter, picked with the app-wide `DateRangePicker` (calendar
+ * with presets, Apply/Clear).
+ */
 export interface DateRangeFilterDef<
   F extends Record<string, unknown>,
   K extends keyof F,
 > {
   type: 'dateRange';
   key: K;
+  /** Shown on the button while no range is applied. */
   label: string;
 }
 

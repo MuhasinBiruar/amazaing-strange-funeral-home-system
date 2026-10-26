@@ -10,9 +10,9 @@ import {
 
 export type ColumnKey = keyof GetStaffRow;
 
-export type Filters = { isActive: boolean | null };
+export type Filters = { isActive: boolean | null; role: StaffRole | null };
 
-export const DEFAULT_FILTERS: Filters = { isActive: null };
+export const DEFAULT_FILTERS: Filters = { isActive: null, role: null };
 
 export const FILTERS: FilterDef<Filters>[] = [
   {
@@ -22,6 +22,17 @@ export const FILTERS: FilterDef<Filters>[] = [
       { label: 'All staff', value: null },
       { label: 'Active', value: true },
       { label: 'Inactive', value: false },
+    ],
+  },
+  {
+    type: 'select',
+    key: 'role',
+    options: [
+      { label: 'All roles', value: null },
+      { label: 'Superadmin', value: 'superadmin' },
+      { label: 'Admin', value: 'admin' },
+      { label: 'User', value: 'user' },
+      { label: 'Life plan agent', value: 'lifeplan_agent' },
     ],
   },
 ];
@@ -75,6 +86,7 @@ export const COLUMNS: DataTableColumn<GetStaffRow, ColumnKey>[] = [
         title={r.isActive ? 'Active' : 'Inactive'}
       />
     ),
+    exportValue: (r) => (r.isActive ? 'Active' : 'Inactive'),
   },
   {
     key: 'access',

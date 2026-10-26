@@ -14,14 +14,25 @@ export async function getLguCases({
   sortBy,
   sortOrder,
   search,
+  lguid,
+  status,
+  startDate,
+  endDate,
   signal,
-}: GetLguCasesQuery & { signal?: AbortSignal }) {
+}: Omit<GetLguCasesQuery, 'startDate'> & {
+  startDate?: string | undefined;
+  signal?: AbortSignal;
+}) {
   const params = new URLSearchParams();
   params.append('page', String(page));
   params.append('limit', String(limit));
   params.append('sortBy', sortBy);
   params.append('sortOrder', sortOrder);
   if (search) params.append('search', search);
+  if (lguid !== undefined) params.append('lguid', String(lguid));
+  if (status) params.append('status', status);
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
 
   const result = await API.get(`/lgucases?${params}`, {
     withCredentials: true,

@@ -20,14 +20,21 @@ export async function getDirectPlans({
   sortBy,
   sortOrder,
   search,
+  startDate,
+  endDate,
   signal,
-}: GetDirectPlansQuery & { signal?: AbortSignal }) {
+}: Omit<GetDirectPlansQuery, 'startDate'> & {
+  startDate?: string | undefined;
+  signal?: AbortSignal;
+}) {
   const params = new URLSearchParams();
   params.append('page', String(page));
   params.append('limit', String(limit));
   params.append('sortBy', sortBy);
   params.append('sortOrder', sortOrder);
   if (search) params.append('search', search);
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
 
   const result = await API.get(`/financial/direct?${params}`, {
     withCredentials: true,

@@ -23,6 +23,7 @@ export async function getStaffList(
   if (query.search) search.append('search', query.search);
   if (query.isActive !== undefined)
     search.append('isActive', String(query.isActive));
+  if (query.role) search.append('role', query.role);
 
   const res = await API.get(`/staff?${search}`, { signal });
   return getStaffResponseSchema.parse(res.data);
