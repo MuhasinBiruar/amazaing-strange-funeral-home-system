@@ -18,7 +18,7 @@ export const officialReceiptSchema = z.object({
   issuedate: z.coerce.date(),
   reissuancecount: z.int32(),
   transactionid: z.int32(),
-  total_due: bigNumberSchema,
+  total_due: bigNumberSchema.nullable(),
   withholding_tax: withNullDefault(bigNumberSchema),
   tin: withNullDefault(z.string()),
   discount_id: withNullDefault(z.string()),
