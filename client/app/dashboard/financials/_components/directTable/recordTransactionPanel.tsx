@@ -20,6 +20,7 @@ export default function RecordTransactionPanel({
   deceasedName,
   totalAmount,
   totalPaid,
+  totalDeductions = 0,
   onClose,
   onSuccess,
 }: {
@@ -27,6 +28,7 @@ export default function RecordTransactionPanel({
   deceasedName: string;
   totalAmount: number | null;
   totalPaid: number;
+  totalDeductions?: number;
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -58,20 +60,34 @@ export default function RecordTransactionPanel({
   const paymentNow = Number(amount) || 0;
   const isRefund = paymentcategory === 'Refund';
   const discount = Number(pwdDiscount) || 0;
-  const totalDue = Math.max(total - discount, 0);
+  const withholding = Number(withholdingTax) || 0;
+  const totalDue = Math.max(total - totalDeductions - discount, 0);
+  const paymentDue = Math.max(totalDue - withholding, 0);
   const paidAfter = totalPaid + (isRefund ? -paymentNow : paymentNow);
-  const amountLeft = totalDue - paidAfter;
+  const amountLeft = paymentDue - paidAfter;
   const isSettled = Math.round(amountLeft * 100) <= 0;
   const hasReceipt = ornumber.trim() !== '';
+
+  // Inline payment error
+  const maxPayment = Math.max(paymentDue - totalPaid, 0);
+  const isOverpaid = !isRefund && Math.round(amountLeft * 100) < 0;
+  const isRefundTooLarge = isRefund && paidAfter < 0;
+  const paymentError = isOverpaid
+    ? `This payment is ${formatCurrency(-amountLeft)} more than what's due. The most you can record is ${formatCurrency(maxPayment)}.`
+    : isRefundTooLarge
+      ? `This refund is larger than the amount paid so far (${formatCurrency(totalPaid)}).`
+      : null;
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (!hasReceipt && discount > 0) {
+    if (paymentError) return;
+
+    if (!hasReceipt && (discount > 0 || withholding > 0)) {
       await showInfo({
         title: 'OR Number Needed',
         message:
-          'The discount is stored on the official receipt. Enter the OR number to apply it.',
+          'The discount and withholding tax are stored on the official receipt. Enter the OR number to apply them.',
         severity: 'error',
       });
       return;
@@ -167,6 +183,9 @@ export default function RecordTransactionPanel({
                 className={`${fieldClass} pl-7`}
               />
             </div>
+            {paymentError && (
+              <p className="mt-1 text-xs text-red-600">{paymentError}</p>
+            )}
           </div>
 
           <div>
@@ -327,6 +346,14 @@ export default function RecordTransactionPanel({
               <span className="text-gray-500">Total amount</span>
               <span>{formatCurrency(total)}</span>
             </div>
+            {totalDeductions > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">
+                  Earlier receipt deductions
+                </span>
+                <span>− {formatCurrency(totalDeductions)}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-gray-500">SC/PWD discount</span>
               <span>− {formatCurrency(discount)}</span>
@@ -334,6 +361,14 @@ export default function RecordTransactionPanel({
             <div className="flex justify-between font-medium">
               <span>Total due</span>
               <span>{formatCurrency(totalDue)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Withholding tax</span>
+              <span>− {formatCurrency(withholding)}</span>
+            </div>
+            <div className="flex justify-between font-medium">
+              <span>Payment due</span>
+              <span>{formatCurrency(paymentDue)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Paid so far</span>
@@ -369,6 +404,7 @@ export default function RecordTransactionPanel({
             <LoadingButton
               type="submit"
               isLoading={isSubmitting}
+              disabled={paymentError !== null}
               label="Save payment"
               loadingLabel="Saving..."
               className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
