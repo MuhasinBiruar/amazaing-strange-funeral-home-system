@@ -323,14 +323,9 @@ export async function createDirectTransaction(
        ) VALUES ($1, $2, NOW(), $3, $4, $5, $6, $7, $8)`,
             [
               receipt.ornumber,
-              new BigNumber(amount)
-                .integerValue(BigNumber.ROUND_CEIL)
-                .toFixed(),
+              amount,
               created.transactionid,
-              new BigNumber(totalamount)
-                .minus(discount)
-                .integerValue(BigNumber.ROUND_CEIL)
-                .toFixed(),
+              new BigNumber(totalamount).minus(discount).toFixed(),
               receipt.withholding_tax,
               receipt.tin,
               receipt.discount_id,
@@ -343,11 +338,8 @@ export async function createDirectTransaction(
           throw error;
         }
       }
-
-      return created;
       await refreshServiceStatuses(client, caseid);
-
-      return insertResult.rows[0];
+      return created;
     });
 
     const deceasedName = await getDeceasedName(caseid);
