@@ -278,7 +278,7 @@ export default function RecordTransactionPanel({
               </label>
               <input
                 id="or-amount"
-                value={formatCurrency(Math.ceil(paymentNow))}
+                value={formatCurrency(paymentNow)}
                 disabled
                 className={`${fieldClass} disabled:bg-gray-50 disabled:text-gray-500`}
               />
@@ -293,7 +293,7 @@ export default function RecordTransactionPanel({
                   id="or-discount"
                   type="number"
                   min="0"
-                  step="1"
+                  step="0.01"
                   value={pwdDiscount}
                   onChange={(e) => setPwdDiscount(e.target.value)}
                   className={fieldClass}
@@ -321,7 +321,7 @@ export default function RecordTransactionPanel({
                   id="or-withholding"
                   type="number"
                   min="0"
-                  step="1"
+                  step="0.01"
                   value={withholdingTax}
                   onChange={(e) => setWithholdingTax(e.target.value)}
                   className={fieldClass}

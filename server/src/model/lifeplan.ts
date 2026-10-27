@@ -51,7 +51,7 @@ export const getLifeplans = async ({
         ELSE GREATEST(c.totalamount - COALESCE(t.totalpaid, 0), 0)
       END AS remainingbalance,
       dr.datecreated,
-      COALESCE(d.totaldeductions, 0) AS totaldeductions
+      COALESCE(od.totaldeductions, 0) AS totaldeductions
       dr.servicestatus
   `;
 
@@ -80,7 +80,7 @@ export const getLifeplans = async ({
       FROM public.officialreceipt o
       JOIN public.transaction t2 ON t2.transactionid = o.transactionid
       GROUP BY t2.caseid
-    ) d ON l.caseid = d.caseid
+    ) od ON l.caseid = od.caseid
   `;
 
   // Start building `whereClause`
