@@ -45,7 +45,9 @@ export const getLifeplans = async ({
       lc.companyname,
       c.contractid,
       c.totalamount AS contractamount,
-      COALESCE(t.totalpaid, 0) AS totalamountpaid,
+      -- transaction.amount is numeric (returned as a string by pg);
+      -- the API sends this total as a number.
+      COALESCE(t.totalpaid, 0)::float8 AS totalamountpaid,
       CASE WHEN c.totalamount IS NULL THEN NULL
         ELSE GREATEST(c.totalamount - COALESCE(t.totalpaid, 0), 0)
       END AS remainingbalance,
