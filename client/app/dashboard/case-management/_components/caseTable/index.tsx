@@ -9,7 +9,7 @@ import type {
 import type { Case } from 'shared';
 import { getCases } from '@/services/caseService';
 import CaseDetailPanel from '../caseDetailPanel';
-import PillBadge from '@/components/pillBadge';
+import ServiceStatusPill from '@/components/serviceStatusPill';
 
 export type ColumnKey = keyof Case;
 
@@ -29,10 +29,10 @@ const FILTERS: FilterDef<Filters>[] = [
     key: 'status',
     options: [
       { label: 'All statuses', value: null },
-      { label: 'Active', value: 'active' },
-      { label: 'Completed', value: 'completed' },
       { label: 'Intake', value: 'intake' },
+      { label: 'Active', value: 'active' },
       { label: 'Pending', value: 'pending' },
+      { label: 'Completed', value: 'completed' },
     ],
   },
   {
@@ -97,21 +97,8 @@ export default function CaseTable() {
       key: 'servicestatus',
       label: 'Service status',
       widthClassName: 'w-32.5',
-      render: (c) => (
-        <PillBadge
-          variant={
-            c.servicestatus === 'completed'
-              ? 'info'
-              : c.servicestatus === 'active'
-                ? 'success'
-                : c.servicestatus === 'pending'
-                  ? 'warning'
-                  : 'error'
-          }
-        >
-          {titleCase(c.servicestatus)}
-        </PillBadge>
-      ),
+      render: (c) => <ServiceStatusPill status={c.servicestatus} />,
+      exportValue: (c) => titleCase(c.servicestatus),
     },
     {
       key: 'datecreated',
@@ -131,10 +118,10 @@ export default function CaseTable() {
   return (
     <>
       <DataTable<Case, ColumnKey, Filters>
-        title="Log"
+        title="Cases"
         exportFileName="cases"
-        countLabel={(total) => `${total} items`}
-        searchPlaceholder="Search contracts..."
+        countLabel={(total) => `${total} cases`}
+        searchPlaceholder="Search cases..."
         filters={FILTERS}
         defaultFilters={DEFAULT_FILTERS}
         columns={columns}
@@ -150,8 +137,8 @@ export default function CaseTable() {
           })
         }
         refreshKey={refreshKey}
-        emptyMessage="No contracts match your search."
-        loadErrorMessage="Could not load contracts. Try again."
+        emptyMessage="No cases match your search."
+        loadErrorMessage="Could not load cases. Try again."
         bodyOffsetClassName="top-17.25"
       />
 

@@ -1,9 +1,10 @@
 import DataTable from '@/components/dataTable';
-import { formatDate, titleCase } from '@/utils/format';
+import { formatDate } from '@/utils/format';
 import type { DataTableColumn, FilterDef } from '@/components/dataTable/types';
 import type { UncontractedDeceased } from 'shared';
 import { getUncontractedDeceased } from '@/services/deceasedRecordService';
 import PillBadge from '@/components/pillBadge';
+import ServiceStatusPill from '@/components/serviceStatusPill';
 
 type ColumnKey = keyof UncontractedDeceased;
 
@@ -19,10 +20,10 @@ const FILTERS: FilterDef<Filters>[] = [
     key: 'status',
     options: [
       { label: 'All statuses', value: null },
-      { label: 'Active', value: 'active' },
-      { label: 'Completed', value: 'completed' },
       { label: 'Intake', value: 'intake' },
+      { label: 'Active', value: 'active' },
       { label: 'Pending', value: 'pending' },
+      { label: 'Completed', value: 'completed' },
     ],
   },
 ];
@@ -32,7 +33,7 @@ const COLUMNS: DataTableColumn<UncontractedDeceased, ColumnKey>[] = [
     key: 'deceased_name',
     label: 'Deceased name',
     widthClassName: 'w-45',
-    cellClassName: 'px-5 py-3 text-gray-500 wrap-break-word',
+    cellClassName: 'px-5 py-3 text-gray-900 wrap-break-word',
     render: (r) => r.deceased_name,
   },
   {
@@ -46,21 +47,7 @@ const COLUMNS: DataTableColumn<UncontractedDeceased, ColumnKey>[] = [
     key: 'servicestatus',
     label: 'Service status',
     widthClassName: 'w-32.5',
-    render: (r) => (
-      <PillBadge
-        variant={
-          r.servicestatus === 'completed'
-            ? 'info'
-            : r.servicestatus === 'active'
-              ? 'success'
-              : r.servicestatus === 'pending'
-                ? 'warning'
-                : 'error'
-        }
-      >
-        {titleCase(r.servicestatus)}
-      </PillBadge>
-    ),
+    render: (r) => <ServiceStatusPill status={r.servicestatus} />,
   },
   {
     key: 'plantype',
