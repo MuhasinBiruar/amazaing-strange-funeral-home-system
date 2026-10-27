@@ -45,8 +45,11 @@ export async function getDirect(
         CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
         c.contractid,
         c.totalamount,
-        COALESCE(t.totalpaid, 0) AS totalamountpaid,
-        COALESCE(d.totaldeductions, 0) AS totaldeductions,
+        -- transaction.amount is numeric (returned as a string by pg);
+        -- the API sends these totals as numbers.
+        COALESCE(t.totalpaid, 0)::float8 AS totalamountpaid,
+        COALESCE(d.totaldeductions, 0)::float8 AS totaldeductions,
+
         dr.servicestatus
     `;
 
