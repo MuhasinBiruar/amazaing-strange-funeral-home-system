@@ -9,6 +9,7 @@ import { deceasedRecordSchema } from '../db/deceasedrecord';
 /**
  * Combination of the following tables:
  * `deceasedrecord` + `representative` + `contract` + `transaction`
+ * + `officialreceipt` (summed into `totaldeductions`)
  */
 export const directPlanSchema = z.object({
   caseid: z.int32(),
@@ -18,6 +19,7 @@ export const directPlanSchema = z.object({
   contractid: z.int32().nullable(),
   totalamount: z.float64().nullable(),
   totalamountpaid: z.float64(),
+  totaldeductions: z.float64(),
   servicestatus: deceasedRecordSchema.shape.servicestatus,
 });
 

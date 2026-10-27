@@ -24,6 +24,7 @@ const SORT_COLUMNS: Record<string, string> = {
   contractid: 'c.contractid',
   totalamount: 'c.totalamount',
   totalamountpaid: 'totalamountpaid',
+  totaldeductions: 'totaldeductions',
   servicestatus: 'dr.servicestatus',
 };
 
@@ -45,8 +46,10 @@ export async function getDirect(
         c.contractid,
         c.totalamount,
         -- transaction.amount is numeric (returned as a string by pg);
-        -- the API sends this total as a number.
+        -- the API sends these totals as numbers.
         COALESCE(t.totalpaid, 0)::float8 AS totalamountpaid,
+        COALESCE(d.totaldeductions, 0)::float8 AS totaldeductions,
+
         dr.servicestatus
     `;
 
@@ -66,6 +69,16 @@ export async function getDirect(
         FROM public.transaction
         GROUP BY caseid
       ) t ON dr.caseid = t.caseid
+      LEFT JOIN (
+        SELECT
+          t2.caseid,
+          COALESCE(SUM(
+            COALESCE(o.pwd_discount, 0) + COALESCE(o.withholding_tax, 0)
+          ), 0) AS totaldeductions
+        FROM public.officialreceipt o
+        JOIN public.transaction t2 ON t2.transactionid = o.transactionid
+        GROUP BY t2.caseid
+      ) d ON dr.caseid = d.caseid
     `;
 
     // Start building `whereClause`
@@ -185,13 +198,18 @@ export async function createDirectTransaction(
 ) {
   try {
     const caseid = Number(req.params.id);
-    const { amount, paymentdatetime, paymentmethod, paymentcategory } =
+    const { amount, paymentdatetime, paymentmethod, paymentcategory, receipt } =
       req.body;
 
     const delta =
       paymentcategory === 'Refund'
         ? new BigNumber(amount).negated()
         : new BigNumber(amount);
+
+    if (receipt && paymentcategory === 'Refund')
+      throw new BadRequestError(
+        'An official receipt cannot be issued with a refund.',
+      );
 
     const transaction = await withTransaction(async (client) => {
       const caseResult = await client.query<{
@@ -219,6 +237,28 @@ export async function createDirectTransaction(
           'This case has no contract yet, so there is nothing to pay against.',
         );
 
+      const discount = new BigNumber(receipt?.pwd_discount ?? 0);
+      const withholding = new BigNumber(receipt?.withholding_tax ?? 0);
+
+      const priorResult = await client.query<{ deducted: string }>(
+        `SELECT COALESCE(SUM(
+           COALESCE(o.pwd_discount, 0) + COALESCE(o.withholding_tax, 0)
+         ), 0)::text AS deducted
+         FROM public.officialreceipt o
+         JOIN public.transaction t ON t.transactionid = o.transactionid
+         WHERE t.caseid = $1`,
+        [caseid],
+      );
+
+      const deductions = new BigNumber(priorResult.rows[0].deducted)
+        .plus(discount)
+        .plus(withholding);
+
+      if (deductions.isGreaterThan(totalamount))
+        throw new BadRequestError(
+          'Discount and withholding tax are larger than the total amount.',
+        );
+
       const paidResult = await client.query<{ paid: string }>(
         `SELECT COALESCE(SUM(
            CASE WHEN paymentcategory = 'Refund' THEN -amount ELSE amount END
@@ -229,7 +269,9 @@ export async function createDirectTransaction(
       );
 
       const newPaid = new BigNumber(paidResult.rows[0].paid).plus(delta);
-      const remaining = new BigNumber(totalamount).minus(newPaid);
+      const remaining = new BigNumber(totalamount)
+        .minus(deductions)
+        .minus(newPaid);
 
       if (newPaid.isLessThan(0))
         throw new BadRequestError('Refund is larger than the amount paid.');
@@ -238,6 +280,10 @@ export async function createDirectTransaction(
           `Payment is larger than the remaining balance (${remaining
             .plus(delta)
             .toFixed(2)}).`,
+        );
+      if (receipt && remaining.isGreaterThan(0))
+        throw new BadRequestError(
+          `An official receipt can only be issued once the case is fully paid (${remaining.toFixed(2)} would still be unpaid).`,
         );
 
       const insertResult = await client.query<Transaction>(
@@ -269,13 +315,38 @@ export async function createDirectTransaction(
         ],
       );
 
-      await refreshServiceStatuses(client, caseid);
+      const created = insertResult.rows[0];
 
-      return insertResult.rows[0];
+      if (receipt) {
+        try {
+          await client.query(
+            `INSERT INTO public.officialreceipt (
+         ornumber, amount, issuedate, transactionid,
+         total_due, withholding_tax, tin, discount_id, pwd_discount
+       ) VALUES ($1, $2, NOW(), $3, $4, $5, $6, $7, $8)`,
+            [
+              receipt.ornumber,
+              amount,
+              created.transactionid,
+              new BigNumber(totalamount).minus(discount).toFixed(),
+              receipt.withholding_tax,
+              receipt.tin,
+              receipt.discount_id,
+              receipt.pwd_discount,
+            ],
+          );
+        } catch (error) {
+          if ((error as { code?: string }).code === '23505')
+            throw new BadRequestError('That OR number is already used.');
+          throw error;
+        }
+      }
+      await refreshServiceStatuses(client, caseid);
+      return created;
     });
 
     const deceasedName = await getDeceasedName(caseid);
-    res.locals.auditAction = `${res.locals.session.user.name} recorded a ${paymentcategory} of ${amount} for ${deceasedName}`;
+    res.locals.auditAction = `${res.locals.session.user.name} recorded a ${paymentcategory} of ${amount} for ${deceasedName}${receipt ? ` (OR ${receipt.ornumber})` : ''}`;
 
     res.status(201).json({ data: transaction });
   } catch (error) {

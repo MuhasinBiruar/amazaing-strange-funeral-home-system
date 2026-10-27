@@ -243,11 +243,11 @@ CREATE INDEX idx_lifeplan_companyid ON public.lifeplan USING btree (companyid);
 
 CREATE TABLE public.transaction (
     transactionid serial PRIMARY KEY,
-    amount double precision NOT NULL,
+    amount numeric(12,2) NOT NULL,
     paymentdatetime timestamp with time zone NOT NULL,
     paymentmethod public.payment_method_enum NOT NULL,
     paymentcategory public.payment_category_enum NOT NULL,
-    remainingbalance double precision NOT NULL,
+    remainingbalance numeric(12,2) NOT NULL,
     transactionstatus public.transaction_status_enum NOT NULL,
     caseid integer NOT NULL REFERENCES public.deceasedrecord(caseid)
 );
@@ -256,16 +256,16 @@ CREATE INDEX idx_transaction_caseid ON public.transaction USING btree (caseid);
 CREATE TABLE public.officialreceipt (
     orid serial PRIMARY KEY,
     ornumber character varying(255) NOT NULL UNIQUE,
-    amount integer NOT NULL,
+    amount numeric(12,2) NOT NULL,
     issuedate timestamp with time zone DEFAULT now() NOT NULL,
     reissuancecount integer DEFAULT 0 NOT NULL,
     transactionid integer NOT NULL UNIQUE
         REFERENCES public.transaction(transactionid) ON UPDATE CASCADE ON DELETE CASCADE,
-    total_due real,
-    witholding_tax real,
+    total_due numeric(12,2),
+    withholding_tax numeric(12,2),
     tin text,
     discount_id text,
-    pwd_discount real
+    pwd_discount numeric(12,2)
 );
 COMMENT ON COLUMN public.officialreceipt.pwd_discount IS 'Amount';
 

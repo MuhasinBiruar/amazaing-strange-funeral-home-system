@@ -4,6 +4,7 @@ import {
   getDirectTransactionsResponseSchema,
   getFinancialDetailsResponseSchema,
   getFinancialSummaryResponseSchema,
+  getOfficialReceiptsResponseSchema,
   type CreateLguCaseQuery,
   type CreateTransactionQuery,
   type GetDirectPlansQuery,
@@ -122,4 +123,15 @@ export async function getFinancialDetails(
     signal,
   });
   return getFinancialDetailsResponseSchema.parse(result.data);
+}
+
+export async function getOfficialReceipts(
+  caseid: number,
+  signal?: AbortSignal,
+) {
+  const result = await API.get(
+    `/financial/direct/${caseid}/official-receipts`,
+    { withCredentials: true, signal },
+  );
+  return getOfficialReceiptsResponseSchema.parse(result.data);
 }
