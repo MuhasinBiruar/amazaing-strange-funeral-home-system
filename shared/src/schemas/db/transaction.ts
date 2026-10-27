@@ -1,5 +1,6 @@
 import { bigNumberSchema, withNullDefault } from '@/utils';
 import z from 'zod';
+import { createOfficialReceiptQuerySchema } from './officialreceipt';
 
 export const paymentMethodEnum = z.enum([
   'Cash',
@@ -47,6 +48,7 @@ export const createTransactionQuerySchema = z.object({
   paymentdatetime: withNullDefault(z.coerce.date()),
   paymentmethod: paymentMethodEnum,
   paymentcategory: paymentCategoryEnum,
+  receipt: createOfficialReceiptQuerySchema.optional(),
 });
 
 export type CreateTransactionQuery = z.infer<

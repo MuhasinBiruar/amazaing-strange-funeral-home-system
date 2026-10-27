@@ -7,6 +7,7 @@ import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import LoadingButton from '@/components/loadingButton';
 import { fieldClass, labelClass } from '@/components/formStyles';
+import { formatCurrency } from '@/utils/format';
 import {
   createTransactionQuerySchema,
   paymentCategoryEnum,
@@ -17,11 +18,17 @@ import { toDateInputValue } from '@/utils/toDateInputValue';
 export default function RecordTransactionPanel({
   caseId,
   deceasedName,
+  totalAmount,
+  totalPaid,
+  totalDeductions = 0,
   onClose,
   onSuccess,
 }: {
   caseId: number;
   deceasedName: string;
+  totalAmount: number | null;
+  totalPaid: number;
+  totalDeductions?: number;
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -38,18 +45,80 @@ export default function RecordTransactionPanel({
   const [paymentcategory, setPaymentcategory] = useState<string>(
     paymentCategoryEnum.options[0],
   );
+
+  // Official receipt (optional: only sent when an OR number is typed)
+  const [ornumber, setOrnumber] = useState('');
+  const [pwdDiscount, setPwdDiscount] = useState('');
+  const [discountId, setDiscountId] = useState('');
+  const [withholdingTax, setWithholdingTax] = useState('');
+  const [tin, setTin] = useState('');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Live summary
+  const total = totalAmount ?? 0;
+  const paymentNow = Number(amount) || 0;
+  const isRefund = paymentcategory === 'Refund';
+  const discount = Number(pwdDiscount) || 0;
+  const withholding = Number(withholdingTax) || 0;
+  const totalDue = Math.max(total - totalDeductions - discount, 0);
+  const paymentDue = Math.max(totalDue - withholding, 0);
+  const paidAfter = totalPaid + (isRefund ? -paymentNow : paymentNow);
+  const amountLeft = paymentDue - paidAfter;
+  const isSettled = Math.round(amountLeft * 100) <= 0;
+  const hasReceipt = ornumber.trim() !== '';
+
+  // Inline payment error
+  const maxPayment = Math.max(paymentDue - totalPaid, 0);
+  const isOverpaid = !isRefund && Math.round(amountLeft * 100) < 0;
+  const isRefundTooLarge = isRefund && paidAfter < 0;
+  const paymentError = isOverpaid
+    ? `This payment is ${formatCurrency(-amountLeft)} more than what's due. The most you can record is ${formatCurrency(maxPayment)}.`
+    : isRefundTooLarge
+      ? `This refund is larger than the amount paid so far (${formatCurrency(totalPaid)}).`
+      : null;
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    // `amount` is a numeric *string* in the shared schema, so it is not
-    // run through parseFloat.
+    if (paymentError) return;
+
+    if (!hasReceipt && (discount > 0 || withholding > 0)) {
+      await showInfo({
+        title: 'OR Number Needed',
+        message:
+          'The discount and withholding tax are stored on the official receipt. Enter the OR number to apply them.',
+        severity: 'error',
+      });
+      return;
+    }
+
+    if (hasReceipt && (isRefund || !isSettled)) {
+      await showInfo({
+        title: 'Cannot Issue Official Receipt',
+        message:
+          'An official receipt can only be issued with a payment that fully settles the balance.',
+        severity: 'error',
+      });
+      return;
+    }
+
+    // Money fields are numeric *strings* in the shared schema, so they are
+    // not run through parseFloat.
     const result = createTransactionQuerySchema.safeParse({
       amount: amount.trim(),
       paymentdatetime,
       paymentmethod,
       paymentcategory,
+      receipt: hasReceipt
+        ? {
+            ornumber: ornumber.trim(),
+            tin,
+            withholding_tax: withholdingTax.trim(),
+            discount_id: discountId,
+            pwd_discount: pwdDiscount.trim(),
+          }
+        : undefined,
     });
 
     if (!result.success) {
@@ -114,6 +183,9 @@ export default function RecordTransactionPanel({
                 className={`${fieldClass} pl-7`}
               />
             </div>
+            {paymentError && (
+              <p className="mt-1 text-xs text-red-600">{paymentError}</p>
+            )}
           </div>
 
           <div>
@@ -167,6 +239,157 @@ export default function RecordTransactionPanel({
               </select>
             </div>
           </div>
+
+          <section className="rounded-lg border border-gray-200 p-3 space-y-3">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              Official receipt (optional)
+            </h3>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="or-number" className={labelClass}>
+                  OR number
+                </label>
+                <input
+                  id="or-number"
+                  value={ornumber}
+                  onChange={(e) => setOrnumber(e.target.value)}
+                  placeholder="e.g. 0346"
+                  className={fieldClass}
+                />
+              </div>
+              <div>
+                <label htmlFor="or-date" className={labelClass}>
+                  Issue date
+                </label>
+                <input
+                  id="or-date"
+                  type="date"
+                  value={toDateInputValue(new Date())}
+                  disabled
+                  className={`${fieldClass} disabled:bg-gray-50 disabled:text-gray-500`}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="or-amount" className={labelClass}>
+                OR amount
+              </label>
+              <input
+                id="or-amount"
+                value={formatCurrency(paymentNow)}
+                disabled
+                className={`${fieldClass} disabled:bg-gray-50 disabled:text-gray-500`}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="or-discount" className={labelClass}>
+                  SC/PWD discount (PHP)
+                </label>
+                <input
+                  id="or-discount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={pwdDiscount}
+                  onChange={(e) => setPwdDiscount(e.target.value)}
+                  className={fieldClass}
+                />
+              </div>
+              <div>
+                <label htmlFor="or-discount-id" className={labelClass}>
+                  SC/PWD ID no.
+                </label>
+                <input
+                  id="or-discount-id"
+                  value={discountId}
+                  onChange={(e) => setDiscountId(e.target.value)}
+                  className={fieldClass}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="or-withholding" className={labelClass}>
+                  Withholding tax (PHP)
+                </label>
+                <input
+                  id="or-withholding"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={withholdingTax}
+                  onChange={(e) => setWithholdingTax(e.target.value)}
+                  className={fieldClass}
+                />
+              </div>
+              <div>
+                <label htmlFor="or-tin" className={labelClass}>
+                  TIN
+                </label>
+                <input
+                  id="or-tin"
+                  value={tin}
+                  onChange={(e) => setTin(e.target.value)}
+                  className={fieldClass}
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm space-y-1">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Total amount</span>
+              <span>{formatCurrency(total)}</span>
+            </div>
+            {totalDeductions > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">
+                  Earlier receipt deductions
+                </span>
+                <span>− {formatCurrency(totalDeductions)}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-gray-500">SC/PWD discount</span>
+              <span>− {formatCurrency(discount)}</span>
+            </div>
+            <div className="flex justify-between font-medium">
+              <span>Total due</span>
+              <span>{formatCurrency(totalDue)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Withholding tax</span>
+              <span>− {formatCurrency(withholding)}</span>
+            </div>
+            <div className="flex justify-between font-medium">
+              <span>Payment due</span>
+              <span>{formatCurrency(paymentDue)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Paid so far</span>
+              <span>{formatCurrency(totalPaid)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">This payment</span>
+              <span>
+                {isRefund ? '− ' : ''}
+                {formatCurrency(paymentNow)}
+              </span>
+            </div>
+            <div
+              className={`flex justify-between border-t border-gray-200 pt-1 font-semibold ${
+                amountLeft < 0 ? 'text-red-600' : 'text-gray-900'
+              }`}
+            >
+              <span>Amount left</span>
+              <span>{formatCurrency(amountLeft)}</span>
+            </div>
+          </section>
         </div>
 
         <footer className="px-5 py-4 border-t border-gray-200 shrink-0">
@@ -181,6 +404,7 @@ export default function RecordTransactionPanel({
             <LoadingButton
               type="submit"
               isLoading={isSubmitting}
+              disabled={paymentError !== null}
               label="Save payment"
               loadingLabel="Saving..."
               className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
