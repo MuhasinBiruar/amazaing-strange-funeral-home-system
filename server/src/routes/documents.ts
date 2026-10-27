@@ -14,11 +14,16 @@ import { getDeceasedName } from '@/util/audit-log';
 import { publicDocumentUrl, uploadDocumentFile } from '@/lib/s3';
 import { triggerNotificationSweep } from '@/lib/notifications';
 import { withTransaction } from '@/util/with-transaction';
+import validate from '@/middleware/validate';
+import validateParams from '@/middleware/validate-params';
 import {
   createDocumentRequirementSchema,
   getDocumentsQuerySchema,
+  updateDocumentVerificationQuerySchema,
   uploadDocumentFormSchema,
+  type UpdateDocumentVerificationQuery,
 } from 'shared';
+import { idParamSchema, type IdParam } from 'shared/utils';
 
 const router = Router();
 
@@ -137,6 +142,123 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
     next(error);
   }
 });
+
+const VERIFICATION_VERBS: Record<
+  UpdateDocumentVerificationQuery['verificationstatus'],
+  string
+> = {
+  verified: 'approved',
+  rejected: 'rejected',
+  pending: 'reset the review of',
+};
+
+/**
+ * Approves (`verified`), rejects, or resets (`pending`) a submitted document.
+ *
+ * @remarks
+ * Rejecting a document means the case needs that document again, so a
+ * requirement placeholder (a `filename IS NULL` row) of the same type is added
+ * unless one already exists; it then shows under "Missing documents", and the
+ * next upload of that type fills it. Moving a document back out of `rejected`
+ * removes those placeholders again, since the document covers its type once
+ * more.
+ *
+ * The same per-case/per-type advisory lock as `POST /` is taken, so an upload
+ * filling a placeholder can't race this.
+ */
+router.patch(
+  '/:id/verification',
+  requireAuth,
+  validateParams(idParamSchema),
+  validate(updateDocumentVerificationQuerySchema),
+  async (
+    req: Request<IdParam, {}, UpdateDocumentVerificationQuery>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const { id } = req.params;
+      const { verificationstatus } = req.body;
+      const staffid = res.locals.session.user.id;
+
+      const updated = await withTransaction(async (client) => {
+        const existing = await client.query(
+          'SELECT caseid, documenttype FROM document WHERE documentid = $1',
+          [id],
+        );
+        if (existing.rows.length === 0) throw new NotFoundError();
+        const { caseid, documenttype } = existing.rows[0];
+
+        await client.query(
+          'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
+          [`${caseid}:${documenttype.trim().toLowerCase()}`],
+        );
+
+        const current = await client.query(
+          'SELECT * FROM document WHERE documentid = $1 FOR UPDATE',
+          [id],
+        );
+        const document = current.rows[0];
+        if (document.filename === null) {
+          throw new ConflictError(
+            'Only uploaded documents can be approved or rejected.',
+          );
+        }
+
+        // Approving or rejecting records who decided; resetting to pending
+        // keeps whoever was last recorded.
+        const result = await client.query(
+          `UPDATE document
+           SET verificationstatus = $1,
+               verifiedby = COALESCE($2, verifiedby)
+           WHERE documentid = $3
+           RETURNING *`,
+          [
+            verificationstatus,
+            verificationstatus === 'pending' ? null : staffid,
+            id,
+          ],
+        );
+
+        const wasRejected = document.verificationstatus === 'rejected';
+        const isRejected = verificationstatus === 'rejected';
+
+        if (isRejected && !wasRejected) {
+          await client.query(
+            `INSERT INTO document (documenttype, caseid)
+             SELECT $1::text, $2
+             WHERE NOT EXISTS (
+               SELECT 1 FROM document
+               WHERE caseid = $2
+                 AND LOWER(BTRIM(documenttype)) = LOWER(BTRIM($1::text))
+                 AND filename IS NULL
+             )`,
+            [documenttype, caseid],
+          );
+        } else if (wasRejected && !isRejected) {
+          await client.query(
+            `DELETE FROM document
+             WHERE caseid = $1
+               AND LOWER(BTRIM(documenttype)) = LOWER(BTRIM($2))
+               AND filename IS NULL`,
+            [caseid, documenttype],
+          );
+        }
+
+        return result.rows[0];
+      });
+
+      triggerNotificationSweep();
+
+      const deceasedName = await getDeceasedName(updated.caseid);
+      res.locals.auditAction = `${res.locals.session.user.name} ${VERIFICATION_VERBS[verificationstatus]} the ${updated.documenttype} document for ${deceasedName}`;
+
+      res.json({ data: withUrl(updated) });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 router.get('/:id', requireAuth, async (req, res, next) => {
   try {

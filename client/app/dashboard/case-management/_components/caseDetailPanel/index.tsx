@@ -224,6 +224,16 @@ export default function CaseDetailPanel({
                   prev.filter((doc) => doc.documentid !== documentid),
                 )
               }
+              onVerificationChanged={async () => {
+                // Rejecting re-adds a placeholder requirement and undoing a
+                // rejection removes it, so reload rather than patch locally.
+                setRefreshKey((v) => v + 1);
+                try {
+                  setDocuments(await getDocumentsByCase(caseid));
+                } catch (error) {
+                  console.error('Failed to reload documents:', error);
+                }
+              }}
             />
           </>
         )}

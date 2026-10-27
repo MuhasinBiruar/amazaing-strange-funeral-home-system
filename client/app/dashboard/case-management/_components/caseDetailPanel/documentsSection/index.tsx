@@ -16,12 +16,15 @@ export default function DocumentsSection({
   onUploaded,
   onRequirementCreated,
   onRequirementRemoved,
+  onVerificationChanged,
 }: {
   caseid: number;
   documents: DocumentWithUrl[];
   onUploaded: (document: DocumentWithUrl) => void;
   onRequirementCreated: (document: DocumentWithUrl) => void;
   onRequirementRemoved: (documentid: number) => void;
+  /** A document was approved, rejected, or reset to pending. */
+  onVerificationChanged: () => void;
 }) {
   const [isMissingDocsOpen, setIsMissingOpen] = useState(false);
   const [expandedImage, setExpandedImage] = useState<{
@@ -81,6 +84,7 @@ export default function DocumentsSection({
               key={doc.documentid}
               doc={doc}
               onExpandImage={setExpandedImage}
+              onVerificationChanged={onVerificationChanged}
             />
           ))}
         </div>
@@ -112,9 +116,11 @@ export default function DocumentsSection({
 }
 
 function getMissingDocuments(documents: DocumentWithUrl[]) {
+  // A rejected file doesn't cover its type; the requirement placeholder the
+  // rejection re-added shows as missing until a new file is uploaded.
   const submitted = new Set(
     documents
-      .filter((d) => d.filename !== null)
+      .filter((d) => d.filename !== null && d.verificationstatus !== 'rejected')
       .map((d) => normalizeType(d.documenttype)),
   );
   const seen = new Set<string>();
