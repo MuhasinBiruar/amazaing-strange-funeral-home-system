@@ -84,6 +84,7 @@ router.get(
           SELECT caseid, COUNT(documentid) as pending_docs
           FROM public.document
           WHERE verificationstatus = 'pending'
+             OR filename IS NULL
           GROUP BY caseid
         ) d ON dr.caseid = d.caseid
         LEFT JOIN (
