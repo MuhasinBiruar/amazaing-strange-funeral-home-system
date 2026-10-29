@@ -20,6 +20,7 @@ const SORT_COLUMNS: Record<keyof Case, string> = {
   total_pending_docs: 'total_pending_docs',
   totalamount: 'c.totalamount',
   servicestatus: 'dr.servicestatus',
+  plantype: 'dr.plantype',
   datecreated: 'dr.datecreated',
   managed_by_name: 'managed_by_name',
   contractid: 'c.contractid',
@@ -34,6 +35,7 @@ const SORT_COLUMNS: Record<keyof Case, string> = {
  * `http://localhost:4000/cases`
  * `http://localhost:4000/cases?search=Juan`
  * `http://localhost:4000/cases?status=active`
+ * `http://localhost:4000/cases?plantype=LGU`
  * `http://localhost:4000/cases?search=Dela%20Cruz&status=pending&sortBy=burialdatedeadline&sortOrder=asc&page=1&limit=20`
  */
 router.get(
@@ -46,6 +48,7 @@ router.get(
         limit,
         search,
         status,
+        plantype,
         startDate,
         endDate,
         sortBy,
@@ -61,6 +64,7 @@ router.get(
         COALESCE(d.pending_docs, 0)::int AS total_pending_docs,
         c.totalamount,
         dr.servicestatus,
+        dr.plantype,
         dr.datecreated,
         CONCAT_WS(' ', NULLIF(s."firstName", ''), NULLIF(s."middleName", ''), NULLIF(s."lastName", '')) AS managed_by_name,
         dr.caseid,
@@ -100,6 +104,12 @@ router.get(
       if (status) {
         whereConditions.push(`dr.servicestatus = $${paramIndex}`);
         queryParams.push(status);
+        paramIndex++;
+      }
+
+      if (plantype) {
+        whereConditions.push(`dr.plantype = $${paramIndex}`);
+        queryParams.push(plantype);
         paramIndex++;
       }
 
