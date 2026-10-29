@@ -20,7 +20,6 @@ export default function RecordTransactionPanel({
   deceasedName,
   totalAmount,
   totalPaid,
-  totalDeductions = 0,
   onClose,
   onSuccess,
 }: {
@@ -28,7 +27,6 @@ export default function RecordTransactionPanel({
   deceasedName: string;
   totalAmount: number | null;
   totalPaid: number;
-  totalDeductions?: number;
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -61,7 +59,7 @@ export default function RecordTransactionPanel({
   const isRefund = paymentcategory === 'Refund';
   const discount = Number(pwdDiscount) || 0;
   const withholding = Number(withholdingTax) || 0;
-  const totalDue = Math.max(total - totalDeductions - discount, 0);
+  const totalDue = Math.max(total - discount, 0);
   const paymentDue = Math.max(totalDue - withholding, 0);
   const paidAfter = totalPaid + (isRefund ? -paymentNow : paymentNow);
   const amountLeft = paymentDue - paidAfter;
@@ -346,14 +344,6 @@ export default function RecordTransactionPanel({
               <span className="text-gray-500">Total amount</span>
               <span>{formatCurrency(total)}</span>
             </div>
-            {totalDeductions > 0 && (
-              <div className="flex justify-between">
-                <span className="text-gray-500">
-                  Earlier receipt deductions
-                </span>
-                <span>− {formatCurrency(totalDeductions)}</span>
-              </div>
-            )}
             <div className="flex justify-between">
               <span className="text-gray-500">SC/PWD discount</span>
               <span>− {formatCurrency(discount)}</span>

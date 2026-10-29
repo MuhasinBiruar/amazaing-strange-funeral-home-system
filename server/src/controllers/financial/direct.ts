@@ -220,7 +220,7 @@ export async function createDirectTransaction(
          FROM public.deceasedrecord dr
          LEFT JOIN public.contract c ON c.caseid = dr.caseid
          WHERE dr.caseid = $1
-         FOR UPDATE OF dr`,
+         FOR UPDATE OF dr, c`,
         [caseid],
       );
 
@@ -240,21 +240,9 @@ export async function createDirectTransaction(
       const discount = new BigNumber(receipt?.pwd_discount ?? 0);
       const withholding = new BigNumber(receipt?.withholding_tax ?? 0);
 
-      const priorResult = await client.query<{ deducted: string }>(
-        `SELECT COALESCE(SUM(
-           COALESCE(o.pwd_discount, 0) + COALESCE(o.withholding_tax, 0)
-         ), 0)::text AS deducted
-         FROM public.officialreceipt o
-         JOIN public.transaction t ON t.transactionid = o.transactionid
-         WHERE t.caseid = $1`,
-        [caseid],
-      );
+      const currentDeductions = discount.plus(withholding);
 
-      const deductions = new BigNumber(priorResult.rows[0].deducted)
-        .plus(discount)
-        .plus(withholding);
-
-      if (deductions.isGreaterThan(totalamount))
+      if (currentDeductions.isGreaterThan(totalamount))
         throw new BadRequestError(
           'Discount and withholding tax are larger than the total amount.',
         );
@@ -270,7 +258,7 @@ export async function createDirectTransaction(
 
       const newPaid = new BigNumber(paidResult.rows[0].paid).plus(delta);
       const remaining = new BigNumber(totalamount)
-        .minus(deductions)
+        .minus(currentDeductions)
         .minus(newPaid);
 
       if (newPaid.isLessThan(0))
@@ -334,6 +322,13 @@ export async function createDirectTransaction(
               receipt.discount_id,
               receipt.pwd_discount,
             ],
+          );
+
+          await client.query(
+            `UPDATE public.contract
+             SET totalamount = totalamount - $1
+             WHERE caseid = $2`,
+            [currentDeductions.toFixed(), caseid],
           );
         } catch (error) {
           if ((error as { code?: string }).code === '23505')

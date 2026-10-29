@@ -17,7 +17,7 @@ import ServiceStatusPill from '@/components/serviceStatusPill';
 /** What is still unpaid on the extra amount once receipt deductions apply. */
 function extraLeft(l: GetLifeplansQueryRow) {
   if (l.contractamount == null) return null;
-  return Math.max(l.contractamount - l.totaldeductions - l.totalamountpaid, 0);
+  return Math.max(l.contractamount - l.totalamountpaid, 0);
 }
 
 type ColumnKey = keyof GetLifeplansQueryRow;
@@ -91,7 +91,7 @@ export default function LifeplanTable() {
       label: 'Extra amount',
       render: (l) =>
         l.contractamount != null
-          ? formatCurrency(l.contractamount - l.totaldeductions)
+          ? formatCurrency(l.contractamount)
           : '—',
     },
     {
@@ -182,7 +182,6 @@ export default function LifeplanTable() {
           deceasedName={paymentFor.deceased_name}
           totalAmount={paymentFor.contractamount}
           totalPaid={paymentFor.totalamountpaid}
-          totalDeductions={paymentFor.totaldeductions}
           onClose={() => setPaymentFor(null)}
           onSuccess={() => setRefreshKey((k) => k + 1)}
         />
