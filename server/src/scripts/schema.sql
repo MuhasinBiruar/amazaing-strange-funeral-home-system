@@ -199,7 +199,7 @@ CREATE TABLE public.contract (
     contractid serial PRIMARY KEY,
     signeddate date NOT NULL,
     burialdatedeadline date NOT NULL,
-    totalamount double precision NOT NULL,
+    totalamount numeric(12,2) NOT NULL,
     embalmingperiod integer NOT NULL,
     inclusions text,
     caseid integer NOT NULL UNIQUE REFERENCES public.deceasedrecord(caseid),

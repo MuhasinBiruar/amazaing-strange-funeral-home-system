@@ -62,7 +62,7 @@ router.get(
         c.burialdatedeadline,
         dr.dateofdeath,
         COALESCE(d.pending_docs, 0)::int AS total_pending_docs,
-        c.totalamount,
+        c.totalamount::float8 AS totalamount,
         dr.servicestatus,
         dr.plantype,
         dr.datecreated,

@@ -44,7 +44,7 @@ export async function getDirect(
         dr.representedby AS representativeid,
         CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
         c.contractid,
-        c.totalamount,
+        c.totalamount::float8 AS totalamount,
         -- transaction.amount is numeric (returned as a string by pg);
         -- the API sends these totals as numbers.
         COALESCE(t.totalpaid, 0)::float8 AS totalamountpaid,
@@ -214,24 +214,34 @@ export async function createDirectTransaction(
     const transaction = await withTransaction(async (client) => {
       const caseResult = await client.query<{
         plantype: string;
-        totalamount: string | null;
       }>(
-        `SELECT dr.plantype, c.totalamount::text AS totalamount
+        `SELECT dr.plantype
          FROM public.deceasedrecord dr
-         LEFT JOIN public.contract c ON c.caseid = dr.caseid
          WHERE dr.caseid = $1
-         FOR UPDATE OF dr, c`,
+         FOR UPDATE`,
         [caseid],
       );
 
       if (caseResult.rows.length === 0)
         throw new NotFoundError('Case not found.');
 
-      const { plantype, totalamount } = caseResult.rows[0];
+      const { plantype } = caseResult.rows[0];
       if (plantype !== 'Direct' && plantype !== 'Life')
         throw new BadRequestError(
           'Payments can only be recorded here for Direct or Life top-up cases.',
         );
+
+      const contractResult = await client.query<{
+        totalamount: string;
+      }>(
+        `SELECT totalamount::text AS totalamount
+         FROM public.contract
+         WHERE caseid = $1
+         FOR UPDATE`,
+        [caseid],
+      );
+      const totalamount = contractResult.rows[0]?.totalamount ?? null;
+
       if (totalamount === null)
         throw new BadRequestError(
           'This case has no contract yet, so there is nothing to pay against.',
