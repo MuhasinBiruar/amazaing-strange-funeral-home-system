@@ -8,6 +8,7 @@ export async function getCases({
   sortOrder,
   search,
   status,
+  plantype,
   startDate,
   endDate,
   signal,
@@ -22,6 +23,7 @@ export async function getCases({
   params.append('sortOrder', sortOrder);
   if (search) params.append('search', search);
   if (status) params.append('status', status);
+  if (plantype) params.append('plantype', plantype);
   if (startDate) params.append('startDate', startDate);
   if (endDate) params.append('endDate', endDate);
 

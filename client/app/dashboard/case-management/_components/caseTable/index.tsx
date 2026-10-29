@@ -10,16 +10,19 @@ import type { Case } from 'shared';
 import { getCases } from '@/services/caseService';
 import CaseDetailPanel from '../caseDetailPanel';
 import ServiceStatusPill from '@/components/serviceStatusPill';
+import PlanTypePill, { PLAN_TYPE_LABELS } from '@/components/planTypePill';
 
 export type ColumnKey = keyof Case;
 
 type Filters = {
   status: Case['servicestatus'] | null;
+  plantype: Case['plantype'] | null;
   dateRange: DateRangeValue;
 };
 
 const DEFAULT_FILTERS: Filters = {
   status: null,
+  plantype: null,
   dateRange: { from: null, to: null },
 };
 
@@ -33,6 +36,16 @@ const FILTERS: FilterDef<Filters>[] = [
       { label: 'Active', value: 'active' },
       { label: 'Pending', value: 'pending' },
       { label: 'Completed', value: 'completed' },
+    ],
+  },
+  {
+    type: 'select',
+    key: 'plantype',
+    options: [
+      { label: 'All plan types', value: null },
+      { label: PLAN_TYPE_LABELS.Direct, value: 'Direct' },
+      { label: PLAN_TYPE_LABELS.Life, value: 'Life' },
+      { label: PLAN_TYPE_LABELS.LGU, value: 'LGU' },
     ],
   },
   {
@@ -101,6 +114,13 @@ export default function CaseTable() {
       exportValue: (c) => titleCase(c.servicestatus),
     },
     {
+      key: 'plantype',
+      label: 'Plan type',
+      widthClassName: 'w-27.5',
+      render: (c) => <PlanTypePill plantype={c.plantype} />,
+      exportValue: (c) => PLAN_TYPE_LABELS[c.plantype],
+    },
+    {
       key: 'datecreated',
       label: 'Date created',
       widthClassName: 'w-32.5',
@@ -132,6 +152,7 @@ export default function CaseTable() {
           getCases({
             ...params,
             status: filters.status ?? undefined,
+            plantype: filters.plantype ?? undefined,
             startDate: filters.dateRange.from ?? undefined,
             endDate: filters.dateRange.to ?? undefined,
           })
