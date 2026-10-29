@@ -62,7 +62,7 @@ router.get(
         c.burialdatedeadline,
         dr.dateofdeath,
         COALESCE(d.pending_docs, 0)::int AS total_pending_docs,
-        c.totalamount,
+        c.totalamount::float8 AS totalamount,
         dr.servicestatus,
         dr.plantype,
         dr.datecreated,
@@ -84,6 +84,7 @@ router.get(
           SELECT caseid, COUNT(documentid) as pending_docs
           FROM public.document
           WHERE verificationstatus = 'pending'
+             OR filename IS NULL
           GROUP BY caseid
         ) d ON dr.caseid = d.caseid
         LEFT JOIN (

@@ -24,9 +24,16 @@ export const UPDATE_SERVICE_STATUSES_SQL = `
           END
         WHEN dr.plantype = 'LGU' THEN
           CASE
-            WHEN lc.reimbursementstatus = 'released'
-              AND c.burialdatedeadline <= timezone($1::text, now())::date
-              THEN 'completed'
+            WHEN lc.reimbursementstatus = 'released' THEN
+              CASE
+                WHEN c.burialdatedeadline <= timezone($1::text, now())::date
+                  THEN 'completed'
+                ELSE 'pending'
+              END
+            WHEN c.burialdatedeadline <= timezone($1::text, now())::date
+              THEN 'pending'
+            WHEN lc.reimbursementstatus IN ('pending', 'approved')
+              THEN 'active'
             ELSE 'pending'
           END
         WHEN dr.plantype = 'Life' AND lp.planid IS NOT NULL THEN

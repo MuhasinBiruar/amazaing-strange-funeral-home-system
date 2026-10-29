@@ -58,7 +58,7 @@ export default function DirectTable() {
       widthClassName: 'w-32.5',
       render: (d) =>
         d.totalamount != null
-          ? formatCurrency(d.totalamount - d.totaldeductions)
+          ? formatCurrency(d.totalamount)
           : '—',
     },
     {
@@ -144,7 +144,6 @@ export default function DirectTable() {
           deceasedName={paymentFor.deceased_name}
           totalAmount={paymentFor.totalamount}
           totalPaid={paymentFor.totalamountpaid}
-          totalDeductions={paymentFor.totaldeductions}
           onClose={() => setPaymentFor(null)}
           onSuccess={() => setRefreshKey((k) => k + 1)}
         />
