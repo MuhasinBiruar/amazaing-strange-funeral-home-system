@@ -283,7 +283,11 @@ CREATE TABLE public.casketdelivery (
     quantityreceived integer NOT NULL,
     deliverydate date NOT NULL,
     casketid integer REFERENCES public.casketinventory(casketid),
-    totalamountpaid double precision NOT NULL
+    totalamountpaid double precision NOT NULL,
+    -- Who recorded the delivery; null for deliveries recorded before this
+    -- was tracked.
+    recordedby character varying(100)
+        REFERENCES public.staff(id) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 CREATE INDEX idx_casketdelivery_casketid ON public.casketdelivery USING btree (casketid);
 
@@ -292,7 +296,11 @@ CREATE TABLE public.formalindelivery (
     quantityreceived double precision NOT NULL,
     deliverydate date NOT NULL,
     formalinid integer REFERENCES public.formalininventory(formalinid),
-    totalamountpaid double precision NOT NULL
+    totalamountpaid double precision NOT NULL,
+    -- Who recorded the delivery; null for deliveries recorded before this
+    -- was tracked.
+    recordedby character varying(100)
+        REFERENCES public.staff(id) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 CREATE INDEX idx_formalindelivery_formalinid ON public.formalindelivery USING btree (formalinid);
 

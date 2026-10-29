@@ -63,6 +63,14 @@ export const FK_CONSTRAINTS: Record<
     field: 'id',
     message: 'Notification does not exist.',
   },
+  casketdelivery_recordedby_fkey: {
+    field: 'recordedby',
+    message: 'Staff member who recorded the delivery does not exist.',
+  },
+  formalindelivery_recordedby_fkey: {
+    field: 'recordedby',
+    message: 'Staff member who recorded the delivery does not exist.',
+  },
   expense_recordedby_fkey: {
     field: 'recordedby',
     message: 'Staff member who recorded the expense does not exist.',
