@@ -109,7 +109,7 @@ export default function DashboardPage() {
             STAFF WORKSPACE
           </span>
           <h1 className="font-serif text-3xl font-bold text-gray-900">
-            Dashboard
+            Home
           </h1>
           <p className="mt-1 text-sm text-gray-500">
             Choose a service to get started.
