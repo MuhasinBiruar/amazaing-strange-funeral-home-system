@@ -73,10 +73,11 @@ const EXPENSE_LOG_CTE = `
         COALESCE(ci.caskettype, 'unlinked casket') AS description,
       cd.totalamountpaid::numeric AS amount,
       cd.deliverydate AS expensedate,
-      NULL AS recordedby,
-      NULL AS staff_name
+      cd.recordedby,
+      cs.name AS staff_name
     FROM public.casketdelivery cd
     LEFT JOIN public.casketinventory ci ON ci.casketid = cd.casketid
+    LEFT JOIN public.staff cs ON cd.recordedby = cs.id
     WHERE cd.totalamountpaid > 0
 
     UNION ALL
@@ -87,9 +88,10 @@ const EXPENSE_LOG_CTE = `
       'Formalin delivery: ' || fd.quantityreceived || ' L' AS description,
       fd.totalamountpaid::numeric AS amount,
       fd.deliverydate AS expensedate,
-      NULL AS recordedby,
-      NULL AS staff_name
+      fd.recordedby,
+      fs.name AS staff_name
     FROM public.formalindelivery fd
+    LEFT JOIN public.staff fs ON fd.recordedby = fs.id
     WHERE fd.totalamountpaid > 0
   )
 ` as const;

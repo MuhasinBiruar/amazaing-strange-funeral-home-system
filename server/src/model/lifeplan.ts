@@ -16,8 +16,10 @@ const SORT_COLUMNS: Record<keyof GetLifeplansQueryRow, string> = {
   contractid: 'c.contractid',
   contractamount: 'c.totalamount',
   totalamountpaid: 'COALESCE(t.totalpaid, 0)',
+  totaldeductions: 'COALESCE(od.totaldeductions, 0)',
   remainingbalance: 'c.totalamount - COALESCE(t.totalpaid, 0)',
   datecreated: 'dr.datecreated',
+  servicestatus: 'dr.servicestatus',
 };
 
 export const getLifeplans = async ({
@@ -68,6 +70,15 @@ export const getLifeplans = async ({
       FROM public.transaction
       GROUP BY caseid
     ) t ON l.caseid = t.caseid
+    LEFT JOIN (
+      SELECT t2.caseid,
+        COALESCE(SUM(
+          COALESCE(o.pwd_discount, 0) + COALESCE(o.withholding_tax, 0)
+        ), 0) AS totaldeductions
+      FROM public.officialreceipt o
+      JOIN public.transaction t2 ON t2.transactionid = o.transactionid
+      GROUP BY t2.caseid
+    ) od ON l.caseid = od.caseid
   `;
 
   // Start building `whereClause`

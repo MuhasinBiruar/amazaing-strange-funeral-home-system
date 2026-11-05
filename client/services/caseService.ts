@@ -9,6 +9,7 @@ export async function getCases({
   search,
   caseid,
   status,
+  plantype,
   startDate,
   endDate,
   signal,
@@ -24,6 +25,7 @@ export async function getCases({
   if (search) params.append('search', search);
   if (caseid !== undefined) params.append('caseid', String(caseid));
   if (status) params.append('status', status);
+  if (plantype) params.append('plantype', plantype);
   if (startDate) params.append('startDate', startDate);
   if (endDate) params.append('endDate', endDate);
 

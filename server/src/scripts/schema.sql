@@ -199,7 +199,7 @@ CREATE TABLE public.contract (
     contractid serial PRIMARY KEY,
     signeddate date NOT NULL,
     burialdatedeadline date NOT NULL,
-    totalamount double precision NOT NULL,
+    totalamount numeric(12,2) NOT NULL,
     embalmingperiod integer NOT NULL,
     inclusions text,
     caseid integer NOT NULL UNIQUE REFERENCES public.deceasedrecord(caseid),
@@ -243,11 +243,11 @@ CREATE INDEX idx_lifeplan_companyid ON public.lifeplan USING btree (companyid);
 
 CREATE TABLE public.transaction (
     transactionid serial PRIMARY KEY,
-    amount double precision NOT NULL,
+    amount numeric(12,2) NOT NULL,
     paymentdatetime timestamp with time zone NOT NULL,
     paymentmethod public.payment_method_enum NOT NULL,
     paymentcategory public.payment_category_enum NOT NULL,
-    remainingbalance double precision NOT NULL,
+    remainingbalance numeric(12,2) NOT NULL,
     transactionstatus public.transaction_status_enum NOT NULL,
     caseid integer NOT NULL REFERENCES public.deceasedrecord(caseid)
 );
@@ -256,16 +256,16 @@ CREATE INDEX idx_transaction_caseid ON public.transaction USING btree (caseid);
 CREATE TABLE public.officialreceipt (
     orid serial PRIMARY KEY,
     ornumber character varying(255) NOT NULL UNIQUE,
-    amount integer NOT NULL,
+    amount numeric(12,2) NOT NULL,
     issuedate timestamp with time zone DEFAULT now() NOT NULL,
     reissuancecount integer DEFAULT 0 NOT NULL,
     transactionid integer NOT NULL UNIQUE
         REFERENCES public.transaction(transactionid) ON UPDATE CASCADE ON DELETE CASCADE,
-    total_due real,
-    witholding_tax real,
+    total_due numeric(12,2),
+    withholding_tax numeric(12,2),
     tin text,
     discount_id text,
-    pwd_discount real
+    pwd_discount numeric(12,2)
 );
 COMMENT ON COLUMN public.officialreceipt.pwd_discount IS 'Amount';
 
@@ -283,7 +283,11 @@ CREATE TABLE public.casketdelivery (
     quantityreceived integer NOT NULL,
     deliverydate date NOT NULL,
     casketid integer REFERENCES public.casketinventory(casketid),
-    totalamountpaid double precision NOT NULL
+    totalamountpaid double precision NOT NULL,
+    -- Who recorded the delivery; null for deliveries recorded before this
+    -- was tracked.
+    recordedby character varying(100)
+        REFERENCES public.staff(id) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 CREATE INDEX idx_casketdelivery_casketid ON public.casketdelivery USING btree (casketid);
 
@@ -292,7 +296,11 @@ CREATE TABLE public.formalindelivery (
     quantityreceived double precision NOT NULL,
     deliverydate date NOT NULL,
     formalinid integer REFERENCES public.formalininventory(formalinid),
-    totalamountpaid double precision NOT NULL
+    totalamountpaid double precision NOT NULL,
+    -- Who recorded the delivery; null for deliveries recorded before this
+    -- was tracked.
+    recordedby character varying(100)
+        REFERENCES public.staff(id) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 CREATE INDEX idx_formalindelivery_formalinid ON public.formalindelivery USING btree (formalinid);
 

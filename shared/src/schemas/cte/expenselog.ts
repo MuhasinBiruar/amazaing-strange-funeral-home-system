@@ -24,8 +24,9 @@ export type ExpenseLogSource = z.infer<typeof expenseLogSourceEnum>;
  * would count each delivery twice. Deliveries with nothing paid are left out.
  *
  * `id` is only unique within its own `source` table, so `source` + `id`
- * together identify a row. Deliveries don't record who entered them, so
- * `recordedby` and `staff_name` are `null` for them.
+ * together identify a row. `recordedby` and `staff_name` are the staff member
+ * who recorded the expense or delivery; they're `null` only for deliveries
+ * recorded before deliveries tracked this.
  */
 export const expenseLogSchema = z.object({
   source: expenseLogSourceEnum,

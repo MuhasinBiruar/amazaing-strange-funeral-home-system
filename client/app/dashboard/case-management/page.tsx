@@ -1,15 +1,28 @@
 'use client';
 
-import { ArrowLeft, Plus } from 'lucide-react';
 import CaseTable from './_components/caseTable';
 import NewContract from './_components/newContract';
 import { useRouter, useSearchParams } from 'next/navigation';
 import z from 'zod';
 import { Suspense } from 'react';
 
+// `new-contract` is also linked to from intake (`?tab=new-contract&caseid=`),
+// so these keys are part of the page's URL contract.
 const tabEnum = z.enum(['view', 'new-contract']).catch('view');
 type Tab = z.infer<typeof tabEnum>;
 
+const TABS: { key: Tab; label: string }[] = [
+  { key: 'view', label: 'Cases' },
+  { key: 'new-contract', label: 'New Contract' },
+];
+
+/**
+ * @remarks
+ * The active tab lives in the `tab` query parameter rather than in component
+ * state, so the view survives a reload and is linkable
+ * (e.g. `/dashboard/case-management?tab=new-contract`), like the other
+ * dashboards' tabs.
+ */
 function CasesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -24,38 +37,34 @@ function CasesPageContent() {
   return (
     <div className="flex-1 bg-gray-50 flex flex-col">
       <main className="flex-1 w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <span className="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-2.5 py-0.5 rounded mb-2">
-              CASE MANAGEMENT
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">
-              {activeTab === 'new-contract' ? 'New contract' : 'Cases'}
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              {activeTab === 'new-contract'
-                ? 'Select a deceased record to put under contract.'
-                : 'Review and manage case details, documents, and agreements.'}
-            </p>
-          </div>
+        <div>
+          <span className="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-2.5 py-0.5 rounded mb-2">
+            CASE MANAGEMENT DASHBOARD
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">
+            Cases
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Review and manage cases, and put deceased records under contract.
+          </p>
+        </div>
 
-          {activeTab === 'new-contract' ? (
-            <button
-              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 text-sm font-medium px-4 py-2 hover:bg-gray-50 transition shrink-0 hover:cursor-pointer"
-              onClick={() => changeTab('view')}
-            >
-              <ArrowLeft size={16} />
-              Back to cases
-            </button>
-          ) : (
-            <button
-              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition shrink-0 hover:cursor-pointer"
-              onClick={() => changeTab('new-contract')}
-            >
-              <Plus size={16} />
-              New contract
-            </button>
-          )}
+        <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+          <div className="flex border-b border-gray-200 px-2">
+            {TABS.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => changeTab(key)}
+                className={`px-4 py-3 text-sm font-medium border-b-2 transition cursor-pointer ${
+                  activeTab === key
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
         {activeTab === 'new-contract' ? (
           <NewContract onCreated={() => changeTab('view')} />

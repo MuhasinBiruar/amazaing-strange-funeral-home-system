@@ -222,13 +222,15 @@ router.post(
             quantityreceived,
             deliverydate,
             casketid,
-            totalamountpaid
-          ) VALUES ($1, $2, $3, $4) RETURNING deliveryid;`,
+            totalamountpaid,
+            recordedby
+          ) VALUES ($1, $2, $3, $4, $5) RETURNING deliveryid;`,
           [
             parsed.quantityreceived,
             parsed.deliverydate,
             parsed.casketid,
             parsed.totalamountpaid,
+            res.locals.session.user.id,
           ],
         );
 

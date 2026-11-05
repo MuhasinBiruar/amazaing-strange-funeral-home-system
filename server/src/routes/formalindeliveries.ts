@@ -225,14 +225,16 @@ router.post(
             quantityreceived,
             deliverydate,
             formalinid,
-            totalamountpaid
-          ) VALUES ($1, $2, $3, $4)
+            totalamountpaid,
+            recordedby
+          ) VALUES ($1, $2, $3, $4, $5)
           RETURNING *, totalamountpaid / NULLIF(quantityreceived, 0) AS unitcost;`,
           [
             parsed.quantityreceived,
             parsed.deliverydate,
             inventoryResult.rows[0].formalinid,
             parsed.totalamountpaid,
+            res.locals.session.user.id,
           ],
         );
 

@@ -1,5 +1,10 @@
 import 'dotenv/config';
-import { Pool } from 'pg';
+import { Pool, types } from 'pg';
+
+// Read timezone-less values as UTC so every machine matches production
+// (Vercel runs in UTC). 1114 = timestamp without time zone, 1082 = date.
+types.setTypeParser(1114, (value) => new Date(`${value.replace(' ', 'T')}Z`));
+types.setTypeParser(1082, (value) => new Date(`${value}T00:00:00Z`));
 
 const connectionString = process.env.DATABASE_URL ?? process.env.DB_URL;
 
