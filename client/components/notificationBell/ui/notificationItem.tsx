@@ -8,6 +8,8 @@ import {
   TriangleAlert,
   FlaskConical,
   Box,
+  Receipt,
+  CircleCheckBig,
 } from 'lucide-react';
 import type { Notification, NotificationType } from 'shared';
 
@@ -24,6 +26,8 @@ const TYPE_STYLES: Record<
   },
   low_formalin: { icon: FlaskConical, className: 'text-red-600' },
   low_casket: { icon: Box, className: 'text-red-600' },
+  expense_recorded: { icon: Receipt, className: 'text-indigo-600' },
+  service_completed: { icon: CircleCheckBig, className: 'text-green-600' },
 };
 
 function timeAgo(date: Date) {

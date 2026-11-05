@@ -1,6 +1,11 @@
 import pool from '@/db';
 import type { Rule } from '../types';
-import { DECEASED_NAME_SQL, formatPeso } from './helpers';
+import {
+  DECEASED_NAME_SQL,
+  FINANCIALS_TAB_SQL,
+  financialsLink,
+  formatPeso,
+} from './helpers';
 
 /** How often a payment reminder repeats while a balance is outstanding. */
 const PAYMENT_REMINDER_INTERVAL_DAYS = 7;
@@ -8,11 +13,16 @@ const PAYMENT_REMINDER_INTERVAL_DAYS = 7;
 /** A full-payment notice is only raised for payments this recent. */
 const FULL_PAYMENT_LOOKBACK_DAYS = 7;
 
+/** A service-completed notice is only raised for cases completed this recently. */
+const SERVICE_COMPLETED_LOOKBACK_DAYS = 7;
+
 export const rules: Rule[] = [
   {
+    // Resolves once the casket is restocked above its minimum.
     type: 'low_casket',
     audience: ['inventory_page'],
     resolvable: true,
+    refresh: true,
     collect: async () => {
       const result = await pool.query<{
         casketid: number;
@@ -36,24 +46,32 @@ export const rules: Rule[] = [
     },
   },
   {
+    // `formalininventory` is a ledger, so only its latest row is the current
+    // stock; older rows are history and must not keep the alert open. Resolves
+    // once a delivery brings stock back above the minimum.
     type: 'low_formalin',
     audience: ['inventory_page'],
     resolvable: true,
+    refresh: true,
     collect: async () => {
       const result = await pool.query<{
-        formalinid: number;
         currentstock: number;
         minimumthreshold: number;
       }>(
-        `SELECT formalinid, currentstock, minimumthreshold
-         FROM formalininventory
+        `SELECT currentstock, minimumthreshold
+         FROM (
+           SELECT currentstock, minimumthreshold
+           FROM formalininventory
+           ORDER BY date DESC, formalinid DESC
+           LIMIT 1
+         ) latest
          WHERE currentstock <= minimumthreshold`,
       );
 
       return result.rows.map((row) => ({
-        dedupekey: `low_formalin:${row.formalinid}`,
+        dedupekey: 'low_formalin',
         title: 'Urgent: low formalin stock',
-        message: `Formalin stock #${row.formalinid} is at ${row.currentstock} (minimum ${row.minimumthreshold}). Restock as soon as possible.`,
+        message: `Formalin stock is at ${Number(row.currentstock)} liters (minimum ${Number(row.minimumthreshold)}). Restock as soon as possible.`,
         caseid: null,
         link: '/dashboard/inventory',
       }));
@@ -89,13 +107,26 @@ export const rules: Rule[] = [
     audience: ['financial_page'],
     // The payment event remains active until the case's service is completed.
     resolvable: true,
+    refresh: true,
+    resolve: async () => {
+      await pool.query(
+        `UPDATE notification n
+         SET resolvedat = now()
+         FROM deceasedrecord dr
+         WHERE n.caseid = dr.caseid
+           AND n.type = 'full_payment'
+           AND n.resolvedat IS NULL
+           AND dr.servicestatus = 'completed'`,
+      );
+    },
     collect: async () => {
       const result = await pool.query<{
         caseid: number;
         name: string;
         amount: number;
+        tab: string;
       }>(
-        `SELECT t.caseid, ${DECEASED_NAME_SQL} AS name, t.amount
+        `SELECT t.caseid, ${DECEASED_NAME_SQL} AS name, t.amount, ${FINANCIALS_TAB_SQL} AS tab
          FROM (
            SELECT DISTINCT ON (caseid) caseid, amount, remainingbalance, paymentdatetime
            FROM public.transaction
@@ -114,7 +145,7 @@ export const rules: Rule[] = [
         title: 'Full payment received',
         message: `${row.name || `Case #${row.caseid}`} has been fully paid (final payment ${formatPeso(Number(row.amount))}).`,
         caseid: row.caseid,
-        link: null,
+        link: financialsLink(row.tab, row.name),
       }));
     },
   },
@@ -124,12 +155,14 @@ export const rules: Rule[] = [
     type: 'payment_reminder',
     audience: ['financial_page'],
     resolvable: true,
+    refresh: true,
     collect: async () => {
       const result = await pool.query<{
         caseid: number;
         name: string;
         remainingbalance: number;
         period: number;
+        tab: string;
       }>(
         `WITH completed AS (
            SELECT caseid, remainingbalance, paymentdatetime
@@ -150,6 +183,7 @@ export const rules: Rule[] = [
            l.caseid,
            ${DECEASED_NAME_SQL} AS name,
            l.remainingbalance,
+           ${FINANCIALS_TAB_SQL} AS tab,
            FLOOR(EXTRACT(EPOCH FROM now() - f.firstpayment) / 86400 / $1::int)::int AS period
          FROM latest l
          JOIN first f ON f.caseid = l.caseid
@@ -164,7 +198,7 @@ export const rules: Rule[] = [
         title: 'Payment reminder',
         message: `${row.name || `Case #${row.caseid}`} still has a remaining balance of ${formatPeso(Number(row.remainingbalance))}.`,
         caseid: row.caseid,
-        link: null,
+        link: financialsLink(row.tab, row.name),
       }));
     },
   },
@@ -187,5 +221,69 @@ export const rules: Rule[] = [
         link: '/dashboard/case-management',
       }));
     },
+  },
+  {
+    // `completedat` is stamped by a trigger whenever a case moves into
+    // 'completed', so cases completed before it existed don't all fire at once.
+    // Resolves if the case moves back out of 'completed'.
+    type: 'service_completed',
+    audience: ['case_page', 'financial_page'],
+    resolvable: true,
+    resolve: async () => {
+      await pool.query(
+        `UPDATE notification n
+         SET resolvedat = now()
+         FROM deceasedrecord dr
+         WHERE n.caseid = dr.caseid
+           AND n.type = 'service_completed'
+           AND n.resolvedat IS NULL
+           AND dr.servicestatus <> 'completed'`,
+      );
+    },
+    collect: async () => {
+      const result = await pool.query<{ caseid: number; name: string }>(
+        `SELECT dr.caseid, ${DECEASED_NAME_SQL} AS name
+         FROM deceasedrecord dr
+         WHERE dr.servicestatus = 'completed'
+           AND dr.completedat >= now() - make_interval(days => $1::int)`,
+        [SERVICE_COMPLETED_LOOKBACK_DAYS],
+      );
+
+      return result.rows.map((row) => ({
+        dedupekey: `service_completed:${row.caseid}`,
+        title: 'Service completed',
+        message: `The service for ${row.name || `case #${row.caseid}`} has been completed.`,
+        caseid: row.caseid,
+        link: '/dashboard/case-management',
+      }));
+    },
+  },
+  {
+    // Raised by `notifyExpenseRecorded` when an expense is recorded, and
+    // resolved when read (see the notifications routes). The sweep only
+    // resolves ones whose expense or delivery has since been deleted.
+    type: 'expense_recorded',
+    audience: ['financial_page'],
+    resolvable: true,
+    resolve: async () => {
+      await pool.query(
+        `UPDATE notification n
+         SET resolvedat = now()
+         WHERE n.type = 'expense_recorded'
+           AND n.resolvedat IS NULL
+           AND NOT EXISTS (
+             SELECT 1
+             FROM (
+               SELECT 'expense' AS source, expenseid AS id FROM expense
+               UNION ALL
+               SELECT 'casket', deliveryid FROM casketdelivery
+               UNION ALL
+               SELECT 'formalin', deliveryid FROM formalindelivery
+             ) l
+             WHERE n.dedupekey = 'expense_recorded:' || l.source || ':' || l.id
+           )`,
+      );
+    },
+    collect: async () => [],
   },
 ];

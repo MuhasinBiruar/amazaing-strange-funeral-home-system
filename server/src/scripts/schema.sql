@@ -172,10 +172,30 @@ CREATE TABLE public.deceasedrecord (
     managedby text NOT NULL REFERENCES public.staff(id),
     representedby integer REFERENCES public.representative(representativeid),
     dateofdeath date,
-    hasadvanceddecomposition boolean DEFAULT false NOT NULL
+    hasadvanceddecomposition boolean DEFAULT false NOT NULL,
+    -- When servicestatus last became 'completed'; kept by the trigger below.
+    completedat timestamp with time zone
 );
 CREATE INDEX idx_deceasedrecord_managedby ON public.deceasedrecord USING btree (managedby);
 CREATE INDEX idx_deceasedrecord_representedby ON public.deceasedrecord USING btree (representedby);
+
+-- Stamps completedat whenever a case moves into 'completed' (from any code
+-- path), and clears it if the case moves back out.
+CREATE FUNCTION public.deceasedrecord_track_completion() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+begin
+  if new.servicestatus <> 'completed' then
+    new.completedat := null;
+  elsif tg_op = 'INSERT' or old.servicestatus <> 'completed' then
+    new.completedat := coalesce(new.completedat, now());
+  end if;
+  return new;
+end $$;
+
+CREATE TRIGGER deceasedrecord_track_completion_trg
+    BEFORE INSERT OR UPDATE OF servicestatus ON public.deceasedrecord
+    FOR EACH ROW EXECUTE FUNCTION public.deceasedrecord_track_completion();
 
 CREATE TABLE public.burialrecord (
     burialid serial PRIMARY KEY,

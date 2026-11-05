@@ -19,7 +19,10 @@ import {
 } from 'shared';
 import { idParamSchema, type IdParam } from 'shared/utils';
 import { withTransaction } from '@/util/with-transaction';
-import { triggerNotificationSweep } from '@/lib/notifications';
+import {
+  notifyExpenseRecorded,
+  triggerNotificationSweep,
+} from '@/lib/notifications';
 
 const router = Router();
 
@@ -248,6 +251,13 @@ router.post(
       });
 
       triggerNotificationSweep();
+      void notifyExpenseRecorded({
+        source: 'formalin',
+        id: delivery.deliveryid,
+        description: `Formalin delivery: ${parsed.quantityreceived} L`,
+        amount: parsed.totalamountpaid,
+        recordedby_name: res.locals.session.user.name,
+      });
 
       res.locals.auditAction = `${res.locals.session.user.name} recorded a formalin delivery of ${parsed.quantityreceived} liters`;
 

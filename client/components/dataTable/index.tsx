@@ -45,6 +45,7 @@ export default function DataTable<
   title,
   countLabel,
   searchPlaceholder = 'Search...',
+  initialSearch = '',
   filters,
   defaultFilters,
   columns,
@@ -69,6 +70,11 @@ export default function DataTable<
    */
   countLabel: (total: number) => string;
   searchPlaceholder?: string;
+  /**
+   * Search the table starts with, e.g. from a notification link. Only read on
+   * mount; give the table a `key` to apply a new one.
+   */
+  initialSearch?: string;
   filters?: FilterDef<F>[];
   defaultFilters?: F;
   columns: DataTableColumn<T, K>[];
@@ -124,7 +130,7 @@ export default function DataTable<
     () => new Set(),
   );
   const [reloadKey, setReloadKey] = useState(0);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialSearch);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [sortBy, setSortBy] = useState<K>(defaultSortBy);
   const [sortOrder, setSortDir] = useState<SortOrder>(defaultSortOrder);

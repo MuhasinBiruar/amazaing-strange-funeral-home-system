@@ -66,7 +66,12 @@ const FILTERS: FilterDef<Filters>[] = [
  * Everything paid out: general expenses recorded here, plus what was paid
  * for each casket and formalin delivery (recorded from the inventory page).
  */
-export default function ExpenseTable() {
+export default function ExpenseTable({
+  initialSearch,
+}: {
+  /** Prefills the search, e.g. from a notification link. */
+  initialSearch?: string;
+}) {
   const [isCreating, setIsCreating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -138,6 +143,7 @@ export default function ExpenseTable() {
         exportFileName="expenses"
         countLabel={(total) => `${total} records`}
         searchPlaceholder="Search expenses..."
+        initialSearch={initialSearch}
         filters={FILTERS}
         defaultFilters={DEFAULT_FILTERS}
         columns={columns}

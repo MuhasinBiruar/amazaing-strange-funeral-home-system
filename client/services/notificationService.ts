@@ -1,14 +1,25 @@
 import {
   getNotificationsResponseSchema,
   getUnreadNotificationCountResponseSchema,
+  type NotificationCategory,
+  type NotificationReadStatus,
 } from 'shared';
 import { API } from './api';
 
-export async function getNotifications(page = 1, signal?: AbortSignal) {
+export interface NotificationFilters {
+  category?: NotificationCategory;
+  readStatus?: NotificationReadStatus;
+}
+
+export async function getNotifications(
+  page = 1,
+  filters: NotificationFilters = {},
+  signal?: AbortSignal,
+) {
   const result = await API.get('/notifications', {
     withCredentials: true,
     signal,
-    params: { page },
+    params: { page, ...filters },
   });
   return getNotificationsResponseSchema.parse(result.data);
 }

@@ -38,7 +38,12 @@ const FILTERS: FilterDef<Filters>[] = [
   },
 ];
 
-export default function LifeplanTable() {
+export default function LifeplanTable({
+  initialSearch,
+}: {
+  /** Prefills the search, e.g. from a notification link. */
+  initialSearch?: string;
+}) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [historyFor, setHistoryFor] = useState<GetLifeplansQueryRow | null>(
     null,
@@ -147,6 +152,7 @@ export default function LifeplanTable() {
         exportFileName="life-plans"
         countLabel={(total) => `${total} plans`}
         searchPlaceholder="Search by plan holder, number, or company..."
+        initialSearch={initialSearch}
         filters={FILTERS}
         defaultFilters={DEFAULT_FILTERS}
         columns={columns}
