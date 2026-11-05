@@ -46,14 +46,12 @@ export const getLifeplans = async ({
       lc.companyname,
       c.contractid,
       c.totalamount::float8 AS contractamount,
-      -- transaction.amount and the officialreceipt money columns are numeric
-      -- (returned as strings by pg); the API sends these totals as numbers.
       COALESCE(t.totalpaid, 0)::float8 AS totalamountpaid,
+      COALESCE(od.totaldeductions, 0)::float8 AS totaldeductions,
       CASE WHEN c.totalamount IS NULL THEN NULL
         ELSE GREATEST(c.totalamount - COALESCE(t.totalpaid, 0), 0)
-      END AS remainingbalance,
+      END::float8 AS remainingbalance,
       dr.datecreated,
-      COALESCE(od.totaldeductions, 0)::float8 AS totaldeductions,
       dr.servicestatus
   `;
 

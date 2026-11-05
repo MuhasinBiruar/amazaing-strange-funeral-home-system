@@ -17,9 +17,9 @@ export const caseSchema = z.object({
   datecreated: z.coerce.date(),
   managed_by_name: z.string(),
   caseid: z.int(),
-  contractid: z.int(),
+  contractid: z.int().nullable(),
   representativeid: z.int().nullable(),
-  staffid: z.string(),
+  staffid: z.string().nullable(),
   total_formalin_used: z.number().nonnegative().default(0),
   last_formalin_use_date: z.coerce.date().nullable().default(null),
 });
@@ -30,6 +30,7 @@ export const getCasesQuerySchema = z.intersection(
   dateFilteredPaginationQuerySchema,
   z.object({
     search: z.string().optional(),
+    caseid: z.coerce.number().int().positive().optional(),
     status: caseSchema.shape.servicestatus.optional(),
     plantype: caseSchema.shape.plantype.optional(),
     sortBy: z.keyof(caseSchema).default('caseid'),

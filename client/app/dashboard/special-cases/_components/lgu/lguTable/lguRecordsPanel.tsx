@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { GetLguCasesRow } from 'shared';
 import DataTable from '@/components/dataTable';
 import type {
@@ -11,30 +12,9 @@ import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import { getLguCases } from '@/services/lguCasesService';
 import { formatCurrency, formatDate } from '@/utils/format';
+import CasePreviewPanel from '../../casePreviewPanel';
 
 type ColumnKey = keyof GetLguCasesRow;
-
-const COLUMNS: DataTableColumn<GetLguCasesRow, ColumnKey>[] = [
-  {
-    key: 'deceased_name',
-    label: 'Deceased Name',
-    widthClassName: 'w-50',
-    cellClassName: 'px-5 py-3 text-gray-900 wrap-break-word',
-    render: (l) => l.deceased_name,
-  },
-  {
-    key: 'reimbursementstatus',
-    label: 'Reimbursement Status',
-    widthClassName: 'w-40',
-    render: (l) => <ReimbursementStatusPill status={l.reimbursementstatus} />,
-  },
-  {
-    key: 'reimbursementamount',
-    label: 'Reimbursement Amount',
-    widthClassName: 'w-40',
-    render: (l) => formatCurrency(l.reimbursementamount),
-  },
-];
 
 /**
  * Lists the LGU cases behind an LGU's "Total Records" count, limited to the
@@ -55,6 +35,43 @@ export default function LguRecordsPanel({
   onDeleted: () => void;
 }) {
   const { isShown, requestClose } = useSidePanel(onClose);
+  const [previewingCaseId, setPreviewingCaseId] = useState<number | null>(null);
+
+  const columns: DataTableColumn<GetLguCasesRow, ColumnKey>[] = [
+    {
+      key: 'deceased_name',
+      label: 'Deceased Name',
+      widthClassName: 'w-50',
+      cellClassName: 'px-5 py-3 text-gray-900 wrap-break-word',
+      render: (l) => l.deceased_name,
+    },
+    {
+      key: 'reimbursementstatus',
+      label: 'Reimbursement Status',
+      widthClassName: 'w-40',
+      render: (l) => <ReimbursementStatusPill status={l.reimbursementstatus} />,
+    },
+    {
+      key: 'reimbursementamount',
+      label: 'Reimbursement Amount',
+      widthClassName: 'w-40',
+      render: (l) => formatCurrency(l.reimbursementamount),
+    },
+    {
+      key: 'caseid',
+      label: 'Case',
+      widthClassName: 'w-32',
+      render: (l) => (
+        <button
+          type="button"
+          onClick={() => setPreviewingCaseId(l.caseid)}
+          className="text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
+        >
+          View case
+        </button>
+      ),
+    },
+  ];
 
   return (
     <SidePanel
@@ -75,7 +92,7 @@ export default function LguRecordsPanel({
           title="Records"
           countLabel={(total) => `${total} records`}
           searchPlaceholder="Search name or status..."
-          columns={COLUMNS}
+          columns={columns}
           rowKey={(l) => l.lgucaseid}
           deletable={(l) => ({ entitytype: 'case', id: l.caseid })}
           onDeleted={onDeleted}
@@ -94,6 +111,12 @@ export default function LguRecordsPanel({
           bodyOffsetClassName="top-12"
         />
       </div>
+      {previewingCaseId !== null && (
+        <CasePreviewPanel
+          caseid={previewingCaseId}
+          onClose={() => setPreviewingCaseId(null)}
+        />
+      )}
     </SidePanel>
   );
 }
