@@ -3,6 +3,7 @@ import {
   dateFilteredPaginationQuerySchema,
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
+import { deceasedRecordSchema } from '../db/deceasedrecord';
 
 export const caseSchema = z.object({
   deceased_name: z.string(),
@@ -12,6 +13,7 @@ export const caseSchema = z.object({
   total_pending_docs: z.int(),
   totalamount: z.number().nullable(),
   servicestatus: z.enum(['intake', 'active', 'pending', 'completed']),
+  plantype: deceasedRecordSchema.shape.plantype,
   datecreated: z.coerce.date(),
   managed_by_name: z.string(),
   caseid: z.int(),
@@ -30,6 +32,7 @@ export const getCasesQuerySchema = z.intersection(
     search: z.string().optional(),
     caseid: z.coerce.number().int().positive().optional(),
     status: caseSchema.shape.servicestatus.optional(),
+    plantype: caseSchema.shape.plantype.optional(),
     sortBy: z.keyof(caseSchema).default('caseid'),
     sortOrder: z.enum(['asc', 'desc']).default('asc'),
   }),

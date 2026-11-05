@@ -1,16 +1,42 @@
+import { useState } from 'react';
 import { formatDate, titleCase } from '@/utils/format';
 import type { DocumentWithUrl } from 'shared';
-import { isPdf, STATUS_STYLES } from './utils';
-import { FileText } from 'lucide-react';
+import { errorMessage, isPdf, STATUS_STYLES } from './utils';
+import { Check, FileText, Loader2, RotateCcw, X } from 'lucide-react';
+import { updateDocumentVerification } from '@/services/documentService';
+
+type VerificationStatus = DocumentWithUrl['verificationstatus'];
 
 export default function SubmittedDocument({
   doc,
   onExpandImage,
+  onVerificationChanged,
 }: {
   doc: DocumentWithUrl;
   onExpandImage: (image: { url: string; alt: string }) => void;
+  /** Called after this document is approved, rejected, or reset. */
+  onVerificationChanged: () => void;
 }) {
   const { url } = doc;
+  const [savingStatus, setSavingStatus] = useState<VerificationStatus | null>(
+    null,
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  async function setStatus(status: VerificationStatus) {
+    setSavingStatus(status);
+    setError(null);
+    try {
+      await updateDocumentVerification(doc.documentid, status);
+      onVerificationChanged();
+    } catch (err) {
+      setError(errorMessage(err, 'Could not update this document.'));
+    } finally {
+      setSavingStatus(null);
+    }
+  }
+
+  const isSaving = savingStatus !== null;
 
   return (
     <div className="rounded-md border border-gray-200 p-3 space-y-2">
@@ -61,6 +87,62 @@ export default function SubmittedDocument({
           />
         </button>
       )}
+
+      <div className="flex flex-wrap items-center gap-2 pt-1">
+        {doc.verificationstatus === 'pending' ? (
+          <>
+            <button
+              type="button"
+              onClick={() => void setStatus('verified')}
+              disabled={isSaving}
+              className="flex items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-700 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {savingStatus === 'verified' ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                <Check size={12} />
+              )}
+              Approve
+            </button>
+            <button
+              type="button"
+              onClick={() => void setStatus('rejected')}
+              disabled={isSaving}
+              className="flex items-center gap-1 rounded-md border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {savingStatus === 'rejected' ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                <X size={12} />
+              )}
+              Reject
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="text-xs text-gray-500">
+              {doc.verificationstatus === 'verified'
+                ? 'Approved.'
+                : 'Rejected. Upload a new file under Missing documents.'}
+            </span>
+            <button
+              type="button"
+              onClick={() => void setStatus('pending')}
+              disabled={isSaving}
+              className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 hover:underline cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {savingStatus === 'pending' ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                <RotateCcw size={12} />
+              )}
+              Undo
+            </button>
+          </>
+        )}
+      </div>
+
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   );
 }

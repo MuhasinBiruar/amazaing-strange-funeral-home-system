@@ -51,6 +51,24 @@ export const documentWithUrlSchema = documentSchema.extend({
 
 export type DocumentWithUrl = z.infer<typeof documentWithUrlSchema>;
 
+/**
+ * Approving (`verified`), rejecting, or resetting (`pending`) a submitted
+ * document. The staff member making the change is taken from the session.
+ */
+export const updateDocumentVerificationQuerySchema = z.object({
+  verificationstatus: createDocumentQuerySchema.shape.verificationstatus,
+});
+
+export type UpdateDocumentVerificationQuery = z.infer<
+  typeof updateDocumentVerificationQuerySchema
+>;
+
+export const documentResponseSchema = z.object({
+  data: documentWithUrlSchema,
+});
+
+export type DocumentResponse = z.infer<typeof documentResponseSchema>;
+
 export const getDocumentsQuerySchema = z.object({
   caseid: z.coerce.number().int().optional(),
 });

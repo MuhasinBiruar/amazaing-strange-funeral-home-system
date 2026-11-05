@@ -1,10 +1,14 @@
+import axios from 'axios';
 import {
   createDocumentRequirementSchema,
+  documentResponseSchema,
   documentWithUrlSchema,
   getDocumentsResponseSchema,
   type DocumentWithUrl,
+  type UpdateDocumentVerificationQuery,
 } from 'shared';
 import { API } from './api';
+import { extractErrorMessage } from './utils/extractErrorMessage';
 
 const UPLOAD_TIMEOUT_MS = 60000 as const;
 
@@ -20,6 +24,26 @@ export async function createDocumentRequirement(
   const result = await API.post('/documents/requirements', payload);
 
   return documentWithUrlSchema.parse(result.data.data);
+}
+
+/**
+ * Approves (`verified`), rejects, or resets (`pending`) an uploaded document.
+ * Rejecting also re-adds that document type as a missing requirement.
+ */
+export async function updateDocumentVerification(
+  documentid: number,
+  verificationstatus: UpdateDocumentVerificationQuery['verificationstatus'],
+): Promise<DocumentWithUrl> {
+  try {
+    const result = await API.patch(`/documents/${documentid}/verification`, {
+      verificationstatus,
+    });
+    return documentResponseSchema.parse(result.data).data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.error?.message)
+      throw new Error(extractErrorMessage(error.response.data));
+    throw error;
+  }
 }
 
 /** Removes a requirement only while it has no submitted file. */

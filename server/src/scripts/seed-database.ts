@@ -68,6 +68,41 @@ async function applySchema() {
   console.log('\u{2714} Schema: created.');
 }
 
+async function ensureContractAmountPrecision() {
+  const result = await pool.query<{
+    data_type: string;
+    numeric_precision: number | null;
+    numeric_scale: number | null;
+  }>(
+    `SELECT data_type, numeric_precision, numeric_scale
+     FROM information_schema.columns
+     WHERE table_schema = 'public'
+       AND table_name = 'contract'
+       AND column_name = 'totalamount'`,
+  );
+
+  if (result.rows.length === 0) return;
+
+  const column = result.rows[0];
+  if (
+    column.data_type === 'numeric' &&
+    column.numeric_precision === 12 &&
+    column.numeric_scale === 2
+  ) {
+    console.log('\u{2714} Contract amounts: already fixed precision.');
+    return;
+  }
+
+  await withTransaction((client) =>
+    client.query(
+      `ALTER TABLE public.contract
+       ALTER COLUMN totalamount TYPE numeric(12,2)
+       USING ROUND(totalamount::numeric, 2)`,
+    ),
+  );
+  console.log('\u{2714} Contract amounts: converted to numeric(12,2).');
+}
+
 async function ensureBucket() {
   const bucket = process.env.S3_BUCKET;
   if (!bucket) {
@@ -163,6 +198,7 @@ async function main() {
   await pool.query('SELECT 1'); // Clear error if the connection is wrong.
 
   await applySchema();
+  await ensureContractAmountPrecision();
   if (!values['skip-bucket']) await ensureBucket();
   await ensureFormalinInventory();
   if (!values['skip-superadmin'])

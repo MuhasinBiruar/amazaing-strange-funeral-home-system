@@ -17,6 +17,7 @@ import validate from '@/middleware/validate';
 import { createTransactionQuerySchema } from 'shared';
 import validateParams from '@/middleware/validate-params';
 import { idParamSchema } from 'shared/utils';
+import { getDirectOfficialReceipts } from '@/controllers/financial/officialreceipt';
 
 const router = Router();
 
@@ -148,6 +149,13 @@ router.post(
       next(error);
     }
   },
+);
+
+router.get(
+  '/direct/:id/official-receipts',
+  requireAuth,
+  validateParams(idParamSchema),
+  getDirectOfficialReceipts,
 );
 
 export default router;

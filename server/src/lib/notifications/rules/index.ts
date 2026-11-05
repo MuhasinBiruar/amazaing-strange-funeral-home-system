@@ -68,6 +68,9 @@ export const rules: Rule[] = [
         `SELECT dr.caseid, ${DECEASED_NAME_SQL} AS name
          FROM deceasedrecord dr
          JOIN document d ON d.caseid = dr.caseid
+         -- Rejected files are superseded (a rejection re-adds the requirement
+         -- as a pending placeholder), so they don't block completion.
+         WHERE d.verificationstatus <> 'rejected'
          GROUP BY dr.caseid
          HAVING bool_and(d.verificationstatus = 'verified')`,
       );
