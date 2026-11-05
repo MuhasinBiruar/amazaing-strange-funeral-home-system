@@ -7,10 +7,12 @@ import {
   getUnreadNotificationCount,
   markAllNotificationsRead,
   markNotificationRead,
+  onNotificationsChanged,
   type NotificationFilters,
 } from '@/services/notificationService';
 
 const POLL_INTERVAL_MS = 30_000;
+const CHANGED_REFRESH_DELAYS_MS = [1_500, 5_000];
 
 /** What a notification looks like once read, e.g. an expense becoming resolved. */
 function asRead(notif: Notification): Notification {
@@ -61,8 +63,20 @@ export function useNotifications(authenticated: boolean) {
 
     document.addEventListener('visibilitychange', onVisibilityChange);
 
+    // The server raises notifications just after responding, so give it a
+    // moment before re-checking (twice, in case its check runs slow).
+    let changedTimeouts: ReturnType<typeof setTimeout>[] = [];
+    const stopListening = onNotificationsChanged(() => {
+      changedTimeouts.forEach(clearTimeout);
+      changedTimeouts = CHANGED_REFRESH_DELAYS_MS.map((delay) =>
+        setTimeout(refreshCount, delay),
+      );
+    });
+
     return () => {
       clearInterval(interval);
+      changedTimeouts.forEach(clearTimeout);
+      stopListening();
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }, [authenticated, refreshCount]);

@@ -11,6 +11,23 @@ export interface NotificationFilters {
   readStatus?: NotificationReadStatus;
 }
 
+const NOTIFICATIONS_CHANGED_EVENT = 'notifications:changed';
+
+/**
+ * Tells the bell to re-check its unread count now rather than at its next
+ * poll, e.g. after recording something that can raise a notification.
+ */
+export function notifyNotificationsChanged() {
+  window.dispatchEvent(new Event(NOTIFICATIONS_CHANGED_EVENT));
+}
+
+/** @returns A function that stops listening. */
+export function onNotificationsChanged(listener: () => void) {
+  window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, listener);
+  return () =>
+    window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, listener);
+}
+
 export async function getNotifications(
   page = 1,
   filters: NotificationFilters = {},

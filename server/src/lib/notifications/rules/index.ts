@@ -94,7 +94,7 @@ export const rules: Rule[] = [
       return result.rows.map((row) => ({
         dedupekey: 'low_formalin',
         title: 'Urgent: low formalin stock',
-        message: `Formalin stock is at ${Number(row.currentstock)} liters (minimum ${Number(row.minimumthreshold)}). Restock as soon as possible.`,
+        message: `Formalin stock is at ${Number(Number(row.currentstock).toFixed(2))} liters (minimum ${Number(Number(row.minimumthreshold).toFixed(2))}). Restock as soon as possible.`,
         caseid: null,
         link: '/dashboard/inventory',
       }));

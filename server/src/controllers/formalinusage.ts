@@ -1,6 +1,7 @@
 import { BadRequestError, NotFoundError } from '@/errors';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 import { withTransaction } from '@/util/with-transaction';
+import { triggerNotificationSweep } from '@/lib/notifications';
 import type { NextFunction, Request, Response } from 'express';
 import {
   getFormalinUsageBreakdownQuerySchema,
@@ -86,6 +87,8 @@ export const createFormalinUsage = async (
         warning: getWarning(updatedStock, parsed.minimumthreshold),
       };
     });
+
+    triggerNotificationSweep();
 
     res.locals.auditAction = `${res.locals.session.user.name} recorded ${parsed.quantityused} liters of formalin usage for case ${parsed.caseid}`;
     res.status(201).json({

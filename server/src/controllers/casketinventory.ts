@@ -8,6 +8,7 @@ import {
 } from 'shared';
 import type { IdParam } from 'shared/utils';
 import * as CasketInventoryModel from '@/model/casketinventory';
+import { triggerNotificationSweep } from '@/lib/notifications';
 
 export const getCasketInventory = async (
   _req: Request,
@@ -75,6 +76,8 @@ export const createCasketInventory = async (
       ) VALUES ($1, $2, 0, $3) RETURNING *`,
       [parsed.caskettype, parsed.caskettier, parsed.minimumthreshold],
     );
+
+    triggerNotificationSweep();
 
     res.locals.auditAction = `${res.locals.session.user.name} added ${parsed.caskettype} (${parsed.caskettier}) to casket inventory`;
     res.status(201).json({ data: result.rows[0] });
@@ -190,6 +193,8 @@ export const updateCasketInventory = async (
     );
 
     if (result.rows.length === 0) throw new NotFoundError('Casket not found.');
+
+    triggerNotificationSweep();
 
     res.locals.auditAction = `${res.locals.session.user.name} edited casket ${result.rows[0].caskettype}`;
     res.json({ data: result.rows[0] });
