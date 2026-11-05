@@ -7,6 +7,7 @@ export async function getCases({
   sortBy,
   sortOrder,
   search,
+  caseid,
   status,
   startDate,
   endDate,
@@ -21,6 +22,7 @@ export async function getCases({
   params.append('sortBy', sortBy);
   params.append('sortOrder', sortOrder);
   if (search) params.append('search', search);
+  if (caseid !== undefined) params.append('caseid', String(caseid));
   if (status) params.append('status', status);
   if (startDate) params.append('startDate', startDate);
   if (endDate) params.append('endDate', endDate);

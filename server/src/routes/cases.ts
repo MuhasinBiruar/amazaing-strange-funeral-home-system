@@ -33,6 +33,7 @@ const SORT_COLUMNS: Record<keyof Case, string> = {
  * Sample URLs
  * `http://localhost:4000/cases`
  * `http://localhost:4000/cases?search=Juan`
+ * `http://localhost:4000/cases?caseid=123`
  * `http://localhost:4000/cases?status=active`
  * `http://localhost:4000/cases?search=Dela%20Cruz&status=pending&sortBy=burialdatedeadline&sortOrder=asc&page=1&limit=20`
  */
@@ -45,6 +46,7 @@ router.get(
         page,
         limit,
         search,
+        caseid,
         status,
         startDate,
         endDate,
@@ -96,6 +98,12 @@ router.get(
       const whereConditions: string[] = [];
       const queryParams: unknown[] = [];
       let paramIndex = 1;
+
+      if (caseid !== undefined) {
+        whereConditions.push(`dr.caseid = $${paramIndex}`);
+        queryParams.push(caseid);
+        paramIndex++;
+      }
 
       if (status) {
         whereConditions.push(`dr.servicestatus = $${paramIndex}`);

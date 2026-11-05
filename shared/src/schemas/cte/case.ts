@@ -28,6 +28,7 @@ export const getCasesQuerySchema = z.intersection(
   dateFilteredPaginationQuerySchema,
   z.object({
     search: z.string().optional(),
+    caseid: z.coerce.number().int().positive().optional(),
     status: caseSchema.shape.servicestatus.optional(),
     sortBy: z.keyof(caseSchema).default('caseid'),
     sortOrder: z.enum(['asc', 'desc']).default('asc'),

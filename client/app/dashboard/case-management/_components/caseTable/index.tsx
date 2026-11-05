@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import DataTable from '@/components/dataTable';
 import { formatCurrency, formatDate, titleCase } from '@/utils/format';
 import type {
@@ -43,8 +44,54 @@ const FILTERS: FilterDef<Filters>[] = [
 ];
 
 export default function CaseTable() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const caseidParam = searchParams.get('caseid');
+  const caseidValue = caseidParam ? Number(caseidParam) : undefined;
+  const caseid =
+    caseidValue !== undefined &&
+    Number.isSafeInteger(caseidValue) &&
+    caseidValue > 0
+      ? caseidValue
+      : undefined;
   const [refreshKey, setRefreshKey] = useState<number>(0);
-  const [selectedCase, setSelectedCase] = useState<Case | null>(null);
+  const [selectedCase, setSelectedCase] = useState<{
+    record: Case;
+    sourceCaseId: number | null;
+  } | null>(null);
+
+  useEffect(() => {
+    if (caseid === undefined) return;
+
+    const targetCaseId = caseid;
+    const controller = new AbortController();
+
+    async function openCase() {
+      try {
+        const result = await getCases({
+          page: 1,
+          limit: 1,
+          sortBy: 'caseid',
+          sortOrder: 'asc',
+          caseid: targetCaseId,
+          signal: controller.signal,
+        });
+        if (!controller.signal.aborted) {
+          setSelectedCase(
+            result.data[0]
+              ? { record: result.data[0], sourceCaseId: targetCaseId }
+              : null,
+          );
+        }
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error('Failed to load the requested case:', error);
+      }
+    }
+
+    openCase();
+    return () => controller.abort();
+  }, [caseid]);
 
   const columns: DataTableColumn<Case, ColumnKey>[] = [
     {
@@ -55,7 +102,7 @@ export default function CaseTable() {
       render: (c) => (
         <button
           type="button"
-          onClick={() => setSelectedCase(c)}
+          onClick={() => setSelectedCase({ record: c, sourceCaseId: null })}
           className="text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer text-center"
         >
           {c.deceased_name}
@@ -131,6 +178,7 @@ export default function CaseTable() {
   return (
     <>
       <DataTable<Case, ColumnKey, Filters>
+        key={caseid ?? 'all-cases'}
         title="Log"
         exportFileName="cases"
         countLabel={(total) => `${total} items`}
@@ -144,6 +192,7 @@ export default function CaseTable() {
         fetchData={({ filters, ...params }) =>
           getCases({
             ...params,
+            caseid,
             status: filters.status ?? undefined,
             startDate: filters.dateRange.from ?? undefined,
             endDate: filters.dateRange.to ?? undefined,
@@ -155,15 +204,24 @@ export default function CaseTable() {
         bodyOffsetClassName="top-17.25"
       />
 
-      {selectedCase && (
-        <CaseDetailPanel
-          key={selectedCase.caseid}
-          caseid={selectedCase.caseid}
-          representativeid={selectedCase.representativeid}
-          onClose={() => setSelectedCase(null)}
-          setRefreshKey={setRefreshKey}
-        />
-      )}
+      {selectedCase &&
+        (selectedCase.sourceCaseId === null ||
+          selectedCase.sourceCaseId === caseid) && (
+          <CaseDetailPanel
+            key={selectedCase.record.caseid}
+            caseid={selectedCase.record.caseid}
+            representativeid={selectedCase.record.representativeid}
+            onClose={() => {
+              setSelectedCase(null);
+              if (caseid !== undefined) {
+                router.replace('/dashboard/case-management?tab=view', {
+                  scroll: false,
+                });
+              }
+            }}
+            setRefreshKey={setRefreshKey}
+          />
+        )}
     </>
   );
 }
