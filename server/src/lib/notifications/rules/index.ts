@@ -46,13 +46,36 @@ export const rules: Rule[] = [
     },
   },
   {
-    // `formalininventory` is a ledger, so only its latest row is the current
-    // stock; older rows are history and must not keep the alert open. Resolves
-    // once a delivery brings stock back above the minimum.
+    // Formalin is one stock overall. `formalininventory` is a ledger, so only
+    // its latest row is the current stock; older rows are history and must not
+    // keep the alert open. Resolves once a delivery brings stock back above the
+    // minimum.
     type: 'low_formalin',
     audience: ['inventory_page'],
     resolvable: true,
     refresh: true,
+    resolve: async (keys) => {
+      await pool.query(
+        `UPDATE notification SET resolvedat = now()
+         WHERE type = 'low_formalin' AND resolvedat IS NULL
+           AND NOT (dedupekey = ANY($1::text[]))`,
+        [keys],
+      );
+      // Only ever keep one formalin reminder: drop older ones once stock runs
+      // low again, and the per-ledger-row ones (`low_formalin:<formalinid>`)
+      // this rule used to raise.
+      await pool.query(
+        `DELETE FROM notification
+         WHERE type = 'low_formalin'
+           AND (
+             dedupekey <> 'low_formalin'
+             OR notificationid < (
+               SELECT MAX(notificationid) FROM notification
+               WHERE type = 'low_formalin' AND dedupekey = 'low_formalin'
+             )
+           )`,
+      );
+    },
     collect: async () => {
       const result = await pool.query<{
         currentstock: number;
