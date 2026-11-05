@@ -4,6 +4,18 @@ import SortableHeaderCell from '@/components/dataTable/sortableHeaderCell';
 import type { DataTableColumn } from './types';
 import type { SortOrder } from 'shared/utils';
 
+/** Checkbox selection of rows on the current page. */
+export interface RowSelection<T> {
+  isSelected: (row: T) => boolean;
+  toggle: (row: T) => void;
+  /** Whether none, some, or all rows on the page are ticked. */
+  pageState: 'none' | 'some' | 'all';
+  togglePage: () => void;
+}
+
+const checkboxClassName =
+  'size-4 rounded border-gray-300 accent-indigo-600 cursor-pointer align-middle';
+
 export default function TableBody<T, K extends string>({
   columns,
   sortBy,
@@ -20,6 +32,7 @@ export default function TableBody<T, K extends string>({
   onRowClick,
   isRowSelected,
   bodyOffsetClassName = 'top-17.25',
+  selection,
 }: {
   columns: DataTableColumn<T, K>[];
   sortBy: K;
@@ -36,11 +49,16 @@ export default function TableBody<T, K extends string>({
   onRowClick?: (row: T) => void;
   isRowSelected?: (row: T) => boolean;
   bodyOffsetClassName?: string;
+  /** Adds a leading checkbox column. */
+  selection?: RowSelection<T>;
 }) {
+  const columnCount = columns.length + (selection ? 1 : 0);
+
   return (
     <div className="overflow-x-auto relative">
       <table className="w-full table-auto text-sm text-center">
         <colgroup>
+          {selection && <col className="w-12" />}
           {columns.map((col) => (
             <col key={col.key} className={col.widthClassName} />
           ))}
@@ -48,6 +66,22 @@ export default function TableBody<T, K extends string>({
 
         <thead ref={theadRef}>
           <tr className="text-xs text-gray-400 tracking-wide border-b border-gray-100">
+            {selection && (
+              <th className="pl-5 pr-1 py-2.5 h-12">
+                <input
+                  type="checkbox"
+                  aria-label="Select all rows on this page"
+                  checked={selection.pageState === 'all'}
+                  ref={(node) => {
+                    if (node)
+                      node.indeterminate = selection.pageState === 'some';
+                  }}
+                  onChange={selection.togglePage}
+                  disabled={rows.length === 0}
+                  className={checkboxClassName}
+                />
+              </th>
+            )}
             {columns.map((col) =>
               col.sortable === false ? (
                 <th
@@ -80,7 +114,7 @@ export default function TableBody<T, K extends string>({
           {!isLoading && errorMsg && (
             <tr>
               <td
-                colSpan={columns.length}
+                colSpan={columnCount}
                 className="px-5 py-10 text-center text-sm text-red-500"
               >
                 {errorMsg}
@@ -91,7 +125,7 @@ export default function TableBody<T, K extends string>({
           {!errorMsg && rows.length === 0 && (
             <tr>
               <td
-                colSpan={columns.length}
+                colSpan={columnCount}
                 className="px-5 py-10 text-center text-sm text-gray-400"
               >
                 {emptyMessage}
@@ -102,6 +136,7 @@ export default function TableBody<T, K extends string>({
           {!errorMsg &&
             rows.map((row) => {
               const selected = isRowSelected?.(row) ?? false;
+              const ticked = selection?.isSelected(row) ?? false;
 
               return (
                 <tr
@@ -110,8 +145,23 @@ export default function TableBody<T, K extends string>({
                   aria-selected={onRowClick ? selected : undefined}
                   className={`h-11.25 border-b border-gray-100 last:border-0 transition-colors ${
                     onRowClick ? 'cursor-pointer' : ''
-                  } ${selected ? 'bg-indigo-50' : 'hover:bg-gray-50'}`}
+                  } ${selected || ticked ? 'bg-indigo-50' : 'hover:bg-gray-50'}`}
                 >
+                  {selection && (
+                    // Ticking a row mustn't also open it via onRowClick.
+                    <td
+                      className="pl-5 pr-1 py-3"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        aria-label="Select row"
+                        checked={ticked}
+                        onChange={() => selection.toggle(row)}
+                        className={checkboxClassName}
+                      />
+                    </td>
+                  )}
                   {columns.map((col) => (
                     <td
                       key={col.key}

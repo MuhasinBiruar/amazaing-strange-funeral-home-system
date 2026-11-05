@@ -1,21 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import useDebouncedValue from '@/utils/useDebouncedValue';
 import useDynamicLimit from '@/utils/useDynamicLimit';
 import useElementHeight from '@/utils/useElementHeight';
+import { useAuth } from '@/contexts/AuthProvider';
 import TableFooter from './tableFooter';
 import TableHeader from './tableHeader';
-import TableBody from './tableBody';
+import TableBody, { type RowSelection } from './tableBody';
 import FilterBar from './filterBar';
+import DeleteActions from './deleteActions';
 import ExportModal from './export/exportModal';
 import { toExportTable, type ExportOptions } from './export/exportUtils';
 import { Download } from 'lucide-react';
 import type {
   DataTableColumn,
   DateRangeValue,
+  DeleteTarget,
   FetchDataParams,
   FilterDef,
+  SelectionActionsContext,
 } from './types';
 import type { PaginatedResponse, SortOrder } from 'shared/utils';
 
@@ -23,7 +27,7 @@ const SEARCH_DEBOUNCE_MS = 500 as const;
 const ROW_HEIGHT_PX = 45 as const;
 /** The largest page size every list endpoint accepts. */
 const EXPORT_PAGE_SIZE = 100 as const;
-/** Caps an export at 10,000 rows. */
+/** Caps an export (or Delete all) at 10,000 rows. */
 const EXPORT_MAX_PAGES = 100 as const;
 
 /**
@@ -55,6 +59,9 @@ export default function DataTable<
   bodyOffsetClassName,
   refreshKey,
   exportFileName,
+  deletable,
+  onDeleted,
+  selectionActions,
 }: {
   title: string;
   /**
@@ -95,7 +102,28 @@ export default function DataTable<
    * filters as CSV or PDF. Omit to hide exporting.
    */
   exportFileName?: string;
+  /**
+   * Which record each row is. Setting it gives admins row checkboxes and a
+   * Delete button, and superadmins a Delete all button; deleted records go
+   * to Deleted items, restorable for 30 days.
+   */
+  deletable?: (row: T) => DeleteTarget;
+  /** Called after rows are deleted, e.g. to refresh totals shown elsewhere. */
+  onDeleted?: () => void;
+  /**
+   * Adds row checkboxes and renders these actions (e.g. Restore) in the
+   * header, for whatever rows are ticked.
+   */
+  selectionActions?: (context: SelectionActionsContext<T>) => ReactNode;
 }) {
+  const { isAdmin, isSuperadmin } = useAuth();
+  const canDelete = deletable !== undefined && isAdmin;
+  const isSelectable = canDelete || selectionActions !== undefined;
+
+  const [selectedKeys, setSelectedKeys] = useState<Set<string | number>>(
+    () => new Set(),
+  );
+  const [reloadKey, setReloadKey] = useState(0);
   const [search, setSearch] = useState('');
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [sortBy, setSortBy] = useState<K>(defaultSortBy);
@@ -147,6 +175,8 @@ export default function DataTable<
     async function load() {
       setIsLoading(true);
       setErrorMsg(null);
+      // Ticked rows only make sense for the rows they were ticked on.
+      setSelectedKeys(new Set());
 
       try {
         const res = await fetchData({
@@ -175,7 +205,16 @@ export default function DataTable<
 
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dboSearch, sortBy, sortOrder, page, limit, filterValues, refreshKey]);
+  }, [
+    dboSearch,
+    sortBy,
+    sortOrder,
+    page,
+    limit,
+    filterValues,
+    refreshKey,
+    reloadKey,
+  ]);
 
   // The table's date filter (if it has one), which the export modal can
   // narrow for an export without changing the table itself.
@@ -185,9 +224,30 @@ export default function DataTable<
   );
 
   /**
+   * Every row matching the current search, sort, and `filters`, fetched page
+   * by page.
+   */
+  async function fetchAllRows(filters: F) {
+    const all: T[] = [];
+    for (let allPage = 1; allPage <= EXPORT_MAX_PAGES; allPage++) {
+      const res = await fetchData({
+        page: allPage,
+        limit: EXPORT_PAGE_SIZE,
+        sortBy,
+        sortOrder,
+        search: dboSearch,
+        filters,
+      });
+      all.push(...res.data);
+      if (res.data.length === 0 || allPage >= res.meta.totalPages) break;
+    }
+    return all;
+  }
+
+  /**
    * Rows to export, flattened to text: either the page on screen, or every
    * row matching the current search, sort, and filters (with the export's
-   * own date range, if one was picked), fetched page by page.
+   * own date range, if one was picked).
    */
   async function loadExportTable({
     scope,
@@ -202,21 +262,38 @@ export default function DataTable<
         ? { ...filterValues, [dateFilter.key]: dateRange }
         : filterValues;
 
-    const all: T[] = [];
-    for (let exportPage = 1; exportPage <= EXPORT_MAX_PAGES; exportPage++) {
-      const res = await fetchData({
-        page: exportPage,
-        limit: EXPORT_PAGE_SIZE,
-        sortBy,
-        sortOrder,
-        search: dboSearch,
-        filters: exportFilters,
-      });
-      all.push(...res.data);
-      if (res.data.length === 0 || exportPage >= res.meta.totalPages) break;
-    }
-    return toExportTable(exportColumns, all);
+    return toExportTable(exportColumns, await fetchAllRows(exportFilters));
   }
+
+  const selectedRows = rows.filter((row) => selectedKeys.has(rowKey(row)));
+  const clearSelection = () => setSelectedKeys(new Set());
+  const reload = () => setReloadKey((k) => k + 1);
+
+  const selection: RowSelection<T> | undefined = isSelectable
+    ? {
+        isSelected: (row) => selectedKeys.has(rowKey(row)),
+        toggle: (row) =>
+          setSelectedKeys((prev) => {
+            const next = new Set(prev);
+            const key = rowKey(row);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+          }),
+        pageState:
+          selectedRows.length === 0
+            ? 'none'
+            : selectedRows.length === rows.length
+              ? 'all'
+              : 'some',
+        togglePage: () =>
+          setSelectedKeys(
+            selectedRows.length === rows.length
+              ? new Set()
+              : new Set(rows.map(rowKey)),
+          ),
+      }
+    : undefined;
 
   return (
     <div
@@ -242,17 +319,40 @@ export default function DataTable<
             ) : undefined
           }
           actionSlot={
-            exportFileName ? (
-              <button
-                type="button"
-                onClick={() => setIsExportOpen(true)}
-                disabled={total === 0}
-                className="flex items-center gap-1.5 text-sm border border-gray-200 bg-white text-gray-700 rounded-md px-3 py-1.5 hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Download size={14} />
-                Export
-              </button>
-            ) : undefined
+            <>
+              {selectionActions?.({
+                selected: selectedRows,
+                clearSelection,
+                refresh: reload,
+              })}
+              {canDelete && (
+                <DeleteActions
+                  title={title}
+                  selected={selectedRows}
+                  total={total}
+                  pageTypes={rows.map((row) => deletable(row).entitytype)}
+                  deletable={deletable}
+                  canDeleteAll={isSuperadmin}
+                  loadAllRows={() => fetchAllRows(filterValues)}
+                  onDone={() => {
+                    clearSelection();
+                    reload();
+                    onDeleted?.();
+                  }}
+                />
+              )}
+              {exportFileName && (
+                <button
+                  type="button"
+                  onClick={() => setIsExportOpen(true)}
+                  disabled={total === 0}
+                  className="flex items-center gap-1.5 text-sm border border-gray-200 bg-white text-gray-700 rounded-md px-3 py-1.5 hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Download size={14} />
+                  Export
+                </button>
+              )}
+            </>
           }
         />
       </div>
@@ -298,6 +398,7 @@ export default function DataTable<
         onRowClick={onRowClick}
         isRowSelected={isRowSelected}
         bodyOffsetClassName={bodyOffsetClassName}
+        selection={selection}
       />
 
       <div ref={footerWrapRef}>

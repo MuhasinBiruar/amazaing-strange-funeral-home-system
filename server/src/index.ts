@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { startDeletionPurgeScheduler } from './lib/deletion-purge';
 import { startNotificationCleanupScheduler } from './lib/notification-cleanup';
 import { startNotificationScheduler } from './lib/notifications';
 import { startServiceStatusScheduler } from './lib/service-status';
@@ -19,6 +20,7 @@ app.listen(PORT, '0.0.0.0', async () => {
     startNotificationScheduler();
     startNotificationCleanupScheduler();
     startServiceStatusScheduler();
+    startDeletionPurgeScheduler();
   } catch (error) {
     console.error('Database connection failed:', error);
   }

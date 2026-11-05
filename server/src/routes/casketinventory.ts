@@ -14,7 +14,6 @@ import {
   getPaginatedCasketInventory,
   updateCasketInventory,
   getDeliveryHistoryOfCasket,
-  deleteCasketInventory,
 } from '@/controllers/casketinventory';
 
 const router = Router();
@@ -50,13 +49,6 @@ router.patch(
   validateParams(idParamSchema),
   validate(updateCasketInventoryQuerySchema),
   updateCasketInventory,
-);
-
-router.delete(
-  '/:id',
-  requireAuth,
-  validateParams(idParamSchema),
-  deleteCasketInventory,
 );
 
 export default router;

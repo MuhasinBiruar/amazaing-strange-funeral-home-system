@@ -8,7 +8,7 @@ import type { AccessPage } from 'shared';
 import { Loader2 } from 'lucide-react';
 
 /** Routes that require the `admin` role, independent of any `access` flag. */
-const ADMIN_ONLY_PATHS = ['/dashboard/admin'];
+const ADMIN_ONLY_PATHS = ['/dashboard/admin', '/dashboard/deleted-items'];
 
 /** The only area life plan agents may use; staff may not use it. */
 const AGENT_HOME = '/view-lifeplan';

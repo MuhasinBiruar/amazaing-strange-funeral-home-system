@@ -7,7 +7,6 @@ import {
   createLifeplanCompany,
   getLifeplanCompany,
   getLifeplanCompanies,
-  deleteLifeplanCompany,
 } from '@/controllers/lifeplancompany';
 import requireAuth, { requireLifeplanAgent } from '@/middleware/require-auth';
 import validate from '@/middleware/validate';
@@ -48,11 +47,5 @@ router.get(
  * `http://localhost:4000/lifeplans/companies?search=Company&sortBy=companyname&sortOrder=desc&page=1&limit=20`
  */
 router.get('/companies', requireAuth, getLifeplanCompanies);
-router.delete(
-  '/companies/:id',
-  requireAuth,
-  validateParams(idParamSchema),
-  deleteLifeplanCompany,
-);
 
 export default router;

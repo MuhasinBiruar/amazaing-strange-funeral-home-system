@@ -118,6 +118,10 @@ export default function LifeplanCompanyTable() {
         filters={FILTERS}
         defaultFilters={DEFAULT_FILTERS}
         rowKey={(row) => row.companyid}
+        deletable={(row) => ({
+          entitytype: 'lifeplancompany',
+          id: row.companyid,
+        })}
         defaultSortBy="companyname"
         defaultSortOrder="asc"
         fetchData={({ filters, ...params }) => {
@@ -149,6 +153,7 @@ export default function LifeplanCompanyTable() {
           companyname={viewing.company.companyname}
           dateRange={viewing.dateRange}
           onClose={() => setViewing(null)}
+          onDeleted={() => setRefreshKey((key) => key + 1)}
         />
       )}
     </>

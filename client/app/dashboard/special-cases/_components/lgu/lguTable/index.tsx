@@ -112,6 +112,7 @@ export default function LguTable() {
         filters={FILTERS}
         defaultFilters={DEFAULT_FILTERS}
         rowKey={(row) => row.lguid}
+        deletable={(row) => ({ entitytype: 'lgu', id: row.lguid })}
         defaultSortBy="lguname"
         defaultSortOrder="asc"
         fetchData={({ filters, ...params }) => {
@@ -143,6 +144,7 @@ export default function LguTable() {
           lguname={viewing.lgu.lguname}
           dateRange={viewing.dateRange}
           onClose={() => setViewing(null)}
+          onDeleted={() => setRefreshKey((key) => key + 1)}
         />
       )}
     </>

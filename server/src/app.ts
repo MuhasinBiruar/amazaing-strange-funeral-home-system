@@ -26,6 +26,7 @@ import expensesRouter from './routes/expenses';
 import lguCasesRouter from './routes/lgucases';
 import lgusRouter from './routes/lgus';
 import auditLogsRouter from './routes/auditlogs';
+import deletionsRouter from './routes/deletions';
 
 const app = express();
 
@@ -70,6 +71,7 @@ app.use('/notifications', notificationsRouter);
 
 app.use('/api/me', meRouter);
 app.use('/auditlogs', auditLogsRouter);
+app.use('/deletions', deletionsRouter);
 
 app.use(errorHandler);
 
