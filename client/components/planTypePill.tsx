@@ -1,6 +1,6 @@
 import type { DeceasedRecord } from 'shared';
 import {
-  ShieldCheck,
+  Banknote,
   HeartHandshake,
   Landmark,
   type LucideIcon,
@@ -23,7 +23,7 @@ export const PLAN_TYPE_LABELS: Record<PlanType, string> = {
 };
 
 const PLAN_TYPE_ICONS: Record<PlanType, LucideIcon> = {
-  Direct: ShieldCheck,
+  Direct: Banknote,
   Life: HeartHandshake,
   LGU: Landmark,
 };
