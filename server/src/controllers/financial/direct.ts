@@ -247,12 +247,26 @@ export async function createDirectTransaction(
           'This case has no contract yet, so there is nothing to pay against.',
         );
 
+      // What this case actually has to pay: the full contract for Direct,
+      // only the extra on top of the plan's own value for Life.
+      let payable = new BigNumber(totalamount);
+      if (plantype === 'Life') {
+        const planResult = await client.query<{ totalamount: string }>(
+          `SELECT COALESCE(totalamount, 0)::text AS totalamount
+           FROM public.lifeplan
+           WHERE caseid = $1`,
+          [caseid],
+        );
+        const planAmount = new BigNumber(planResult.rows[0]?.totalamount ?? 0);
+        payable = BigNumber.maximum(payable.minus(planAmount), 0);
+      }
+
       const discount = new BigNumber(receipt?.pwd_discount ?? 0);
       const withholding = new BigNumber(receipt?.withholding_tax ?? 0);
 
       const currentDeductions = discount.plus(withholding);
 
-      if (currentDeductions.isGreaterThan(totalamount))
+      if (currentDeductions.isGreaterThan(payable))
         throw new BadRequestError(
           'Discount and withholding tax are larger than the total amount.',
         );
@@ -267,9 +281,7 @@ export async function createDirectTransaction(
       );
 
       const newPaid = new BigNumber(paidResult.rows[0].paid).plus(delta);
-      const remaining = new BigNumber(totalamount)
-        .minus(currentDeductions)
-        .minus(newPaid);
+      const remaining = payable.minus(currentDeductions).minus(newPaid);
 
       if (newPaid.isLessThan(0))
         throw new BadRequestError('Refund is larger than the amount paid.');
@@ -320,7 +332,7 @@ export async function createDirectTransaction(
           await client.query(
             `INSERT INTO public.officialreceipt (
          ornumber, amount, issuedate, transactionid,
-         total_due, withholding_tax, tin, discount_id, pwd_discount
+         payable.minus(discount).toFixed(),, withholding_tax, tin, discount_id, pwd_discount
        ) VALUES ($1, $2, NOW(), $3, $4, $5, $6, $7, $8)`,
             [
               receipt.ornumber,

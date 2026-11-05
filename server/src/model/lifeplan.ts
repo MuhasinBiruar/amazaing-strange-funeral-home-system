@@ -14,10 +14,11 @@ const SORT_COLUMNS: Record<keyof GetLifeplansQueryRow, string> = {
   companyid: 'l.companyid',
   companyname: 'lc.companyname',
   contractid: 'c.contractid',
-  contractamount: 'c.totalamount',
+  contractamount: 'GREATEST(c.totalamount - COALESCE(l.totalamount, 0), 0)',
   totalamountpaid: 'COALESCE(t.totalpaid, 0)',
   totaldeductions: 'COALESCE(od.totaldeductions, 0)',
-  remainingbalance: 'c.totalamount - COALESCE(t.totalpaid, 0)',
+  remainingbalance:
+    'GREATEST(c.totalamount - COALESCE(l.totalamount, 0), 0) - COALESCE(t.totalpaid, 0)',
   datecreated: 'dr.datecreated',
   servicestatus: 'dr.servicestatus',
 };
@@ -50,7 +51,11 @@ export const getLifeplans = async ({
       -- (returned as strings by pg); the API sends these totals as numbers.
       COALESCE(t.totalpaid, 0)::float8 AS totalamountpaid,
       CASE WHEN c.totalamount IS NULL THEN NULL
-        ELSE GREATEST(c.totalamount - COALESCE(t.totalpaid, 0), 0)
+        ELSE GREATEST(
+          GREATEST(c.totalamount - COALESCE(l.totalamount, 0), 0)
+            - COALESCE(t.totalpaid, 0),
+          0
+        )
       END AS remainingbalance,
       dr.datecreated,
       COALESCE(od.totaldeductions, 0)::float8 AS totaldeductions,
