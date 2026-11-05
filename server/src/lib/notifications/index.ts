@@ -10,14 +10,24 @@ async function applyRule(rule: Rule) {
 
   if (candidates.length > 0) {
     // Only one unresolved notification is allowed per dedupe key.
-    // If the condition was already notified, skip the duplicate.
-    // Once resolved, the same condition can be notified again.
+    // If the condition was already notified, skip the duplicate (or just
+    // refresh its text). Once resolved, the same condition can be notified
+    // again.
+    const onConflict = rule.refresh
+      ? `DO UPDATE SET
+           title = EXCLUDED.title,
+           message = EXCLUDED.message,
+           link = EXCLUDED.link
+         WHERE (notification.title, notification.message, notification.link)
+           IS DISTINCT FROM (EXCLUDED.title, EXCLUDED.message, EXCLUDED.link)`
+      : 'DO NOTHING';
+
     await pool.query(
       `INSERT INTO notification (type, audience, title, message, caseid, link, dedupekey)
        SELECT $1, $2::text[], c.title, c.message, c.caseid, c.link, c.dedupekey
        FROM unnest($3::text[], $4::text[], $5::int[], $6::text[], $7::text[])
          AS c(title, message, caseid, link, dedupekey)
-       ON CONFLICT (dedupekey) WHERE resolvedat IS NULL DO NOTHING`,
+       ON CONFLICT (dedupekey) WHERE resolvedat IS NULL ${onConflict}`,
       [
         rule.type,
         rule.audience,
@@ -31,17 +41,8 @@ async function applyRule(rule: Rule) {
   }
 
   if (rule.resolvable) {
-    if (rule.type === 'full_payment') {
-      await pool.query(
-        `UPDATE notification n
-         SET resolvedat = now()
-         FROM deceasedrecord dr
-         WHERE n.caseid = dr.caseid
-           AND n.type = $1
-           AND n.resolvedat IS NULL
-           AND dr.servicestatus = 'completed'`,
-        [rule.type],
-      );
+    if (rule.resolve) {
+      await rule.resolve(keys);
     } else {
       await pool.query(
         `UPDATE notification SET resolvedat = now()
@@ -104,3 +105,5 @@ export function startNotificationScheduler() {
   triggerNotificationSweep();
   setInterval(triggerNotificationSweep, SWEEP_INTERVAL_MS).unref();
 }
+
+export { notifyExpenseRecorded } from './expense';

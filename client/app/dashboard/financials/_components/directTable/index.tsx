@@ -32,7 +32,12 @@ const FILTERS: FilterDef<Filters>[] = [
   },
 ];
 
-export default function DirectTable() {
+export default function DirectTable({
+  initialSearch,
+}: {
+  /** Prefills the search, e.g. from a notification link. */
+  initialSearch?: string;
+}) {
   const [historyFor, setHistoryFor] = useState<DirectPlan | null>(null);
   const [paymentFor, setPaymentFor] = useState<DirectPlan | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -107,6 +112,7 @@ export default function DirectTable() {
         exportFileName="direct-payments"
         countLabel={(total) => `${total} plans`}
         searchPlaceholder="Search by deceased or representative..."
+        initialSearch={initialSearch}
         filters={FILTERS}
         defaultFilters={DEFAULT_FILTERS}
         columns={columns}

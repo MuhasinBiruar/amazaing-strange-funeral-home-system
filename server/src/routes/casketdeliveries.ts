@@ -19,7 +19,10 @@ import {
 } from 'shared';
 import { idParamSchema, type IdParam } from 'shared/utils';
 import { withTransaction } from '@/util/with-transaction';
-import { triggerNotificationSweep } from '@/lib/notifications';
+import {
+  notifyExpenseRecorded,
+  triggerNotificationSweep,
+} from '@/lib/notifications';
 
 const router = Router();
 
@@ -243,6 +246,13 @@ router.post(
       });
 
       triggerNotificationSweep();
+      void notifyExpenseRecorded({
+        source: 'casket',
+        id: delivery.deliveryid,
+        description: `Casket delivery: ${parsed.quantityreceived}x ${delivery.caskettype}`,
+        amount: parsed.totalamountpaid,
+        recordedby_name: res.locals.session.user.name,
+      });
 
       res.locals.auditAction = `${res.locals.session.user.name} recorded a casket delivery: ${parsed.quantityreceived}x ${delivery.caskettype}`;
 

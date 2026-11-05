@@ -19,11 +19,13 @@ export default function NotificationBell() {
   const {
     unreadCount,
     notifications,
+    filters,
     loading,
     loadingMore,
     error,
     hasMoreNotifications,
     loadNotifications,
+    changeFilters,
     cancelListRequest,
     loadMoreNotifications,
     markAsRead,
@@ -102,6 +104,7 @@ export default function NotificationBell() {
         <NotificationDropdown
           notifications={notifications}
           unreadCount={unreadCount}
+          filters={filters}
           loading={loading}
           loadingMore={loadingMore}
           error={error}
@@ -109,6 +112,7 @@ export default function NotificationBell() {
           onSelect={handleSelect}
           onMarkAllRead={markAllRead}
           onLoadMore={loadMoreNotifications}
+          onFiltersChange={changeFilters}
         />
       )}
     </div>
