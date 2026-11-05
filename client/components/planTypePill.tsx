@@ -1,4 +1,10 @@
 import type { DeceasedRecord } from 'shared';
+import {
+  ShieldCheck,
+  HeartHandshake,
+  Landmark,
+  type LucideIcon,
+} from 'lucide-react';
 import PillBadge, { type BadgeVariant } from '@/components/pillBadge';
 
 type PlanType = DeceasedRecord['plantype'];
@@ -16,11 +22,22 @@ export const PLAN_TYPE_LABELS: Record<PlanType, string> = {
   LGU: 'LGU',
 };
 
+const PLAN_TYPE_ICONS: Record<PlanType, LucideIcon> = {
+  Direct: ShieldCheck,
+  Life: HeartHandshake,
+  LGU: Landmark,
+};
+
 /** A case's plan type, colored the same everywhere it shows. */
 export default function PlanTypePill({ plantype }: { plantype: PlanType }) {
+  const Icon = PLAN_TYPE_ICONS[plantype];
+
   return (
     <PillBadge variant={PLAN_TYPE_VARIANTS[plantype]}>
-      {PLAN_TYPE_LABELS[plantype]}
+      <span className="inline-flex items-center gap-1">
+        <Icon className="w-3.5 h-3.5 shrink-0" />
+        {PLAN_TYPE_LABELS[plantype]}
+      </span>
     </PillBadge>
   );
 }
