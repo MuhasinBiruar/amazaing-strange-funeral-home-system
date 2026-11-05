@@ -30,8 +30,13 @@ export default function CasePreviewPanel({
   const [representative, setRepresentative] = useState<Representative | null>(
     null,
   );
+  const [isLoadingRepresentative, setIsLoadingRepresentative] =
+    useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [representativeError, setRepresentativeError] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -39,14 +44,32 @@ export default function CasePreviewPanel({
     async function load() {
       setIsLoading(true);
       setLoadError(null);
+      setRepresentativeError(null);
       try {
         const deceased = await getDeceasedRecord(caseid);
-        const rep = deceased.representedby
-          ? await getRepresentative(deceased.representedby)
-          : null;
         if (controller.signal.aborted) return;
         setRecord(deceased);
-        setRepresentative(rep);
+        setRepresentative(null);
+        setIsLoading(false);
+
+        if (!deceased.representedby) {
+          setIsLoadingRepresentative(false);
+          return;
+        }
+
+        setIsLoadingRepresentative(true);
+        try {
+          const rep = await getRepresentative(deceased.representedby);
+          if (!controller.signal.aborted) setRepresentative(rep);
+        } catch (error) {
+          if (controller.signal.aborted) return;
+          console.error('Failed to load case representative:', error);
+          setRepresentativeError(
+            'Could not load representative information. Try again.',
+          );
+        } finally {
+          if (!controller.signal.aborted) setIsLoadingRepresentative(false);
+        }
       } catch (error) {
         if (controller.signal.aborted) return;
         console.error('Failed to load case preview:', error);
@@ -160,6 +183,12 @@ export default function CasePreviewPanel({
                     value={representative.address ?? '—'}
                   />
                 </dl>
+              ) : isLoadingRepresentative ? (
+                <p className="text-sm text-gray-500">
+                  Loading representative information...
+                </p>
+              ) : representativeError ? (
+                <p className="text-sm text-red-600">{representativeError}</p>
               ) : (
                 <p className="text-sm text-gray-500">No representative on file.</p>
               )}
