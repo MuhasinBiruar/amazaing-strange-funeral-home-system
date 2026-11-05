@@ -43,7 +43,7 @@ export const getLifeplans = async ({
       l.companyid,
       lc.companyname,
       c.contractid,
-      c.totalamount AS contractamount,
+      c.totalamount::float8 AS contractamount,
       COALESCE(t.totalpaid, 0)::float8 AS totalamountpaid,
       CASE WHEN c.totalamount IS NULL THEN NULL
         ELSE GREATEST(c.totalamount - COALESCE(t.totalpaid, 0), 0)

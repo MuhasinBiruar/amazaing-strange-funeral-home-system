@@ -75,7 +75,7 @@ router.get(
 
       const fromAndJoins = `
         FROM public.deceasedrecord dr
-        JOIN public.contract c ON dr.caseid = c.caseid
+        LEFT JOIN public.contract c ON dr.caseid = c.caseid
         LEFT JOIN public.representative r ON dr.representedby = r.representativeid
         LEFT JOIN public.staff s ON dr.managedby = s.id
         LEFT JOIN (
@@ -103,6 +103,8 @@ router.get(
         whereConditions.push(`dr.caseid = $${paramIndex}`);
         queryParams.push(caseid);
         paramIndex++;
+      } else {
+        whereConditions.push('c.contractid IS NOT NULL');
       }
 
       if (status) {

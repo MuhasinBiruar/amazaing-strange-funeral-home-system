@@ -15,9 +15,9 @@ export const caseSchema = z.object({
   datecreated: z.coerce.date(),
   managed_by_name: z.string(),
   caseid: z.int(),
-  contractid: z.int(),
+  contractid: z.int().nullable(),
   representativeid: z.int().nullable(),
-  staffid: z.string(),
+  staffid: z.string().nullable(),
   total_formalin_used: z.number().nonnegative().default(0),
   last_formalin_use_date: z.coerce.date().nullable().default(null),
 });
