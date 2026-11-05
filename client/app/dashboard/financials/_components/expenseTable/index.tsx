@@ -10,8 +10,15 @@ import type {
   FilterDef,
 } from '@/components/dataTable/types';
 import { getExpenses } from '@/services/expensesService';
-import type { ExpenseLog, ExpenseLogSource } from 'shared';
+import type { DeletionEntityType, ExpenseLog, ExpenseLogSource } from 'shared';
 import RecordExpensePanel from './recordExpensePanel';
+
+/** Delivery expenses are deleted as the delivery itself (taking its stock back out). */
+const EXPENSE_SOURCE_ENTITY: Record<ExpenseLogSource, DeletionEntityType> = {
+  expense: 'expense',
+  casket: 'casketdelivery',
+  formalin: 'formalindelivery',
+};
 
 type ColumnKey = keyof ExpenseLog;
 
@@ -136,6 +143,10 @@ export default function ExpenseTable() {
         columns={columns}
         // `id` is only unique within its own source table.
         rowKey={(e) => `${e.source}-${e.id}`}
+        deletable={(e) => ({
+          entitytype: EXPENSE_SOURCE_ENTITY[e.source],
+          id: e.id,
+        })}
         defaultSortBy="expensedate"
         defaultSortOrder="desc"
         fetchData={({ filters, ...params }) =>

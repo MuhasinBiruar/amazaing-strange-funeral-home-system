@@ -111,6 +111,7 @@ export default function DirectTable() {
         defaultFilters={DEFAULT_FILTERS}
         columns={columns}
         rowKey={(d) => d.caseid}
+        deletable={(d) => ({ entitytype: 'case', id: d.caseid })}
         defaultSortBy="deceased_name"
         defaultSortOrder="desc"
         bodyOffsetClassName="top-17.25"

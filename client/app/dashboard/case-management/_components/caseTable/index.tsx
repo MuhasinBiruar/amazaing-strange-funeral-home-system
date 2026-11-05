@@ -146,6 +146,7 @@ export default function CaseTable() {
         defaultFilters={DEFAULT_FILTERS}
         columns={columns}
         rowKey={(c) => c.caseid}
+        deletable={(c) => ({ entitytype: 'case', id: c.caseid })}
         defaultSortBy="deceased_name"
         defaultSortOrder="desc"
         fetchData={({ filters, ...params }) =>

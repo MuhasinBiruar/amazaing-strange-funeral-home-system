@@ -45,11 +45,14 @@ export default function LguRecordsPanel({
   lguname,
   dateRange,
   onClose,
+  onDeleted,
 }: {
   lguid: number;
   lguname: string;
   dateRange: DateRangeValue;
   onClose: () => void;
+  /** Deleting a case changes the LGU's totals. */
+  onDeleted: () => void;
 }) {
   const { isShown, requestClose } = useSidePanel(onClose);
 
@@ -74,6 +77,8 @@ export default function LguRecordsPanel({
           searchPlaceholder="Search name or status..."
           columns={COLUMNS}
           rowKey={(l) => l.lgucaseid}
+          deletable={(l) => ({ entitytype: 'case', id: l.caseid })}
+          onDeleted={onDeleted}
           defaultSortBy="lgucaseid"
           defaultSortOrder="desc"
           fetchData={({ filters: _filters, ...params }) =>

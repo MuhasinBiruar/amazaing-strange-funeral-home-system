@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ClipboardList, UserPlus } from 'lucide-react';
+import Link from 'next/link';
+import { ArchiveRestore, ClipboardList, UserPlus } from 'lucide-react';
 import StaffPanel from './_components/staffPanel';
 import AuditLogPanel from './_components/auditLogPanel';
 import DataTable from '@/components/dataTable';
@@ -45,6 +46,13 @@ export default function AdminPage() {
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href="/dashboard/deleted-items"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-medium px-4 py-2 hover:bg-gray-100 transition cursor-pointer"
+            >
+              <ArchiveRestore size={16} />
+              Deleted Items
+            </Link>
             <button
               type="button"
               onClick={() => setIsAuditLogOpen(true)}

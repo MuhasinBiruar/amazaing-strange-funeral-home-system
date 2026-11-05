@@ -10,6 +10,7 @@ export interface AppErrorResponse {
 }
 
 export * from './schemas/cte/case';
+export * from './schemas/cte/deletionlog';
 export * from './schemas/cte/delivery';
 export * from './schemas/cte/direct';
 export * from './schemas/cte/expenselog';
@@ -29,6 +30,7 @@ export * from './schemas/db/casketdelivery';
 export * from './schemas/db/casketinventory';
 export * from './schemas/db/contract';
 export * from './schemas/db/deceasedrecord';
+export * from './schemas/db/deletion';
 export * from './schemas/db/document';
 export * from './schemas/db/expense';
 export * from './schemas/db/formalindelivery';

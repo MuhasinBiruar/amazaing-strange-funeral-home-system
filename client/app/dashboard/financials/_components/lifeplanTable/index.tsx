@@ -151,6 +151,7 @@ export default function LifeplanTable() {
         defaultFilters={DEFAULT_FILTERS}
         columns={columns}
         rowKey={(l) => l.planid}
+        deletable={(l) => ({ entitytype: 'case', id: l.caseid })}
         defaultSortBy="deceased_name"
         defaultSortOrder="desc"
         fetchData={({ filters, ...params }) =>

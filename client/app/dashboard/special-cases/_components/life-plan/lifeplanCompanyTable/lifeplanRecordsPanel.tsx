@@ -58,11 +58,14 @@ export default function LifeplanRecordsPanel({
   companyname,
   dateRange,
   onClose,
+  onDeleted,
 }: {
   companyid: number;
   companyname: string;
   dateRange: DateRangeValue;
   onClose: () => void;
+  /** Deleting a case changes the company's totals. */
+  onDeleted: () => void;
 }) {
   const { isShown, requestClose } = useSidePanel(onClose);
 
@@ -87,6 +90,8 @@ export default function LifeplanRecordsPanel({
           searchPlaceholder="Search name or plan number..."
           columns={COLUMNS}
           rowKey={(p) => p.planid}
+          deletable={(p) => ({ entitytype: 'case', id: p.caseid })}
+          onDeleted={onDeleted}
           defaultSortBy="datecreated"
           defaultSortOrder="desc"
           fetchData={({ filters: _filters, ...params }) =>

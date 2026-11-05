@@ -106,6 +106,7 @@ export default function LguTable() {
         columns={columns}
         bodyOffsetClassName="top-17.25"
         rowKey={(l) => l.lgucaseid}
+        deletable={(l) => ({ entitytype: 'case', id: l.caseid })}
         defaultSortBy="deceased_name"
         defaultSortOrder="desc"
         fetchData={({ filters, ...params }) =>

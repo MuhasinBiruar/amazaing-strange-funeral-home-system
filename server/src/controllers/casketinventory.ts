@@ -1,6 +1,5 @@
 import pool from '@/db';
 import { BadRequestError, NotFoundError } from '@/errors';
-import { withTransaction } from '@/util/with-transaction';
 import type { NextFunction, Request, Response } from 'express';
 import {
   getPaginatedCasketInventoryQuerySchema,
@@ -194,37 +193,6 @@ export const updateCasketInventory = async (
 
     res.locals.auditAction = `${res.locals.session.user.name} edited casket ${result.rows[0].caskettype}`;
     res.json({ data: result.rows[0] });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Deletes a casket that nothing references yet (e.g. one added by mistake).
- */
-export const deleteCasketInventory = async (
-  req: Request<IdParam>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { id } = req.params;
-
-    const caskettype = await withTransaction(async (client) => {
-      const caskettype = await CasketInventoryModel.assertCasketCanBeDeleted(
-        client,
-        id,
-      );
-
-      await client.query('DELETE FROM casketinventory WHERE casketid = $1', [
-        id,
-      ]);
-
-      return caskettype;
-    });
-
-    res.locals.auditAction = `${res.locals.session.user.name} deleted casket ${caskettype}`;
-    res.status(204).end();
   } catch (error) {
     next(error);
   }

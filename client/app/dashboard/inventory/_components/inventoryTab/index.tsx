@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import {
   casketTierEnum,
   type CasketInventoryTable,
@@ -9,17 +9,13 @@ import {
 } from 'shared';
 import type { DataTableColumn, FilterDef } from '@/components/dataTable/types';
 import DataTable from '@/components/dataTable';
-import { useInfoModal } from '@/components/infoModal/useInfoModal';
-import {
-  deleteCasket,
-  getPaginatedCasketInventory,
-} from '@/services/casketInventoryService';
+import { getPaginatedCasketInventory } from '@/services/casketInventoryService';
 import PackagesPanel from './packagesPanel';
 import DeliveryHistoryPanel from './deliveryHistoryPanel';
 import EditCasketPanel from './editCasketPanel';
 import FormalinArea from './formalinArea';
 
-/** Sortable columns, plus the unsortable edit/delete column. */
+/** Sortable columns, plus the unsortable edit column. */
 type ColumnKey = GetPaginatedCasketInventoryQuery['sortBy'] | 'manage';
 
 type Filters = {
@@ -59,40 +55,6 @@ export default function InventoryTab() {
   >(null);
   const [editing, setEditing] = useState<CasketInventoryTable | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const { infoModal, showInfo } = useInfoModal();
-
-  async function confirmDelete(casket: CasketInventoryTable) {
-    let failure: string | null = null;
-
-    const confirmed = await showInfo({
-      title: `Delete ${casket.caskettype}?`,
-      message:
-        'This removes the casket from inventory. It can only be deleted if no package uses it and it has no delivery or audit history.',
-      closeLabel: 'Cancel',
-      confirmLabel: 'Delete',
-      severity: 'warning',
-      // Errors are caught here (rather than thrown) so the reason can be shown
-      // in its own modal; a thrown error only keeps this one open silently.
-      onConfirmAction: async () => {
-        try {
-          await deleteCasket(casket.casketid);
-        } catch (err) {
-          failure =
-            err instanceof Error ? err.message : 'Failed to delete casket.';
-        }
-      },
-    });
-
-    if (failure) {
-      await showInfo({
-        title: "Can't Delete Casket",
-        message: failure,
-        severity: 'error',
-      });
-    } else if (confirmed) {
-      setRefreshKey((k) => k + 1);
-    }
-  }
 
   const columns: DataTableColumn<CasketInventoryTable, ColumnKey>[] = [
     {
@@ -103,8 +65,8 @@ export default function InventoryTab() {
     },
     {
       key: 'manage',
-      label: 'Edit / Delete',
-      widthClassName: 'w-32',
+      label: 'Edit',
+      widthClassName: 'w-24',
       sortable: false,
       exportable: false,
       render: (row) => (
@@ -117,15 +79,6 @@ export default function InventoryTab() {
             className="p-1.5 rounded-md text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 cursor-pointer"
           >
             <Pencil size={15} />
-          </button>
-          <button
-            type="button"
-            onClick={() => void confirmDelete(row)}
-            aria-label={`Delete ${row.caskettype}`}
-            title="Delete casket"
-            className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
-          >
-            <Trash2 size={15} />
           </button>
         </div>
       ),
@@ -172,6 +125,7 @@ export default function InventoryTab() {
         defaultFilters={DEFAULT_FILTERS}
         columns={columns}
         rowKey={(d) => d.casketid}
+        deletable={(d) => ({ entitytype: 'casketinventory', id: d.casketid })}
         defaultSortBy="caskettype"
         defaultSortOrder="desc"
         fetchData={({ filters, sortBy, ...params }) =>
@@ -213,7 +167,6 @@ export default function InventoryTab() {
           }}
         />
       )}
-      {infoModal}
     </>
   );
 }

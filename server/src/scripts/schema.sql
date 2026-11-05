@@ -363,3 +363,25 @@ CREATE TABLE public.staffnotificationcursor (
     updatedat timestamp with time zone DEFAULT now() NOT NULL,
     PRIMARY KEY (staffid, audience)
 );
+
+-- Deleted items: each row is one deleted record (a case, an expense, ...)
+-- plus everything removed with it, kept as `snapshot` so it can be restored
+-- for 30 days. The rows are really deleted from their own tables, so no other
+-- query has to skip deleted data. A daily job (src/lib/deletion-purge.ts)
+-- removes entries, and their uploaded files, once `purgeafter` passes.
+CREATE TABLE public.deletion (
+    deletionid serial PRIMARY KEY,
+    entitytype text NOT NULL,
+    entityid integer NOT NULL,
+    label text NOT NULL,
+    summary text,
+    -- [{ "table", "key", "rows", "shared"?, "keep"? }] in insert order.
+    snapshot jsonb NOT NULL,
+    -- Storage keys of uploaded files, deleted on purge.
+    files text[] DEFAULT '{}'::text[] NOT NULL,
+    deletedby text NOT NULL REFERENCES public.staff(id),
+    deletedat timestamp with time zone DEFAULT now() NOT NULL,
+    purgeafter timestamp with time zone DEFAULT (now() + interval '30 days') NOT NULL
+);
+CREATE INDEX idx_deletion_purgeafter ON public.deletion USING btree (purgeafter);
+CREATE INDEX idx_deletion_deletedat ON public.deletion USING btree (deletedat DESC);

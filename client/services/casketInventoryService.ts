@@ -93,13 +93,3 @@ export async function updateCasket(
     throw toReadableError(error, 'Failed to save casket.');
   }
 }
-
-export async function deleteCasket(casketid: number) {
-  try {
-    await API.delete(`/casketinventory/${casketid}`, {
-      withCredentials: true,
-    });
-  } catch (error) {
-    throw toReadableError(error, 'Failed to delete casket.');
-  }
-}
