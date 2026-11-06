@@ -94,6 +94,13 @@ export default function LifeplanTable() {
       render: (l) => (l.use_benefits ? 'Used' : 'Upgraded'),
     },
     {
+      key: 'originalprice',
+      label: 'Original price',
+      widthClassName: 'w-32.5',
+      render: (l) =>
+        l.originalprice != null ? formatCurrency(l.originalprice) : '—',
+    },
+    {
       key: 'contractamount',
       label: 'Extra amount',
       render: (l) => {
@@ -108,7 +115,7 @@ export default function LifeplanTable() {
     },
     {
       key: 'remainingbalance',
-      label: 'Extra remaining',
+      label: 'Outstanding Balance',
       render: (l) => {
         const left = extraLeft(l);
         return left != null ? formatCurrency(left) : '—';

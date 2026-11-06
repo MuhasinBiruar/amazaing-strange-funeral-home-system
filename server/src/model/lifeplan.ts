@@ -15,6 +15,7 @@ const SORT_COLUMNS: Record<keyof GetLifeplansQueryRow, string> = {
   companyname: 'lc.companyname',
   contractid: 'c.contractid',
   contractamount: 'GREATEST(c.totalamount - COALESCE(l.totalamount, 0), 0)',
+  originalprice: 'CASE WHEN l.use_benefits = false THEN c.totalamount END',
   totalamountpaid: 'COALESCE(t.totalpaid, 0)',
   totaldeductions: 'COALESCE(od.totaldeductions, 0)',
   remainingbalance:
@@ -40,6 +41,7 @@ export const getLifeplans = async ({
       l.planholdername,
       l.totalamount,
       l.use_benefits,
+            CASE WHEN l.use_benefits = false THEN c.totalamount END::float8 AS originalprice,
       l.caseid,
       CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
       CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
