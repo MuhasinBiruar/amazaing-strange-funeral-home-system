@@ -12,9 +12,13 @@ export interface DeleteTarget {
 export interface SelectionActionsContext<T> {
   /** Ticked rows on the current page. */
   selected: T[];
+  /** Total rows matching the current search and filters. */
+  total: number;
   clearSelection: () => void;
   /** Refetches the current page. */
   refresh: () => void;
+  /** Fetches every row matching the current search and filters. */
+  loadAllRows: () => Promise<T[]>;
 }
 
 export interface FetchDataParams<

@@ -136,6 +136,43 @@ export default function DeletedItemsPage() {
     }
   }
 
+  async function restoreAll(
+    total: number,
+    loadAllRows: () => Promise<DeletionLog[]>,
+    onDone: () => void,
+  ) {
+    const confirmed = await showInfo({
+      title: 'Restore all deleted items?',
+      message: `This will restore all ${total} items matching the current search and filters.`,
+      closeLabel: 'Cancel',
+      confirmLabel: 'Restore all',
+      severity: 'warning',
+    });
+    if (!confirmed) return;
+
+    let entries: DeletionLog[];
+    try {
+      entries = await loadAllRows();
+    } catch (error) {
+      await showInfo({
+        title: "Couldn't load deleted items",
+        message: error instanceof Error ? error.message : 'Try again.',
+        severity: 'error',
+      });
+      return;
+    }
+    if (entries.length === 0) {
+      await showInfo({
+        title: 'Nothing to restore',
+        message: 'There are no deleted items matching the current search and filters.',
+        severity: 'info',
+      });
+      return;
+    }
+
+    await restore(entries, onDone);
+  }
+
   const [refreshKey, setRefreshKey] = useState(0);
   const refresh = () => setRefreshKey((k) => k + 1);
 
@@ -258,24 +295,50 @@ export default function DeletedItemsPage() {
               endDate: filters.dateRange.to ?? undefined,
             })
           }
-          selectionActions={({ selected, clearSelection, refresh: reload }) =>
-            selected.length > 0 && (
-              <button
-                type="button"
-                onClick={() =>
-                  void restore(selected, () => {
-                    clearSelection();
-                    reload();
-                  })
-                }
-                disabled={selected.some((d) => restoringIds.has(d.deletionid))}
-                className="flex items-center gap-1.5 text-sm border border-indigo-200 bg-white text-indigo-600 rounded-md px-3 py-1.5 hover:bg-indigo-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ArchiveRestore size={14} />
-                Restore ({selected.length})
-              </button>
-            )
-          }
+          selectionActions={({
+            selected,
+            total,
+            clearSelection,
+            refresh: reload,
+            loadAllRows,
+          }) => (
+            <>
+              {selected.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    void restore(selected, () => {
+                      clearSelection();
+                      reload();
+                    })
+                  }
+                  disabled={selected.some((d) =>
+                    restoringIds.has(d.deletionid),
+                  )}
+                  className="flex items-center gap-1.5 text-sm border border-indigo-200 bg-white text-indigo-600 rounded-md px-3 py-1.5 hover:bg-indigo-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ArchiveRestore size={14} />
+                  Restore ({selected.length})
+                </button>
+              )}
+              {total > 0 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    void restoreAll(total, loadAllRows, () => {
+                      clearSelection();
+                      reload();
+                    })
+                  }
+                  disabled={restoringIds.size > 0}
+                  className="flex items-center gap-1.5 text-sm border border-indigo-200 bg-white text-indigo-600 rounded-md px-3 py-1.5 hover:bg-indigo-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ArchiveRestore size={14} />
+                  Restore all
+                </button>
+              )}
+            </>
+          )}
           refreshKey={refreshKey}
           emptyMessage="Nothing has been deleted in the last 30 days."
           loadErrorMessage="Could not load deleted items. Try again."

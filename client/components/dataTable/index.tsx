@@ -328,8 +328,10 @@ export default function DataTable<
             <>
               {selectionActions?.({
                 selected: selectedRows,
+                total,
                 clearSelection,
                 refresh: reload,
+                loadAllRows: () => fetchAllRows(filterValues),
               })}
               {canDelete && (
                 <DeleteActions
