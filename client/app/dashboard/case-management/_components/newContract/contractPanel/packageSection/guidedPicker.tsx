@@ -67,14 +67,14 @@ export default function GuidedPicker({
     );
   }
 
-  const matching = (packages ?? []).filter(
-    (p) =>
-      p.packagetype === packagetype &&
-      (lifeplanAmount === undefined ||
-        (useLifeplanBenefits
-          ? p.price === lifeplanAmount
-          : p.price > lifeplanAmount)),
-  );
+  const matching = (packages ?? []).filter((p) => {
+    if (p.packagetype !== packagetype) return false;
+    if (lifeplanAmount === undefined) return true;
+
+    return useLifeplanBenefits
+      ? p.price === lifeplanAmount
+      : p.price > lifeplanAmount;
+  });
   const selected = matching.find((p) => p.packageid === selectedId) ?? null;
 
   return (
