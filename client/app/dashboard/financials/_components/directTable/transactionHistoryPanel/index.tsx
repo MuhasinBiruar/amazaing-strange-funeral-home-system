@@ -64,14 +64,17 @@ export default function TransactionHistoryPanel({
     0,
   );
 
-  const totalDue = Math.max((totalAmount ?? 0) - discount, 0);
+  // The contract total is reduced when the official receipt stores its
+  // discount and withholding, so do not deduct them again in the history.
+  const totalDue = Math.max(totalAmount ?? 0, 0);
+  const originalAmount = totalDue + discount;
 
   const withholding = receipts.reduce(
     (sum, r) => sum + Number(r.withholding_tax ?? 0),
     0,
   );
 
-  const paymentDue = Math.max(totalDue - withholding, 0);
+  const paymentDue = totalDue;
 
   return (
     <SidePanel
@@ -98,8 +101,8 @@ export default function TransactionHistoryPanel({
           <>
             <section className="mb-5 text-sm space-y-1">
               <div className="flex justify-between">
-                <span className="text-gray-500">Total amount</span>
-                <span>{formatCurrency(totalAmount ?? 0)}</span>
+                <span className="text-gray-500">Total amount (original)</span>
+                <span>{formatCurrency(originalAmount)}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between">
