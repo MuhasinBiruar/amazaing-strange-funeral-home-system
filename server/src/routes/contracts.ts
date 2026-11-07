@@ -82,7 +82,7 @@ router.post(
             'SELECT totalamount::text, use_benefits FROM lifeplan WHERE caseid = $1',
             [parsed.caseid],
           );
-          if (lifeplanResult.rows.length > 0) {
+          if (lifeplanResult.rows.length > 0 && parsed.useLifeplanAmount) {
             const lifeplan = lifeplanResult.rows[0];
             const expectedAmount = Math.max(
               0,

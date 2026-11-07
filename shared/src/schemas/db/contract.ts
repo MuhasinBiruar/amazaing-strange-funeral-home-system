@@ -9,6 +9,7 @@ export const createContractQuerySchema = z.object({
   inclusions: withNullDefault(z.string().min(1)),
   caseid: z.int32(),
   packageid: z.int32(),
+  useLifeplanAmount: z.boolean().default(true),
 });
 
 export type CreateContractQuery = z.infer<typeof createContractQuerySchema>;

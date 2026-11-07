@@ -93,11 +93,9 @@ export default function LifeplanTable({
     },
     {
       key: 'contractamount',
-      label: 'Extra amount',
+      label: 'Extra balance',
       render: (l) =>
-        l.contractamount != null
-          ? formatCurrency(l.contractamount)
-          : '—',
+        l.contractamount != null ? formatCurrency(l.contractamount) : '—',
     },
     {
       key: 'totalamountpaid',
@@ -106,7 +104,7 @@ export default function LifeplanTable({
     },
     {
       key: 'remainingbalance',
-      label: 'Extra remaining',
+      label: 'Outstanding balance',
       render: (l) => {
         const left = extraLeft(l);
         return left != null ? formatCurrency(left) : '—';
