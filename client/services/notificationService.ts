@@ -9,6 +9,10 @@ import { API } from './api';
 export interface NotificationFilters {
   category?: NotificationCategory;
   readStatus?: NotificationReadStatus;
+  /** `yyyy-mm-dd`; filters on when the notification was raised. */
+  startDate?: string;
+  /** `yyyy-mm-dd`, inclusive. */
+  endDate?: string;
 }
 
 const NOTIFICATIONS_CHANGED_EVENT = 'notifications:changed';

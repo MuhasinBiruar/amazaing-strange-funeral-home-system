@@ -1,5 +1,6 @@
 import type { NotificationCategory, NotificationReadStatus } from 'shared';
 import type { NotificationFilters as Filters } from '@/services/notificationService';
+import DateRangePicker from '@/components/dateRangePicker';
 
 const CATEGORIES: { key: NotificationCategory | undefined; label: string }[] = [
   { key: undefined, label: 'All' },
@@ -41,7 +42,8 @@ function Chip({
 
 /**
  * Category chips (one at a time, "All" clears it) plus Unread/Read chips,
- * which toggle off when clicked again.
+ * which toggle off when clicked again, and a date range for when the
+ * notifications were raised.
  */
 export default function NotificationFilters({
   filters,
@@ -51,7 +53,39 @@ export default function NotificationFilters({
   onChange: (filters: Filters) => void;
 }) {
   return (
-    <div className="flex items-center gap-1.5 px-4 py-2 border-b border-gray-200 overflow-x-auto">
+    <div className="border-b border-gray-200">
+      <div className="flex items-center gap-1.5 px-4 pt-2 overflow-x-auto">
+        <ChipRow filters={filters} onChange={onChange} />
+      </div>
+
+      <div className="px-4 py-2">
+        <DateRangePicker
+          value={{
+            from: filters.startDate ?? null,
+            to: filters.endDate ?? null,
+          }}
+          placeholder="Any date"
+          onApply={(startDate, endDate) =>
+            onChange({ ...filters, startDate, endDate })
+          }
+          onClear={() =>
+            onChange({ ...filters, startDate: undefined, endDate: undefined })
+          }
+        />
+      </div>
+    </div>
+  );
+}
+
+function ChipRow({
+  filters,
+  onChange,
+}: {
+  filters: Filters;
+  onChange: (filters: Filters) => void;
+}) {
+  return (
+    <>
       {CATEGORIES.map(({ key, label }) => (
         <Chip
           key={label}
@@ -76,6 +110,6 @@ export default function NotificationFilters({
           }
         />
       ))}
-    </div>
+    </>
   );
 }

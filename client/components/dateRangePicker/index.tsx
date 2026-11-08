@@ -236,6 +236,9 @@ export default function DateRangePicker({
             ref={popoverRef}
             role="dialog"
             aria-label="Choose a date range"
+            // Lets popovers that host this picker (e.g. the notification bell)
+            // tell a click in the portaled calendar from an outside click.
+            data-date-range-popover=""
             style={{
               top: position?.top ?? 0,
               left: position?.left ?? 0,
