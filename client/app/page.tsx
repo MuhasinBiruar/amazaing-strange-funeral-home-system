@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useInfoModal } from '@/components/infoModal/useInfoModal';
 import LoadingButton from '@/components/loadingButton';
 import PasswordInput from '@/components/passwordInput';
+import DashboardLoading from '@/components/dashboardLoading';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function LoginPage() {
 
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const homeFor = (role?: string | null) =>
     role === 'lifeplan_agent' ? '/view-lifeplan' : '/dashboard';
@@ -60,6 +62,7 @@ export default function LoginPage() {
 
         if (isConfirmed) return;
 
+        setIsRedirecting(true);
         router.push(homeFor((data.user as { role?: string | null }).role));
       } catch (err) {
         console.error('Failed to check session:', err);
@@ -160,8 +163,11 @@ export default function LoginPage() {
 
     if (!isConfirmed) return;
 
+    setIsRedirecting(true);
     router.push(homeFor(user.role));
   }
+
+  if (isRedirecting) return <DashboardLoading />;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
