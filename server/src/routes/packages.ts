@@ -26,6 +26,15 @@ const SELECT_WITH_CASKET = `
   LEFT JOIN casketinventory ci ON p.casketid = ci.casketid
 `;
 
+const UPDATE_COLUMNS: Record<keyof UpdatePackageQuery, string> = {
+  packagename: 'packagename',
+  packagetype: 'packagetype',
+  price: 'price',
+  embalmingperiod: 'embalmingperiod',
+  inclusions: 'inclusions',
+  casketid: 'casketid',
+};
+
 router.get('/', requireAuth, async (_req, res, next) => {
   try {
     const result = await pool.query(SELECT_WITH_CASKET);
@@ -106,11 +115,14 @@ router.patch(
     next: NextFunction,
   ) => {
     try {
-      const fields = Object.entries(req.body);
+      const fields = Object.entries(req.body) as [
+        keyof UpdatePackageQuery,
+        UpdatePackageQuery[keyof UpdatePackageQuery],
+      ][];
       if (fields.length === 0) throw new ConflictError('No changes provided.');
       const values = fields.map(([, value]) => value);
       const setClause = fields
-        .map(([key], index) => `"${key}" = $${index + 1}`)
+        .map(([key], index) => `"${UPDATE_COLUMNS[key]}" = $${index + 1}`)
         .join(', ');
       const result = await pool.query(
         `UPDATE package SET ${setClause} WHERE packageid = $${fields.length + 1}

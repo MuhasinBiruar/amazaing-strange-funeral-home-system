@@ -46,6 +46,15 @@ export default function PackagePanel({
   const [saving, setSaving] = useState(false);
 
   async function save() {
+    if (!price.trim()) {
+      setError('Price is required.');
+      return;
+    }
+    if (!period.trim()) {
+      setError('Embalming period is required.');
+      return;
+    }
+
     const parsed = createPackageQuerySchema.safeParse({
       packagename: name.trim(),
       packagetype: type,
