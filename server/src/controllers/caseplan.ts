@@ -16,7 +16,7 @@ const PLAN_LABELS: Record<CasePlan['plantype'], string> = {
   LGU: 'LGU',
 };
 
-async function selectCasePlan(
+export async function selectCasePlan(
   client: PoolClient | typeof pool,
   caseid: number,
 ): Promise<CasePlan | null> {

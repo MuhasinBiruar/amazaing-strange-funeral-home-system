@@ -10,8 +10,9 @@ import type {
 import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import { getLifeplans } from '@/services/lifeplansService';
+import { getCasePreview } from '@/services/deceasedRecordService';
 import { formatCurrency, formatDate } from '@/utils/format';
-import CasePreviewPanel from '../../casePreviewPanel';
+import CasePreviewPanel from '@/components/casePreviewPanel';
 
 type ColumnKey = keyof GetLifeplansQueryRow;
 
@@ -127,6 +128,8 @@ export default function LifeplanRecordsPanel({
       {previewingCaseId !== null && (
         <CasePreviewPanel
           caseid={previewingCaseId}
+          fetchPreview={getCasePreview}
+          showEditLink
           onClose={() => setPreviewingCaseId(null)}
         />
       )}
