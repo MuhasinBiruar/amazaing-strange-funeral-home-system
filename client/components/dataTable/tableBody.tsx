@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react';
+import { Skeleton } from 'primereact/skeleton';
 import type { Dispatch, SetStateAction } from 'react';
 import SortableHeaderCell from '@/components/dataTable/sortableHeaderCell';
 import type { DataTableColumn } from './types';
@@ -31,7 +31,6 @@ export default function TableBody<T, K extends string>({
   theadRef,
   onRowClick,
   isRowSelected,
-  bodyOffsetClassName = 'top-17.25',
   selection,
 }: {
   columns: DataTableColumn<T, K>[];
@@ -110,7 +109,35 @@ export default function TableBody<T, K extends string>({
             )}
           </tr>
         </thead>
-        <tbody>
+        <tbody aria-busy={isLoading}>
+          {isLoading &&
+            Array.from({ length: Math.max(rows.length, 5) }, (_, rowIndex) => (
+              <tr
+                key={`skeleton-${rowIndex}`}
+                className="h-11.25 border-b border-gray-100 last:border-0"
+              >
+                {selection && (
+                  <td className="pl-5 pr-1 py-3">
+                    <Skeleton width="1rem" height="1rem" />
+                  </td>
+                )}
+                {columns.map((col, columnIndex) => (
+                  <td
+                    key={col.key}
+                    className={
+                      col.cellClassName ??
+                      'px-5 py-3 text-gray-500 whitespace-nowrap'
+                    }
+                  >
+                    <Skeleton
+                      width={columnIndex === 0 ? '70%' : '55%'}
+                      height="0.875rem"
+                    />
+                  </td>
+                ))}
+              </tr>
+            ))}
+
           {!isLoading && errorMsg && (
             <tr>
               <td
@@ -122,7 +149,7 @@ export default function TableBody<T, K extends string>({
             </tr>
           )}
 
-          {!errorMsg && rows.length === 0 && (
+          {!isLoading && !errorMsg && rows.length === 0 && (
             <tr>
               <td
                 colSpan={columnCount}
@@ -133,7 +160,8 @@ export default function TableBody<T, K extends string>({
             </tr>
           )}
 
-          {!errorMsg &&
+          {!isLoading &&
+            !errorMsg &&
             rows.map((row) => {
               const selected = isRowSelected?.(row) ?? false;
               const ticked = selection?.isSelected(row) ?? false;
@@ -179,16 +207,6 @@ export default function TableBody<T, K extends string>({
         </tbody>
       </table>
 
-      {isLoading && (
-        <div
-          className={`absolute inset-0 ${bodyOffsetClassName} bottom-0 flex items-center justify-center bg-white/80`}
-        >
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Loader2 size={16} className="animate-spin" />
-            Loading...
-          </div>
-        </div>
-      )}
     </div>
   );
 }

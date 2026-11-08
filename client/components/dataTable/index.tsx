@@ -57,7 +57,6 @@ export default function DataTable<
   isRowSelected,
   emptyMessage = 'No records found.',
   loadErrorMessage = 'Could not load records. Try again.',
-  bodyOffsetClassName,
   refreshKey,
   exportFileName,
   deletable,
@@ -405,7 +404,6 @@ export default function DataTable<
         theadRef={theadRef}
         onRowClick={onRowClick}
         isRowSelected={isRowSelected}
-        bodyOffsetClassName={bodyOffsetClassName}
         selection={selection}
       />
 
