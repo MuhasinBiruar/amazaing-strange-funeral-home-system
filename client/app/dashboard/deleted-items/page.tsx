@@ -67,6 +67,7 @@ const TYPE_VARIANTS: Record<DeletionEntityType, BadgeVariant> = {
   formalindelivery: 'info',
   formalinusage: 'info',
   casketinventory: 'info',
+  inventoryaudit: 'info',
   lgu: 'success',
   lifeplancompany: 'success',
 };

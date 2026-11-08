@@ -46,6 +46,23 @@ const SELECT_FORMALIN_DELIVERY = `
   FROM public.formalindelivery
 ` as const;
 
+router.get(
+  '/history/:id',
+  requireAuth,
+  validateParams(idParamSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await pool.query(
+        `${SELECT_FORMALIN_DELIVERY} WHERE formalinid = $1 ORDER BY deliverydate DESC, deliveryid DESC`,
+        [req.params.id],
+      );
+      res.json({ data: result.rows });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 /**
  * Sample URLs
  * `http://localhost:4000/deliveries/formalin`

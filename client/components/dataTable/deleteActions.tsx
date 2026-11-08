@@ -24,6 +24,8 @@ const DELETE_NOTES: Partial<Record<DeletionEntityType, string>> = {
   casketdelivery: 'The delivered caskets are taken back out of stock.',
   formalindelivery: 'The delivered formalin is taken back out of stock.',
   formalinusage: 'The used formalin is put back into stock.',
+  inventoryaudit:
+    'Any stock and delivery-history corrections made while resolving the audit stay unchanged.',
 };
 
 /** Names a group of targets, falling back to "records" for mixed types. */
