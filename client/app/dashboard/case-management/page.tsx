@@ -2,17 +2,19 @@
 
 import CaseTable from './_components/caseTable';
 import NewContract from './_components/newContract';
+import BurialRecordsTab from './_components/burialRecordsTab';
 import { useRouter, useSearchParams } from 'next/navigation';
 import z from 'zod';
 import { Suspense } from 'react';
 
 // `new-contract` is also linked to from intake (`?tab=new-contract&caseid=`),
 // so these keys are part of the page's URL contract.
-const tabEnum = z.enum(['view', 'new-contract']).catch('view');
+const tabEnum = z.enum(['view', 'burial-records', 'new-contract']).catch('view');
 type Tab = z.infer<typeof tabEnum>;
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'view', label: 'Cases' },
+  { key: 'burial-records', label: 'Burial Records' },
   { key: 'new-contract', label: 'New Contract' },
 ];
 
@@ -68,6 +70,8 @@ function CasesPageContent() {
         </div>
         {activeTab === 'new-contract' ? (
           <NewContract onCreated={() => changeTab('view')} />
+        ) : activeTab === 'burial-records' ? (
+          <BurialRecordsTab />
         ) : (
           <CaseTable />
         )}

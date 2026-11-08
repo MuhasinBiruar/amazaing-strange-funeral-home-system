@@ -449,6 +449,29 @@ export const ENTITIES: Record<DeletionEntityType, EntityDefinition> = {
     },
   },
 
+  burialrecord: {
+    table: 'burialrecord',
+    async collect(client, burialid) {
+      const burial = await selectRows(
+        client,
+        'burialrecord',
+        'burialid',
+        't.burialid = $1',
+        [burialid],
+      );
+      if (burial.rows.length === 0)
+        throw new NotFoundError('This burial record no longer exists.');
+      const row = rootRow([burial]);
+      return {
+        label: row.burialsite
+          ? `Burial at ${row.burialsite}`
+          : `Burial record for case ${row.caseid}`,
+        tables: [burial],
+        files: [],
+      };
+    },
+  },
+
   /** Only an LGU no case is filed under. */
   lgu: {
     table: 'lgu',
