@@ -61,6 +61,7 @@ const FILTERS: FilterDef<Filters>[] = [
 const TYPE_VARIANTS: Record<DeletionEntityType, BadgeVariant> = {
   case: 'indigo',
   package: 'indigo',
+  burialrecord: 'indigo',
   expense: 'purple',
   casketdelivery: 'info',
   formalindelivery: 'info',
