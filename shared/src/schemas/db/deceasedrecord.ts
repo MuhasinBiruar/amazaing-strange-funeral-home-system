@@ -10,10 +10,10 @@ export const createDeceasedRecordQuerySchema = z.object({
   typeofdeath: withNullDefault(z.string().trim().min(1)),
   physicaldescription: withNullDefault(z.string().trim().min(1)),
   servicestatus: z.enum(['intake', 'active', 'pending', 'completed']),
-  hasmaturedlifeplan: z.boolean(),
   plantype: z.enum(['Direct', 'Life', 'LGU']),
   datecreated: z.coerce.date(),
   dateofdeath: withNullDefault(z.coerce.date()),
+  locationofdeath: withNullDefault(z.string().trim().min(1).max(255)),
   managedby: withNullDefault(z.string().min(1)),
   representedby: withNullDefault(z.int32()),
   // Setting a default would reset the flag on unrelated PATCHes.
@@ -24,8 +24,14 @@ export type CreateDeceasedRecordQuery = z.infer<
   typeof createDeceasedRecordQuerySchema
 >;
 
-export const updateDeceasedRecordQuerySchema =
-  createDeceasedRecordQuerySchema.partial();
+/**
+ * @remarks
+ * `plantype` isn't here: changing it also has to add or remove the case's
+ * life plan / LGU record, so it goes through `updateCasePlanQuerySchema`.
+ */
+export const updateDeceasedRecordQuerySchema = createDeceasedRecordQuerySchema
+  .omit({ plantype: true })
+  .partial();
 
 export type UpdateDeceasedRecordQuery = z.infer<
   typeof updateDeceasedRecordQuerySchema
@@ -33,6 +39,11 @@ export type UpdateDeceasedRecordQuery = z.infer<
 
 export const deceasedRecordSchema = createDeceasedRecordQuerySchema.extend({
   caseid: z.int32(),
+  /**
+   * Every life plan the home takes is matured, so the server keeps this equal
+   * to `plantype === 'Life'`; it isn't set by staff.
+   */
+  hasmaturedlifeplan: z.boolean(),
   hasadvanceddecomposition: z.boolean(),
 });
 

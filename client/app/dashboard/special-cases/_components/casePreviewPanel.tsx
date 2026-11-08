@@ -144,8 +144,8 @@ export default function CasePreviewPanel({
                   value={record.physicaldescription ?? '—'}
                 />
                 <DetailField
-                  label="Matured life plan"
-                  value={record.hasmaturedlifeplan ? 'Yes' : 'No'}
+                  label="Location of death"
+                  value={record.locationofdeath ?? '—'}
                 />
                 <DetailField
                   label="Advanced decomposition / open wounds"

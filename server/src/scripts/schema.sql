@@ -166,12 +166,15 @@ CREATE TABLE public.deceasedrecord (
     typeofdeath character varying(255),
     physicaldescription text,
     servicestatus public.service_status_enum NOT NULL,
+    -- Every life plan the home takes is matured, so this is kept equal to
+    -- plantype = 'Life' by the server rather than set by staff.
     hasmaturedlifeplan boolean DEFAULT false NOT NULL,
     plantype public.plan_type_enum NOT NULL,
     datecreated date DEFAULT CURRENT_DATE NOT NULL,
     managedby text NOT NULL REFERENCES public.staff(id),
     representedby integer REFERENCES public.representative(representativeid),
     dateofdeath date,
+    locationofdeath character varying(255),
     hasadvanceddecomposition boolean DEFAULT false NOT NULL,
     -- When servicestatus last became 'completed'; kept by the trigger below.
     completedat timestamp with time zone

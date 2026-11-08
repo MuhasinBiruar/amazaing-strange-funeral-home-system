@@ -187,8 +187,8 @@ export default function ContractPanel({
               />
               <DetailRow label="Plan type" value={deceased.plantype} />
               <DetailRow
-                label="Matured life plan"
-                value={deceased.hasmaturedlifeplan ? 'Yes' : 'No'}
+                label="Location of death"
+                value={deceased.locationofdeath}
               />
               <DetailRow label="Cause of death" value={deceased.causeofdeath} />
               <DetailRow label="Type of death" value={deceased.typeofdeath} />

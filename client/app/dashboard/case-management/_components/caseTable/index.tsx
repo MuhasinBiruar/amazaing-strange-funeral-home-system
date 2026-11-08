@@ -220,6 +220,7 @@ export default function CaseTable() {
             key={selectedCase.record.caseid}
             caseid={selectedCase.record.caseid}
             representativeid={selectedCase.record.representativeid}
+            contractid={selectedCase.record.contractid}
             onClose={() => {
               setSelectedCase(null);
               if (caseid !== undefined) {

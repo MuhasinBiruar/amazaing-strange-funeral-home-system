@@ -9,9 +9,8 @@ export interface DeceasedForm {
   typeofdeath: string;
   physicaldescription: string;
   servicestatus: DeceasedRecord['servicestatus'];
-  plantype: DeceasedRecord['plantype'];
   dateofdeath: string;
-  hasmaturedlifeplan: boolean;
+  locationofdeath: string;
   hasadvanceddecomposition: boolean;
 }
 
@@ -24,9 +23,8 @@ export function toDeceasedForm(record: DeceasedRecord): DeceasedForm {
     typeofdeath: record.typeofdeath ?? '',
     physicaldescription: record.physicaldescription ?? '',
     servicestatus: record.servicestatus,
-    plantype: record.plantype,
     dateofdeath: toDateInputValue(record.dateofdeath),
-    hasmaturedlifeplan: record.hasmaturedlifeplan,
+    locationofdeath: record.locationofdeath ?? '',
     hasadvanceddecomposition: record.hasadvanceddecomposition,
   };
 }

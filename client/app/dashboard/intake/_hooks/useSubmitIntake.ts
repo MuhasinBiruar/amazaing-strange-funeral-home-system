@@ -4,7 +4,7 @@ import {
   uploadDocument,
 } from '@/services/documentService';
 import { createLifeplan } from '@/services/lifeplansService';
-import type { CreateDeceasedRecordQuery } from 'shared';
+import type { CreateDeceasedRecordQuery, CreateLguCaseQuery } from 'shared';
 import type { SubmitEvent } from 'react';
 import type { StagedDocument } from '../_components/documentchecklist';
 import type { InfoModalOptions } from '@/components/infoModal/types';
@@ -67,12 +67,12 @@ export function useSubmitIntake(
             : (formData.typeofdeath as string | null),
         physicaldescription: formData.physicaldescription as string | null,
         servicestatus: 'intake',
-        hasmaturedlifeplan: false,
         plantype: getPlantype(formData.plantype as string),
         datecreated: new Date(),
         dateofdeath: formData.dateofdeath
           ? new Date(formData.dateofdeath as string)
           : null,
+        locationofdeath: (formData.locationOfDeath as string | null) || null,
         managedby: null,
         representedby: generatedRepId,
         hasadvanceddecomposition: formData.hasadvanceddecomposition === true,
@@ -96,7 +96,9 @@ export function useSubmitIntake(
         setStatus('Saving LGU case…');
         // STEP 3: LGU CASE
         await createLguCase({
-          reimbursementstatus: 'pending',
+          reimbursementstatus:
+            (formData.lgu_reimbursementstatus as CreateLguCaseQuery['reimbursementstatus']) ||
+            'pending',
           reimbursementamount: Number(formData.lgu_reimbursementamount),
           caseid: generatedCaseId,
           lguid: Number(formData.lguid),
