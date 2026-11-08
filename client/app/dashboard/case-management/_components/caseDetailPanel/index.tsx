@@ -15,6 +15,7 @@ import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import DocumentsSection from './documentsSection';
 import DeceasedInfoSection from './deceasedInfoSection';
 import PlanSection from './planSection';
+import ContractSection from './contractSection';
 import RepresentativeInfoSection from './representativeInfoSection';
 import {
   toDeceasedForm,
@@ -26,11 +27,14 @@ import {
 export default function CaseDetailPanel({
   caseid,
   representativeid,
+  contractid,
   onClose,
   setRefreshKey,
 }: {
   caseid: number;
   representativeid: number | null;
+  /** Null until the case is put under contract. */
+  contractid: number | null;
   onClose: () => void;
   setRefreshKey: Dispatch<SetStateAction<number>>;
 }) {
@@ -202,6 +206,13 @@ export default function CaseDetailPanel({
                 .join(' ')}
               onSaved={() => setRefreshKey((v) => v + 1)}
             />
+
+            {contractid !== null && (
+              <ContractSection
+                contractid={contractid}
+                onSaved={() => setRefreshKey((v) => v + 1)}
+              />
+            )}
 
             <RepresentativeInfoSection
               form={representativeForm}
