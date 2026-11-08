@@ -10,6 +10,7 @@ export const deletionEntityTypeEnum = z.enum([
   'casketinventory',
   'lgu',
   'lifeplancompany',
+  'package',
 ]);
 
 export type DeletionEntityType = z.infer<typeof deletionEntityTypeEnum>;
@@ -32,6 +33,7 @@ export const DELETION_ENTITY_LABELS: Record<
     singular: 'life plan company',
     plural: 'life plan companies',
   },
+  package: { singular: 'package', plural: 'packages' },
 };
 
 /** Days a deleted record stays restorable before it's permanently removed. */

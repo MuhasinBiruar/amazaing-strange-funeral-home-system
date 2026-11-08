@@ -60,6 +60,7 @@ const FILTERS: FilterDef<Filters>[] = [
 /** Grouped by the page each type comes from. */
 const TYPE_VARIANTS: Record<DeletionEntityType, BadgeVariant> = {
   case: 'indigo',
+  package: 'indigo',
   expense: 'purple',
   casketdelivery: 'info',
   formalindelivery: 'info',

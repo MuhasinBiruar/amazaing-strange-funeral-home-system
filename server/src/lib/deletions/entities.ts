@@ -418,6 +418,37 @@ export const ENTITIES: Record<DeletionEntityType, EntityDefinition> = {
     },
   },
 
+  package: {
+    table: 'package',
+    async collect(client, packageid) {
+      const result = await client.query(
+        `SELECT to_jsonb(p) AS row
+         FROM package p
+         WHERE p.packageid = $1
+         FOR UPDATE`,
+        [packageid],
+      );
+      if (result.rows.length === 0)
+        throw new NotFoundError('This package no longer exists.');
+
+      const { row } = result.rows[0];
+      const contracts = await client.query(
+        'SELECT 1 FROM contract WHERE packageid = $1 LIMIT 1',
+        [packageid],
+      );
+      if (contracts.rows.length > 0)
+        throw new ConflictError(
+          `${row.packagename} cannot be deleted because it is used by a contract.`,
+        );
+
+      return {
+        label: `${row.packagename} (${row.packagetype})`,
+        tables: [{ table: 'package', key: 'packageid', rows: [row] }],
+        files: [],
+      };
+    },
+  },
+
   /** Only an LGU no case is filed under. */
   lgu: {
     table: 'lgu',

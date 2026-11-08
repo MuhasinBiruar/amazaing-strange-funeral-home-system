@@ -7,8 +7,13 @@ import {
 import pool from '@/db';
 import validate from '@/middleware/validate';
 import requireAuth from '@/middleware/require-auth';
-import { NotFoundError } from '@/errors';
-import { createPackageQuerySchema, type CreatePackageQuery } from 'shared';
+import { ConflictError, NotFoundError } from '@/errors';
+import {
+  createPackageQuerySchema,
+  updatePackageQuerySchema,
+  type CreatePackageQuery,
+  type UpdatePackageQuery,
+} from 'shared';
 
 const router = Router();
 
@@ -85,6 +90,59 @@ router.post(
       res.status(201).json({
         data: result.rows[0],
       });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.patch(
+  '/:id',
+  requireAuth,
+  validate(updatePackageQuerySchema),
+  async (
+    req: Request<{ id: string }, {}, UpdatePackageQuery>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const body = req.body;
+      if (Object.keys(body).length === 0)
+        throw new ConflictError('No changes provided.');
+      const result = await pool.query(
+        `UPDATE package AS p
+         SET packagename = CASE WHEN $1 THEN $2 ELSE p.packagename END,
+             packagetype = CASE WHEN $3 THEN $4 ELSE p.packagetype END,
+             price = CASE WHEN $5 THEN $6 ELSE p.price END,
+             embalmingperiod = CASE WHEN $7 THEN $8 ELSE p.embalmingperiod END,
+             inclusions = CASE WHEN $9 THEN $10 ELSE p.inclusions END,
+             casketid = CASE WHEN $11 THEN $12 ELSE p.casketid END
+         WHERE p.packageid = $13
+         RETURNING packageid`,
+        [
+          Object.hasOwn(body, 'packagename'),
+          body.packagename,
+          Object.hasOwn(body, 'packagetype'),
+          body.packagetype,
+          Object.hasOwn(body, 'price'),
+          body.price,
+          Object.hasOwn(body, 'embalmingperiod'),
+          body.embalmingperiod,
+          Object.hasOwn(body, 'inclusions'),
+          body.inclusions,
+          Object.hasOwn(body, 'casketid'),
+          body.casketid,
+          req.params.id,
+        ],
+      );
+      if (result.rows.length === 0) throw new NotFoundError();
+
+      res.locals.auditAction = `${res.locals.session.user.name} updated package ${req.params.id}`;
+      const updated = await pool.query(
+        `${SELECT_WITH_CASKET} WHERE p.packageid = $1`,
+        [req.params.id],
+      );
+      res.json({ data: updated.rows[0] });
     } catch (error) {
       next(error);
     }
