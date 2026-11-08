@@ -4,6 +4,7 @@ import requireAuth from '@/middleware/require-auth';
 import validateParams from '@/middleware/validate-params';
 import { NotFoundError } from '@/errors';
 import { getAccess } from '@/model/access';
+import { toExclusiveEndBound } from '@/util/date';
 import {
   accessPageEnum,
   getNotificationsQuerySchema,
@@ -100,12 +101,12 @@ async function countUnread(staffid: string, res: Response) {
  * Sample URLs
  * `http://localhost:4000/notifications`
  * `http://localhost:4000/notifications?category=stocks&readStatus=unread&page=2`
+ * `http://localhost:4000/notifications?startDate=2026-11-01&endDate=2026-11-08`
  */
 router.get('/', requireAuth, async (req, res, next) => {
   try {
-    const { page, category, readStatus } = getNotificationsQuerySchema.parse(
-      req.query,
-    );
+    const { page, category, readStatus, startDate, endDate } =
+      getNotificationsQuerySchema.parse(req.query);
     const staffid: string = res.locals.session.user.id;
     const { condition, params } = await getVisibility(res);
 
@@ -116,6 +117,16 @@ router.get('/', requireAuth, async (req, res, next) => {
     if (category) {
       queryParams.push(NOTIFICATION_CATEGORY_TYPES[category]);
       whereConditions.push(`n.type = ANY($${queryParams.length}::text[])`);
+    }
+
+    if (startDate) {
+      queryParams.push(startDate);
+      whereConditions.push(`n.createdat >= $${queryParams.length}`);
+    }
+
+    if (endDate) {
+      queryParams.push(toExclusiveEndBound(endDate));
+      whereConditions.push(`n.createdat < $${queryParams.length}`);
     }
 
     if (readStatus) {

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { dateFilteredQuerySchema } from '@/utils';
 
 export const notificationTypeEnum = z.enum([
   'documents_complete',
@@ -68,11 +69,18 @@ export const notificationSchema = z.object({
 
 export type Notification = z.infer<typeof notificationSchema>;
 
-export const getNotificationsQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).max(100).default(1),
-  category: notificationCategoryEnum.optional(),
-  readStatus: notificationReadStatusEnum.optional(),
-});
+/**
+ * @remarks
+ * `startDate`/`endDate` filter on `createdat`.
+ */
+export const getNotificationsQuerySchema = z.intersection(
+  z.object({
+    page: z.coerce.number().int().min(1).max(100).default(1),
+    category: notificationCategoryEnum.optional(),
+    readStatus: notificationReadStatusEnum.optional(),
+  }),
+  dateFilteredQuerySchema,
+);
 
 export type GetNotificationsQuery = z.infer<typeof getNotificationsQuerySchema>;
 

@@ -31,7 +31,9 @@ export default function NotificationDropdown({
   onFiltersChange: (filters: Filters) => void;
 }) {
   const isFiltered =
-    filters.category !== undefined || filters.readStatus !== undefined;
+    filters.category !== undefined ||
+    filters.readStatus !== undefined ||
+    filters.startDate !== undefined;
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
@@ -108,10 +110,10 @@ export default function NotificationDropdown({
             : "You're all caught up."}
         </p>
       ) : (
+        // Fills whatever height the header and filters leave in the dropdown.
         <div
           ref={scrollContainerRef}
-          className="overflow-y-auto"
-          style={{ maxHeight: 'calc(70vh - 6.75rem)' }}
+          className="flex-1 min-h-0 overflow-y-auto"
         >
           {notifications.map((notif) => (
             <NotificationItem

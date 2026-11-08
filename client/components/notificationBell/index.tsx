@@ -49,7 +49,10 @@ export default function NotificationBell() {
     if (!open) return;
 
     const onPointerDown = (e: PointerEvent) => {
-      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Element;
+      // The date filter's calendar is portaled outside the dropdown.
+      if (target.closest?.('[data-date-range-popover]')) return;
+      if (!containerRef.current?.contains(target)) setOpen(false);
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
