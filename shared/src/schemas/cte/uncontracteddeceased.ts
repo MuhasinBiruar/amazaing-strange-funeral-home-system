@@ -18,7 +18,7 @@ export const uncontractedDeceasedSchema = z.object({
   typeofdeath: z.string().nullable(),
   physicaldescription: z.string().nullable(),
   servicestatus: deceasedRecordSchema.shape.servicestatus,
-  hasmaturedlifeplan: deceasedRecordSchema.shape.hasmaturedlifeplan,
+  locationofdeath: deceasedRecordSchema.shape.locationofdeath,
   plantype: deceasedRecordSchema.shape.plantype,
   lifeplan_totalamount: z.float64().nullable(),
   lifeplan_use_benefits: z.boolean().nullable(),

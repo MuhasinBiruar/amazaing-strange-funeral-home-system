@@ -10,6 +10,7 @@ export interface AppErrorResponse {
 }
 
 export * from './schemas/cte/case';
+export * from './schemas/cte/caseplan';
 export * from './schemas/cte/deletionlog';
 export * from './schemas/cte/delivery';
 export * from './schemas/cte/direct';

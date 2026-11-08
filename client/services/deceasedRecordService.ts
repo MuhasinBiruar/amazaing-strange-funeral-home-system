@@ -1,9 +1,11 @@
 import {
   deceasedRecordSchema,
   getDeceasedRecordResponseSchema,
+  getCasePlanResponseSchema,
   getUncontractedDeceasedResponseSchema,
   type CreateDeceasedRecordQuery,
   type GetUncontractedDeceasedQuery,
+  type UpdateCasePlanQuery,
   type UpdateDeceasedRecordQuery,
 } from 'shared';
 import { API } from './api';
@@ -86,6 +88,38 @@ export async function deleteDeceasedRecord(caseid: number) {
       throw new Error(extractErrorMessage(err.response.data));
 
     console.error('Error deleting deceased record:', err);
+    throw err;
+  }
+}
+
+/** The case's plan type with its life plan or LGU details. */
+export async function getCasePlan(caseid: number, signal?: AbortSignal) {
+  const response = await API.get(`/deceasedrecords/${caseid}/plan`, {
+    signal,
+  });
+
+  return getCasePlanResponseSchema.parse(response.data).data;
+}
+
+/**
+ * Sets the case's plan type with its life plan or LGU details; switching away
+ * from Life or LGU removes the old life plan / LGU record.
+ */
+export async function updateCasePlan(
+  caseid: number,
+  payload: UpdateCasePlanQuery,
+) {
+  try {
+    const response = await API.patch(
+      `/deceasedrecords/${caseid}/plan`,
+      payload,
+    );
+
+    return getCasePlanResponseSchema.parse(response.data).data;
+  } catch (err) {
+    if (isAxiosError(err) && err.response?.data?.error?.message)
+      throw new Error(extractErrorMessage(err.response.data));
+
     throw err;
   }
 }
