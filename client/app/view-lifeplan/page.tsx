@@ -1,13 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import type { GetLifeplansQueryRow } from 'shared';
+import CasePreviewPanel from '@/components/casePreviewPanel';
 import DataTable from '@/components/dataTable';
 import type {
   DataTableColumn,
   DateRangeValue,
   FilterDef,
 } from '@/components/dataTable/types';
-import { getMyLifeplans } from '@/services/lifeplansService';
+import { getMyCasePreview, getMyLifeplans } from '@/services/lifeplansService';
 import { formatCurrency, formatDate } from '@/utils/format';
 
 type ColumnKey = keyof GetLifeplansQueryRow;
@@ -65,6 +67,26 @@ const COLUMNS: DataTableColumn<GetLifeplansQueryRow, ColumnKey>[] = [
 ];
 
 export default function ViewLifeplanPage() {
+  const [previewingCaseId, setPreviewingCaseId] = useState<number | null>(null);
+
+  const columns: DataTableColumn<GetLifeplansQueryRow, ColumnKey>[] = [
+    ...COLUMNS,
+    {
+      key: 'caseid',
+      label: 'Case',
+      widthClassName: 'w-32',
+      render: (l) => (
+        <button
+          type="button"
+          onClick={() => setPreviewingCaseId(l.caseid)}
+          className="text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
+        >
+          View case
+        </button>
+      ),
+    },
+  ];
+
   return (
     <div className="flex-1 bg-gray-50 flex flex-col">
       <main className="flex-1 w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -86,7 +108,7 @@ export default function ViewLifeplanPage() {
           searchPlaceholder="Search by plan holder or number..."
           filters={FILTERS}
           defaultFilters={DEFAULT_FILTERS}
-          columns={COLUMNS}
+          columns={columns}
           rowKey={(l) => l.planid}
           defaultSortBy="planholdername"
           defaultSortOrder="asc"
@@ -102,6 +124,14 @@ export default function ViewLifeplanPage() {
           bodyOffsetClassName="top-17.25"
         />
       </main>
+
+      {previewingCaseId !== null && (
+        <CasePreviewPanel
+          caseid={previewingCaseId}
+          fetchPreview={getMyCasePreview}
+          onClose={() => setPreviewingCaseId(null)}
+        />
+      )}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import {
   getLifeplans,
   getMyLifeplans,
 } from '@/controllers/lifeplan';
+import { getMyCasePreview } from '@/controllers/casepreview';
 import {
   createLifeplanCompany,
   getLifeplanCompany,
@@ -27,6 +28,12 @@ router.post('/', requireAuth, validate(createLifeplanQuery), createLifeplan);
 router.get('/', requireAuth, getLifeplans);
 
 router.get('/mine', requireLifeplanAgent, getMyLifeplans);
+router.get(
+  '/mine/:id',
+  requireLifeplanAgent,
+  validateParams(idParamSchema),
+  getMyCasePreview,
+);
 
 router.post(
   '/companies',

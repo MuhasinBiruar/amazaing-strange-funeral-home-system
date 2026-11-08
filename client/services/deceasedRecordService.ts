@@ -2,6 +2,7 @@ import {
   deceasedRecordSchema,
   getDeceasedRecordResponseSchema,
   getCasePlanResponseSchema,
+  getCasePreviewResponseSchema,
   getUncontractedDeceasedResponseSchema,
   type CreateDeceasedRecordQuery,
   type GetUncontractedDeceasedQuery,
@@ -99,6 +100,15 @@ export async function getCasePlan(caseid: number, signal?: AbortSignal) {
   });
 
   return getCasePlanResponseSchema.parse(response.data).data;
+}
+
+/** A read-only view of the case: record, representative, plan and contract. */
+export async function getCasePreview(caseid: number, signal?: AbortSignal) {
+  const response = await API.get(`/deceasedrecords/${caseid}/preview`, {
+    signal,
+  });
+
+  return getCasePreviewResponseSchema.parse(response.data).data;
 }
 
 /**

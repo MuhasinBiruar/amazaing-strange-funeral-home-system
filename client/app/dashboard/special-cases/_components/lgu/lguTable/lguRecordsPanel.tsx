@@ -11,8 +11,9 @@ import ReimbursementStatusPill from '@/components/reimbursementStatusPill';
 import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import { getLguCases } from '@/services/lguCasesService';
+import { getCasePreview } from '@/services/deceasedRecordService';
 import { formatCurrency, formatDate } from '@/utils/format';
-import CasePreviewPanel from '../../casePreviewPanel';
+import CasePreviewPanel from '@/components/casePreviewPanel';
 
 type ColumnKey = keyof GetLguCasesRow;
 
@@ -114,6 +115,8 @@ export default function LguRecordsPanel({
       {previewingCaseId !== null && (
         <CasePreviewPanel
           caseid={previewingCaseId}
+          fetchPreview={getCasePreview}
+          showEditLink
           onClose={() => setPreviewingCaseId(null)}
         />
       )}
