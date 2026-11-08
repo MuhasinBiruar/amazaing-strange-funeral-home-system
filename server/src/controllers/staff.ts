@@ -18,6 +18,26 @@ import type { Locals } from '@/types/controllers';
 import pool from '@/db';
 import { fromNodeHeaders } from 'better-auth/node';
 
+async function syncAuthActiveStatus(
+  userId: string,
+  isActive: boolean,
+  req: Request,
+) {
+  const headers = fromNodeHeaders(req.headers);
+
+  if (isActive) {
+    await auth.api.unbanUser({
+      body: { userId },
+      headers,
+    });
+  } else {
+    await auth.api.banUser({
+      body: { userId },
+      headers,
+    });
+  }
+}
+
 export const getStaff = async (
   req: Request,
   res: Response,
@@ -103,22 +123,24 @@ export const createStaff = async (
       },
     });
 
-    if (isAgent) {
-      try {
+    try {
+      await syncAuthActiveStatus(staff.user.id, parsed.isActive, req);
+
+      if (isAgent) {
         await pool.query(
           'INSERT INTO lifeplan_agent (staffid, companyid) VALUES ($1, $2)',
           [staff.user.id, parsed.companyid],
         );
-      } catch (error) {
-        // Don't leave a half-created agent that can log in but sees nothing.
-        await auth.api.removeUser({
-          body: { userId: staff.user.id },
-          headers: fromNodeHeaders(req.headers),
-        });
-        throw error;
+      } else {
+        await upsertAccess(staff.user.id, parsed.access);
       }
-    } else {
-      await upsertAccess(staff.user.id, parsed.access);
+    } catch (error) {
+      // Don't leave a half-created account if auth or related staff setup fails.
+      await auth.api.removeUser({
+        body: { userId: staff.user.id },
+        headers: fromNodeHeaders(req.headers),
+      });
+      throw error;
     }
 
     res.locals.auditAction = `${
@@ -212,6 +234,16 @@ export const updateStaff = async (
       ? await (await auth.$context).password.hash(parsed.password)
       : null;
 
+    const previousIsActive = existing.isActive;
+    let authStatusChanged = false;
+    if (
+      parsed.isActive !== undefined &&
+      parsed.isActive !== previousIsActive
+    ) {
+      await syncAuthActiveStatus(id, parsed.isActive, req);
+      authStatusChanged = true;
+    }
+
     // Only send columns that were provided and actually changed.
     const fields: Exclude<
       keyof UpdateStaffQuery,
@@ -245,50 +277,58 @@ export const updateStaff = async (
     const name = `${nextFirstName} ${nextLastName}`;
     if (name !== existing.name) changes.name = name;
 
-    const updated = await withTransaction(async (client) => {
-      const entries = Object.entries(changes);
-      if (entries.length > 0) {
-        // Column names come from the fixed lists above, never from user input.
-        const setClause = entries
-          .map(([key], i) => `"${key}" = $${i + 1}`)
-          .join(', ');
-        await client.query(
-          `UPDATE staff SET ${setClause}, "updatedAt" = NOW()
-            WHERE id = $${entries.length + 1}`,
-          [...entries.map(([, value]) => value), id],
-        );
-      }
-
-      if (passwordHash) {
-        const result = await client.query(
-          `UPDATE account SET password = $1, "updatedAt" = NOW()
-           WHERE "userId" = $2 AND "providerId" = 'credential'`,
-          [passwordHash, id],
-        );
-        if (result.rowCount === 0)
-          throw new NotFoundError('This account has no password login.');
-      }
-
-      if (
-        parsed.companyid !== undefined &&
-        existing.role === 'lifeplan_agent'
-      ) {
-        const result = await client.query(
-          'UPDATE lifeplan_agent SET companyid = $1 WHERE staffid = $2',
-          [parsed.companyid, id],
-        );
-
-        if (result.rowCount === 0)
-          throw new NotFoundError(
-            'This account has no life plan agent record.',
+    let updated;
+    try {
+      updated = await withTransaction(async (client) => {
+        const entries = Object.entries(changes);
+        if (entries.length > 0) {
+          // Column names come from the fixed lists above, never from user input.
+          const setClause = entries
+            .map(([key], i) => `"${key}" = $${i + 1}`)
+            .join(', ');
+          await client.query(
+            `UPDATE staff SET ${setClause}, "updatedAt" = NOW()
+              WHERE id = $${entries.length + 1}`,
+            [...entries.map(([, value]) => value), id],
           );
+        }
+
+        if (passwordHash) {
+          const result = await client.query(
+            `UPDATE account SET password = $1, "updatedAt" = NOW()
+             WHERE "userId" = $2 AND "providerId" = 'credential'`,
+            [passwordHash, id],
+          );
+          if (result.rowCount === 0)
+            throw new NotFoundError('This account has no password login.');
+        }
+
+        if (
+          parsed.companyid !== undefined &&
+          existing.role === 'lifeplan_agent'
+        ) {
+          const result = await client.query(
+            'UPDATE lifeplan_agent SET companyid = $1 WHERE staffid = $2',
+            [parsed.companyid, id],
+          );
+
+          if (result.rowCount === 0)
+            throw new NotFoundError(
+              'This account has no life plan agent record.',
+            );
+        }
+
+        if (parsed.access !== undefined && existing.role !== 'lifeplan_agent')
+          await upsertAccess(id, parsed.access, client);
+
+        return StaffModel.getStaffDetail(id, client);
+      });
+    } catch (error) {
+      if (authStatusChanged) {
+        await syncAuthActiveStatus(id, previousIsActive, req);
       }
-
-      if (parsed.access !== undefined && existing.role !== 'lifeplan_agent')
-        await upsertAccess(id, parsed.access, client);
-
-      return StaffModel.getStaffDetail(id, client);
-    });
+      throw error;
+    }
 
     res.locals.auditAction = `${
       res.locals.session.user.name
