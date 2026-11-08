@@ -26,15 +26,6 @@ const SELECT_WITH_CASKET = `
   LEFT JOIN casketinventory ci ON p.casketid = ci.casketid
 `;
 
-const UPDATE_COLUMNS: Record<keyof UpdatePackageQuery, string> = {
-  packagename: 'packagename',
-  packagetype: 'packagetype',
-  price: 'price',
-  embalmingperiod: 'embalmingperiod',
-  inclusions: 'inclusions',
-  casketid: 'casketid',
-};
-
 router.get('/', requireAuth, async (_req, res, next) => {
   try {
     const result = await pool.query(SELECT_WITH_CASKET);
@@ -115,19 +106,34 @@ router.patch(
     next: NextFunction,
   ) => {
     try {
-      const fields = Object.entries(req.body) as [
-        keyof UpdatePackageQuery,
-        UpdatePackageQuery[keyof UpdatePackageQuery],
-      ][];
-      if (fields.length === 0) throw new ConflictError('No changes provided.');
-      const values = fields.map(([, value]) => value);
-      const setClause = fields
-        .map(([key], index) => `"${UPDATE_COLUMNS[key]}" = $${index + 1}`)
-        .join(', ');
+      const body = req.body;
+      if (Object.keys(body).length === 0)
+        throw new ConflictError('No changes provided.');
       const result = await pool.query(
-        `UPDATE package SET ${setClause} WHERE packageid = $${fields.length + 1}
+        `UPDATE package AS p
+         SET packagename = CASE WHEN $1 THEN $2 ELSE p.packagename END,
+             packagetype = CASE WHEN $3 THEN $4 ELSE p.packagetype END,
+             price = CASE WHEN $5 THEN $6 ELSE p.price END,
+             embalmingperiod = CASE WHEN $7 THEN $8 ELSE p.embalmingperiod END,
+             inclusions = CASE WHEN $9 THEN $10 ELSE p.inclusions END,
+             casketid = CASE WHEN $11 THEN $12 ELSE p.casketid END
+         WHERE p.packageid = $13
          RETURNING packageid`,
-        [...values, req.params.id],
+        [
+          Object.hasOwn(body, 'packagename'),
+          body.packagename,
+          Object.hasOwn(body, 'packagetype'),
+          body.packagetype,
+          Object.hasOwn(body, 'price'),
+          body.price,
+          Object.hasOwn(body, 'embalmingperiod'),
+          body.embalmingperiod,
+          Object.hasOwn(body, 'inclusions'),
+          body.inclusions,
+          Object.hasOwn(body, 'casketid'),
+          body.casketid,
+          req.params.id,
+        ],
       );
       if (result.rows.length === 0) throw new NotFoundError();
 
