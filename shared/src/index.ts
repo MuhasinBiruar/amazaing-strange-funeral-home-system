@@ -36,6 +36,7 @@ export * from './schemas/db/document';
 export * from './schemas/db/expense';
 export * from './schemas/db/formalindelivery';
 export * from './schemas/db/formalininventory';
+export * from './schemas/db/inventoryaudit';
 export * from './schemas/db/formalinusage';
 export * from './schemas/db/lgu';
 export * from './schemas/db/lgucase';

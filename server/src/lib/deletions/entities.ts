@@ -45,6 +45,7 @@ export const TABLE_NAMES: Record<string, [string, string]> = {
   representative: ['representative', 'representatives'],
   deceasedrecord: ['case', 'cases'],
   burialrecord: ['burial record', 'burial records'],
+  inventoryaudit: ['inventory audit', 'inventory audits'],
   contract: ['contract', 'contracts'],
   document: ['document', 'documents'],
   lgucase: ['LGU record', 'LGU records'],
@@ -467,6 +468,32 @@ export const ENTITIES: Record<DeletionEntityType, EntityDefinition> = {
           ? `Burial at ${row.burialsite}`
           : `Burial record for case ${row.caseid}`,
         tables: [burial],
+        files: [],
+      };
+    },
+  },
+
+  inventoryaudit: {
+    table: 'inventoryaudit',
+    async collect(client, auditid) {
+      const result = await client.query(
+        `SELECT to_jsonb(ia) AS row,
+                CASE WHEN ia.formalinid IS NOT NULL
+                  THEN CONCAT('Formalin #', ia.formalinid)
+                  ELSE CONCAT('Casket: ', ci.caskettype)
+                END AS targetname
+         FROM inventoryaudit ia
+         LEFT JOIN casketinventory ci ON ci.casketid = ia.casketid
+         WHERE ia.auditid = $1
+         FOR UPDATE OF ia`,
+        [auditid],
+      );
+      if (result.rows.length === 0)
+        throw new NotFoundError('This inventory audit no longer exists.');
+      const { row, targetname } = result.rows[0];
+      return {
+        label: `${targetname} audited ${day(row.auditdate)}`,
+        tables: [{ table: 'inventoryaudit', key: 'auditid', rows: [row] }],
         files: [],
       };
     },

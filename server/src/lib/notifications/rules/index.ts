@@ -6,6 +6,7 @@ import {
   financialsLink,
   formatPeso,
 } from './helpers';
+import { formatPhilippineDateTime } from '@/util/format';
 
 /** How often a payment reminder repeats while a balance is outstanding. */
 const PAYMENT_REMINDER_INTERVAL_DAYS = 7;
@@ -17,6 +18,37 @@ const FULL_PAYMENT_LOOKBACK_DAYS = 7;
 const SERVICE_COMPLETED_LOOKBACK_DAYS = 7;
 
 export const rules: Rule[] = [
+  {
+    type: 'inventory_discrepancy',
+    audience: ['inventory_page'],
+    resolvable: true,
+    refresh: true,
+    collect: async () => {
+      const result = await pool.query<{
+        auditid: number;
+        targetname: string;
+        auditdate: string;
+      }>(
+        `SELECT ia.auditid, ia.auditdate,
+           CASE WHEN ia.formalinid IS NOT NULL
+             THEN 'Formalin stock'
+             ELSE CONCAT('Casket: ', ci.caskettype)
+           END AS targetname
+         FROM inventoryaudit ia
+         LEFT JOIN casketinventory ci ON ci.casketid = ia.casketid
+         WHERE ia.hasdiscrepancy = true`,
+      );
+      return result.rows.map((row) => ({
+        dedupekey: `inventory_discrepancy:${row.auditid}`,
+        title: 'Inventory discrepancy reported',
+        message:
+          `${row.targetname} has a discrepancy from the audit dated ${formatPhilippineDateTime(row.auditdate)}. ` +
+          'To resolve it: edit the audit, count the actual stock, select the affected delivery, correct its quantity and total paid, uncheck "Discrepancy found", and then save.',
+        caseid: null,
+        link: '/dashboard/inventory?tab=audit',
+      }));
+    },
+  },
   {
     // Resolves once the casket is restocked above its minimum.
     type: 'low_casket',

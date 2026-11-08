@@ -8,6 +8,7 @@ export const notificationTypeEnum = z.enum([
   'advanced_decomposition',
   'low_formalin',
   'low_casket',
+  'inventory_discrepancy',
   'expense_recorded',
   'service_completed',
 ]);
@@ -31,7 +32,7 @@ export const NOTIFICATION_CATEGORY_TYPES: Record<
   docs: ['documents_complete'],
   payments: ['full_payment', 'payment_reminder', 'expense_recorded'],
   completed: ['service_completed'],
-  stocks: ['low_casket', 'low_formalin', 'advanced_decomposition'],
+  stocks: ['low_casket', 'low_formalin', 'advanced_decomposition', 'inventory_discrepancy'],
 };
 
 /**
