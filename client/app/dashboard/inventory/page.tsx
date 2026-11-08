@@ -8,12 +8,14 @@ import DeliveryTab, {
   deliveryTypeEnum,
   type DeliveryType,
 } from './_components/deliveryTab';
+import PackagesTab from './_components/packagesTab';
 
-const tabEnum = z.enum(['inventory', 'delivery']).catch('inventory');
+const tabEnum = z.enum(['inventory', 'packages', 'delivery']).catch('inventory');
 type Tab = z.infer<typeof tabEnum>;
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'inventory', label: 'Inventory' },
+  { key: 'packages', label: 'Packages' },
   { key: 'delivery', label: 'Delivery' },
 ];
 
@@ -67,6 +69,8 @@ function InventoryPageContent() {
         </div>
         {activeTab === 'delivery' ? (
           <DeliveryTab type={deliveryType} onTypeChange={changeDeliveryType} />
+        ) : activeTab === 'packages' ? (
+          <PackagesTab />
         ) : (
           <InventoryTab />
         )}
