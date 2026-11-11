@@ -288,7 +288,8 @@ CREATE TABLE public.officialreceipt (
     withholding_tax numeric(12,2),
     tin text,
     discount_id text,
-    pwd_discount numeric(12,2)
+    pwd_discount numeric(12,2),
+    payer_name text
 );
 COMMENT ON COLUMN public.officialreceipt.pwd_discount IS 'Amount';
 

@@ -14,10 +14,12 @@ import {
   paymentMethodEnum,
 } from 'shared';
 import { toDateInputValue } from '@/utils/toDateInputValue';
+import { downloadOfficialReceiptPdf } from './officialReceiptPdf';
 
 export default function RecordTransactionPanel({
   caseId,
   deceasedName,
+  representativeName,
   totalAmount,
   totalPaid,
   onClose,
@@ -25,6 +27,7 @@ export default function RecordTransactionPanel({
 }: {
   caseId: number;
   deceasedName: string;
+  representativeName?: string | null;
   totalAmount: number | null;
   totalPaid: number;
   onClose: () => void;
@@ -50,6 +53,7 @@ export default function RecordTransactionPanel({
   const [discountId, setDiscountId] = useState('');
   const [withholdingTax, setWithholdingTax] = useState('');
   const [tin, setTin] = useState('');
+  const [payerName, setPayerName] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -63,8 +67,20 @@ export default function RecordTransactionPanel({
   const paymentDue = Math.max(totalDue - withholding, 0);
   const paidAfter = totalPaid + (isRefund ? -paymentNow : paymentNow);
   const amountLeft = paymentDue - paidAfter;
-  const isSettled = Math.round(amountLeft * 100) <= 0;
   const hasReceipt = ornumber.trim() !== '';
+
+  function handleAmountChange(value: string) {
+    setAmount(value);
+
+    if (paymentcategory === 'Refund') return;
+
+    const enteredAmount = Number(value) || 0;
+    setPaymentcategory(
+      enteredAmount >= Math.max(paymentDue - totalPaid, 0)
+        ? 'Full Payment'
+        : 'Installment',
+    );
+  }
 
   // Inline payment error
   const maxPayment = Math.max(paymentDue - totalPaid, 0);
@@ -91,11 +107,10 @@ export default function RecordTransactionPanel({
       return;
     }
 
-    if (hasReceipt && (isRefund || !isSettled)) {
+    if (hasReceipt && isRefund) {
       await showInfo({
         title: 'Cannot Issue Official Receipt',
-        message:
-          'An official receipt can only be issued with a payment that fully settles the balance.',
+        message: 'An official receipt cannot be issued with a refund.',
         severity: 'error',
       });
       return;
@@ -111,6 +126,7 @@ export default function RecordTransactionPanel({
       receipt: hasReceipt
         ? {
             ornumber: ornumber.trim(),
+            payer_name: payerName.trim(),
             tin,
             withholding_tax: withholdingTax.trim(),
             discount_id: discountId,
@@ -144,6 +160,35 @@ export default function RecordTransactionPanel({
       return;
     }
 
+    if (hasReceipt) {
+      await showInfo({
+        title: 'Payment Saved',
+        message: 'Would you like to print the official receipt now?',
+        closeLabel: 'No',
+        confirmLabel: 'Download OR PDF',
+        severity: 'success',
+        onConfirmAction: () =>
+          downloadOfficialReceiptPdf(
+            {
+              orid: 0,
+              ornumber: ornumber.trim(),
+              amount: amount.trim(),
+              issuedate: new Date(),
+              reissuancecount: 0,
+              transactionid: 0,
+              total_due: String(totalDue),
+              withholding_tax: withholdingTax || null,
+              tin: tin || null,
+              discount_id: discountId || null,
+              pwd_discount: pwdDiscount || null,
+              payer_name: payerName.trim() || null,
+            },
+            deceasedName,
+            representativeName,
+          ),
+      });
+    }
+
     // The parent only refreshes its table in onSuccess, so close with the
     // slide-out transition ourselves.
     onSuccess();
@@ -155,7 +200,7 @@ export default function RecordTransactionPanel({
       shown={isShown}
       onRequestClose={requestClose}
       ariaLabel="Record payment"
-      badge={`CASE #${caseId}`}
+      badge="RECORD PAYMENT"
       badgeClassName="bg-orange-100 text-orange-800"
       title="Record Payment"
       subtitle={deceasedName}
@@ -177,7 +222,7 @@ export default function RecordTransactionPanel({
                 min="0.01"
                 step="0.01"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => handleAmountChange(e.target.value)}
                 className={`${fieldClass} pl-7`}
               />
             </div>
@@ -308,6 +353,19 @@ export default function RecordTransactionPanel({
                   className={fieldClass}
                 />
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="or-payer-name" className={labelClass}>
+                Payer name (optional)
+              </label>
+              <input
+                id="or-payer-name"
+                value={payerName}
+                onChange={(e) => setPayerName(e.target.value)}
+                placeholder="Leave blank to use the listed representative"
+                className={fieldClass}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3">

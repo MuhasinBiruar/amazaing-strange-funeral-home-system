@@ -5,6 +5,7 @@ import {
   getFinancialDetailsResponseSchema,
   getFinancialSummaryResponseSchema,
   getOfficialReceiptsResponseSchema,
+  type CreateOfficialReceiptFromHistoryQuery,
   type CreateLguCaseQuery,
   type CreateTransactionQuery,
   type GetDirectPlansQuery,
@@ -134,4 +135,18 @@ export async function getOfficialReceipts(
     { withCredentials: true, signal },
   );
   return getOfficialReceiptsResponseSchema.parse(result.data);
+}
+
+export async function createOfficialReceiptFromHistory(
+  caseid: number,
+  payload: CreateOfficialReceiptFromHistoryQuery,
+) {
+  const result = await API.post(
+    `/financial/direct/${caseid}/official-receipts`,
+    payload,
+    { withCredentials: true },
+  );
+  return getOfficialReceiptsResponseSchema.parse({
+    data: [result.data.data],
+  }).data[0];
 }

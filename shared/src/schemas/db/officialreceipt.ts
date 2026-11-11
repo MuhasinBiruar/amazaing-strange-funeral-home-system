@@ -23,6 +23,7 @@ export const officialReceiptSchema = z.object({
   tin: withNullDefault(z.string()),
   discount_id: withNullDefault(z.string()),
   pwd_discount: withNullDefault(bigNumberSchema),
+  payer_name: withNullDefault(z.string()),
 });
 
 export type OfficialReceipt = z.infer<typeof officialReceiptSchema>;
@@ -41,11 +42,12 @@ const nonNegativeBigNumber = bigNumberSchema.refine((v) => Number(v) >= 0, {
 
 /**
  * The official-receipt part of a payment request.
- * `amount`, `total_due` and `issuedate` are set by the server, and the
- * server rejects it unless the payment fully settles the case.
+ * `amount`, `total_due` and `issuedate` are set by the server. Receipts may
+ * be issued for partial payments as well as full payments.
  */
 export const createOfficialReceiptQuerySchema = z.object({
   ornumber: z.string().trim().min(1),
+  payer_name: withNullDefault(z.string().trim()),
   tin: withNullDefault(
     z
       .string()
@@ -61,4 +63,14 @@ export const createOfficialReceiptQuerySchema = z.object({
 
 export type CreateOfficialReceiptQuery = z.infer<
   typeof createOfficialReceiptQuerySchema
+>;
+
+export const createOfficialReceiptFromHistoryQuerySchema = z.object({
+  transactionid: z.int32().optional(),
+  ornumber: z.string().trim().min(1),
+  payer_name: withNullDefault(z.string().trim()),
+});
+
+export type CreateOfficialReceiptFromHistoryQuery = z.infer<
+  typeof createOfficialReceiptFromHistoryQuerySchema
 >;
