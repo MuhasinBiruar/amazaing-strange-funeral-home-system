@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { formatCurrency, formatDate, titleCase } from '@/utils/format';
 import {
+  createOfficialReceiptFromHistory,
   getDirectTransactions,
   getOfficialReceipts,
 } from '@/services/financialService';
 import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import type { Transaction, OfficialReceipt } from 'shared';
+import { downloadOfficialReceiptPdf } from '../officialReceiptPdf';
 
 /**
  * Slide-in panel listing every transaction on a Direct case, newest first.
@@ -17,12 +19,14 @@ import type { Transaction, OfficialReceipt } from 'shared';
 export default function TransactionHistoryPanel({
   caseid,
   deceasedName,
+  representativeName,
   totalAmount,
   totalPaid,
   onClose,
 }: {
   caseid: number;
   deceasedName: string;
+  representativeName?: string | null;
   totalAmount: number | null;
   totalPaid: number;
   onClose: () => void;
@@ -32,6 +36,12 @@ export default function TransactionHistoryPanel({
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [receipts, setReceipts] = useState<OfficialReceipt[]>([]);
+  const [isReceiptFormOpen, setIsReceiptFormOpen] = useState(false);
+  const [receiptTransaction, setReceiptTransaction] =
+    useState<Transaction | null>(null);
+  const [receiptNumber, setReceiptNumber] = useState('');
+  const [payerName, setPayerName] = useState('');
+  const [isGeneratingReceipt, setIsGeneratingReceipt] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -76,16 +86,58 @@ export default function TransactionHistoryPanel({
 
   const paymentDue = totalDue;
 
+  async function generateReceipt() {
+    if (!receiptNumber.trim()) return;
+
+    setIsGeneratingReceipt(true);
+    setErrorMsg(null);
+    try {
+      const receipt = await createOfficialReceiptFromHistory(caseid, {
+        transactionid: receiptTransaction?.transactionid,
+        ornumber: receiptNumber.trim(),
+        payer_name: payerName.trim(),
+      });
+      setReceipts([receipt]);
+      setIsReceiptFormOpen(false);
+      setReceiptNumber('');
+      setPayerName('');
+      setReceiptTransaction(null);
+    } catch (error) {
+      console.error('Failed to generate official receipt:', error);
+      setErrorMsg(
+        error instanceof Error
+          ? error.message
+          : 'Could not generate official receipt. Try again.',
+      );
+    } finally {
+      setIsGeneratingReceipt(false);
+    }
+
+  }
+
+  async function downloadReceipt(receipt: OfficialReceipt) {
+    try {
+      await downloadOfficialReceiptPdf(
+        receipt,
+        deceasedName,
+        representativeName,
+      );
+    } catch (error) {
+      console.error('Failed to create official receipt PDF:', error);
+      setErrorMsg('Could not create the receipt PDF. Try again.');
+    }
+  }
+
   return (
     <SidePanel
       shown={isShown}
       onRequestClose={requestClose}
       ariaLabel="Transaction history"
-      badge={`CASE #${caseid}`}
+      badge="PAYMENT HISTORY"
       badgeClassName="bg-orange-100 text-orange-800"
       title={deceasedName}
     >
-      <div className="flex-1 overflow-y-auto px-5 py-4">
+      <div className="flex-1 overflow-y-auto px-5 py-4 print:hidden">
         {isLoading && (
           <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500">
             <Loader2 size={16} className="animate-spin" />
@@ -137,9 +189,27 @@ export default function TransactionHistoryPanel({
                 Official receipt
               </h3>
               {receipts.length === 0 ? (
-                <p className="text-sm text-gray-400">
-                  No official receipt generated yet.
-                </p>
+                <>
+                  <p className="text-sm text-gray-400">
+                    No official receipt generated yet.
+                  </p>
+                  {transactions.some(
+                    (transaction) =>
+                      transaction.transactionstatus === 'completed' &&
+                      transaction.paymentcategory !== 'Refund',
+                  ) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReceiptTransaction(null);
+                        setIsReceiptFormOpen(true);
+                      }}
+                      className="mt-2 rounded border border-indigo-200 px-3 py-1.5 text-xs font-medium text-indigo-600 hover:bg-indigo-50"
+                    >
+                      Generate OR from payment history
+                    </button>
+                  )}
+                </>
               ) : (
                 <ul className="divide-y divide-gray-100">
                   {receipts.map((r) => (
@@ -159,12 +229,80 @@ export default function TransactionHistoryPanel({
                             : ''}
                         </div>
                       </div>
-                      <span>{formatCurrency(Number(r.amount))}</span>
+                      <div className="flex items-center gap-2">
+                        <span>{formatCurrency(Number(r.amount))}</span>
+                        <button
+                          type="button"
+                          onClick={() => void downloadReceipt(r)}
+                          className="rounded border border-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                        >
+                          Download PDF
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>
               )}
             </section>
+
+            {isReceiptFormOpen && (
+              <div className="mb-5 rounded-lg border border-indigo-100 bg-indigo-50 p-3">
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Generate official receipt
+                </h3>
+                <p className="mt-1 text-xs text-gray-600">
+                  {receiptTransaction
+                    ? `This receipt will use the ${formatCurrency(Number(receiptTransaction.amount))} payment from ${formatDate(receiptTransaction.paymentdatetime)}.`
+                    : 'This receipt will use the completed payment history for this case.'}
+                </p>
+                <label
+                  htmlFor="history-or-number"
+                  className="mt-3 block text-xs font-medium text-gray-700"
+                >
+                  OR number
+                </label>
+                <input
+                  id="history-or-number"
+                  value={receiptNumber}
+                  onChange={(event) => setReceiptNumber(event.target.value)}
+                  placeholder="e.g. 0346"
+                  className="mt-1 w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm"
+                  disabled={isGeneratingReceipt}
+                />
+                <label
+                  htmlFor="history-payer-name"
+                  className="mt-3 block text-xs font-medium text-gray-700"
+                >
+                  Payer name (optional)
+                </label>
+                <input
+                  id="history-payer-name"
+                  value={payerName}
+                  onChange={(event) => setPayerName(event.target.value)}
+                  placeholder="Leave blank to use the listed representative"
+                  className="mt-1 w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm"
+                  disabled={isGeneratingReceipt}
+                />
+                <div className="mt-3 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsReceiptFormOpen(false)}
+                    disabled={isGeneratingReceipt}
+                    className="rounded border border-gray-200 px-3 py-1.5 text-xs text-gray-600"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void generateReceipt()}
+                    disabled={isGeneratingReceipt || !receiptNumber.trim()}
+                    className="rounded bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+                  >
+                    {isGeneratingReceipt ? 'Generating...' : 'Generate OR'}
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
 
@@ -179,12 +317,32 @@ export default function TransactionHistoryPanel({
             {transactions.map((t) => (
               <li key={t.transactionid} className="py-3 flex flex-col gap-0.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-900">
-                    {formatCurrency(Number(t.amount))}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {formatDate(t.paymentdatetime)}
-                  </span>
+                  <div>
+                    <span className="text-sm font-medium text-gray-900">
+                      {formatCurrency(Number(t.amount))}
+                    </span>
+                    <span className="ml-2 text-xs text-gray-400">
+                      {formatDate(t.paymentdatetime)}
+                    </span>
+                  </div>
+                  {t.transactionstatus === 'completed' &&
+                    t.paymentcategory !== 'Refund' &&
+                    !receipts.some(
+                      (receipt) => receipt.transactionid === t.transactionid,
+                    ) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setReceiptTransaction(t);
+                          setReceiptNumber('');
+                          setPayerName('');
+                          setIsReceiptFormOpen(true);
+                        }}
+                        className="rounded border border-indigo-200 px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50"
+                      >
+                        Generate OR
+                      </button>
+                    )}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <span>{titleCase(t.paymentcategory)}</span>
