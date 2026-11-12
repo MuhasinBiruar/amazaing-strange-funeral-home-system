@@ -247,19 +247,7 @@ export async function createDirectTransaction(
           'This case has no contract yet, so there is nothing to pay against.',
         );
 
-      // What this case actually has to pay: the full contract for Direct,
-      // only the extra on top of the plan's own value for Life.
-      let payable = new BigNumber(totalamount);
-      if (plantype === 'Life') {
-        const planResult = await client.query<{ totalamount: string }>(
-          `SELECT COALESCE(totalamount, 0)::text AS totalamount
-           FROM public.lifeplan
-           WHERE caseid = $1`,
-          [caseid],
-        );
-        const planAmount = new BigNumber(planResult.rows[0]?.totalamount ?? 0);
-        payable = BigNumber.maximum(payable.minus(planAmount), 0);
-      }
+      const payable = new BigNumber(totalamount);
 
       const discount = new BigNumber(receipt?.pwd_discount ?? 0);
       const withholding = new BigNumber(receipt?.withholding_tax ?? 0);

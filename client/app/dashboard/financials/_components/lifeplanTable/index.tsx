@@ -14,17 +14,10 @@ import TransactionHistoryPanel from '../directTable/transactionHistoryPanel';
 import RecordTransactionPanel from '../directTable/recordTransactionPanel';
 import ServiceStatusPill from '@/components/serviceStatusPill';
 
-/** Extra owed on top of the plan's own value (contract amount minus plan total). */
-function extraAmount(l: GetLifeplansQueryRow) {
-  if (l.contractamount == null) return null;
-  return Math.max(l.contractamount - Number(l.totalamount ?? 0), 0);
-}
-
 /** What is still unpaid on the extra amount once receipt deductions apply. */
 function extraLeft(l: GetLifeplansQueryRow) {
-  const extra = extraAmount(l);
-  if (extra == null) return null;
-  return Math.max(extra - l.totalamountpaid, 0);
+  if (l.contractamount == null) return null;
+  return Math.max(l.contractamount - l.totalamountpaid, 0);
 }
 
 type ColumnKey = keyof GetLifeplansQueryRow;
@@ -107,11 +100,9 @@ export default function LifeplanTable({
     },
     {
       key: 'contractamount',
-      label: 'Extra amount',
-      render: (l) => {
-        const extra = extraAmount(l);
-        return extra != null ? formatCurrency(extra) : '—';
-      },
+      label: 'Extra balance',
+      render: (l) =>
+        l.contractamount != null ? formatCurrency(l.contractamount) : '—',
     },
     {
       key: 'totalamountpaid',
@@ -191,7 +182,7 @@ export default function LifeplanTable({
           key={historyFor.caseid}
           caseid={historyFor.caseid}
           deceasedName={historyFor.deceased_name}
-          totalAmount={extraAmount(historyFor)}
+          totalAmount={historyFor.contractamount}
           totalPaid={historyFor.totalamountpaid}
           onClose={() => setHistoryFor(null)}
         />
@@ -201,7 +192,7 @@ export default function LifeplanTable({
           key={`payment-${paymentFor.caseid}`}
           caseId={paymentFor.caseid}
           deceasedName={paymentFor.deceased_name}
-          totalAmount={extraAmount(paymentFor)}
+          totalAmount={paymentFor.contractamount}
           totalPaid={paymentFor.totalamountpaid}
           onClose={() => setPaymentFor(null)}
           onSuccess={() => setRefreshKey((k) => k + 1)}

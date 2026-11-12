@@ -39,8 +39,7 @@ export const UPDATE_SERVICE_STATUSES_SQL = `
         WHEN dr.plantype = 'Life' AND lp.planid IS NOT NULL THEN
           CASE
             WHEN COALESCE(lp.use_benefits, true) = false
-              AND GREATEST(c.totalamount - COALESCE(lp.totalamount, 0), 0)
-                  - COALESCE(pay.totalpaid, 0) > 0 THEN
+              AND c.totalamount - COALESCE(pay.totalpaid, 0) > 0 THEN
               CASE
                 WHEN c.burialdatedeadline <= timezone($1::text, now())::date
                   THEN 'pending'
