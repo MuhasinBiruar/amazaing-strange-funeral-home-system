@@ -1,5 +1,25 @@
 import type { PaginationQuery, SortOrder } from 'shared/utils';
+import type { DeletionEntityType } from 'shared';
 import type { ReactNode } from 'react';
+
+/** The record a row stands for, so it can be moved to Deleted items. */
+export interface DeleteTarget {
+  entitytype: DeletionEntityType;
+  id: number;
+}
+
+/** What a table's selection actions (e.g. Restore) get to work with. */
+export interface SelectionActionsContext<T> {
+  /** Ticked rows on the current page. */
+  selected: T[];
+  /** Total rows matching the current search and filters. */
+  total: number;
+  clearSelection: () => void;
+  /** Refetches the current page. */
+  refresh: () => void;
+  /** Fetches every row matching the current search and filters. */
+  loadAllRows: () => Promise<T[]>;
+}
 
 export interface FetchDataParams<
   K extends string,

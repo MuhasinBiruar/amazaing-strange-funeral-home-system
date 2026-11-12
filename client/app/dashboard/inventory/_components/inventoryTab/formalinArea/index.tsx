@@ -144,7 +144,10 @@ export default function FormalinArea() {
         />
       )}
       {panel === 'usage' && (
-        <FormalinUsageHistoryPanel onClose={() => setPanel(null)} />
+        <FormalinUsageHistoryPanel
+          onClose={() => setPanel(null)}
+          onUsageDeleted={() => void loadInventory()}
+        />
       )}
       {infoModal}
     </>

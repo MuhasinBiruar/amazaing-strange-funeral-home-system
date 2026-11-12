@@ -9,9 +9,17 @@ import requireAuth from '@/middleware/require-auth';
 import { NotFoundError, BadRequestError } from '@/errors';
 import validate from '@/middleware/validate';
 import { getDeceasedName } from '@/util/audit-log';
-import { createContractQuerySchema, type CreateContractQuery } from 'shared';
+import {
+  createContractQuerySchema,
+  updateContractQuerySchema,
+  type CreateContractQuery,
+  type UpdateContractQuery,
+} from 'shared';
+import { idParamSchema, type IdParam } from 'shared/utils';
+import validateParams from '@/middleware/validate-params';
 import { withTransaction } from '@/util/with-transaction';
 import { triggerNotificationSweep } from '@/lib/notifications';
+import { refreshServiceStatuses } from '@/lib/service-status';
 
 const router = Router();
 
@@ -82,7 +90,7 @@ router.post(
             'SELECT totalamount::text, use_benefits FROM lifeplan WHERE caseid = $1',
             [parsed.caseid],
           );
-          if (lifeplanResult.rows.length > 0) {
+          if (lifeplanResult.rows.length > 0 && parsed.useLifeplanAmount) {
             const lifeplan = lifeplanResult.rows[0];
             const expectedAmount = Math.max(
               0,
@@ -180,6 +188,68 @@ router.post(
         data: contract,
         casketWarning,
       });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+/**
+ * Changes a contract's burial deadline. The service status depends on it
+ * (e.g. a paid Direct case completes once its deadline passes), so it's
+ * recalculated straight away.
+ */
+router.patch(
+  '/:id',
+  requireAuth,
+  validateParams(idParamSchema),
+  validate(updateContractQuerySchema),
+  async (
+    req: Request<IdParam, {}, UpdateContractQuery>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const { burialdatedeadline } = req.body;
+
+      const contract = await withTransaction(async (client) => {
+        const current = await client.query<{
+          caseid: number;
+          signeddate: string;
+        }>(
+          `SELECT caseid, signeddate::text AS signeddate
+           FROM contract WHERE contractid = $1
+           FOR UPDATE`,
+          [req.params.id],
+        );
+        if (current.rows.length === 0)
+          throw new NotFoundError('Contract not found.');
+
+        const { caseid, signeddate } = current.rows[0];
+        // Both are `yyyy-mm-dd`, so they compare as strings.
+        if (burialdatedeadline < signeddate)
+          throw new BadRequestError(
+            `The burial deadline can't be before the contract was signed (${signeddate}).`,
+          );
+
+        const updated = await client.query(
+          `UPDATE contract SET burialdatedeadline = $1::date
+           WHERE contractid = $2
+           RETURNING *`,
+          [burialdatedeadline, req.params.id],
+        );
+
+        await refreshServiceStatuses(client, caseid);
+
+        return updated.rows[0];
+      });
+
+      triggerNotificationSweep();
+
+      const deceasedName = await getDeceasedName(contract.caseid);
+      res.locals.auditAction = `${res.locals.session.user.name} changed the burial deadline for ${deceasedName} to ${burialdatedeadline}`;
+
+      res.json({ data: contract });
     } catch (error) {
       next(error);
     }

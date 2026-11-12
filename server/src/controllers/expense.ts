@@ -1,4 +1,5 @@
 import pool from '@/db';
+import { notifyExpenseRecorded } from '@/lib/notifications';
 import type { Locals } from '@/types/controllers';
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 import { toExclusiveEndBound } from '@/util/date';
@@ -25,6 +26,14 @@ export const createExpense = async (
     );
 
     res.locals.auditAction = `${res.locals.session.user.name} created an expense record ${description} with amount ${amount}.`;
+
+    void notifyExpenseRecorded({
+      source: 'expense',
+      id: result.rows[0].expenseid,
+      description,
+      amount: Number(result.rows[0].amount),
+      recordedby_name: res.locals.session.user.name,
+    });
 
     res.json({
       data: result.rows[0],

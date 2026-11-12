@@ -1,5 +1,10 @@
 import axios from 'axios';
-import { getPackagesResponseSchema, type CreatePackageQuery } from 'shared';
+import {
+  getPackagesResponseSchema,
+  packageWithCasketSchema,
+  type CreatePackageQuery,
+  type UpdatePackageQuery,
+} from 'shared';
 import { API } from './api';
 import { extractErrorMessage } from './utils/extractErrorMessage';
 
@@ -33,6 +38,20 @@ export async function createPackage(
       throw new Error(extractErrorMessage(error.response.data));
 
     console.error('Error creating package:', error);
+    throw error;
+  }
+}
+
+export async function updatePackage(
+  packageid: number,
+  payload: UpdatePackageQuery,
+) {
+  try {
+    const res = await API.patch(`/packages/${packageid}`, payload);
+    return packageWithCasketSchema.parse(res.data.data);
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.error?.message)
+      throw new Error(extractErrorMessage(error.response.data));
     throw error;
   }
 }

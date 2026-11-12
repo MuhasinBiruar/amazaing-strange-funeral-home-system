@@ -45,7 +45,12 @@ const FILTERS: FilterDef<Filters>[] = [
   },
 ];
 
-export default function LguTable() {
+export default function LguTable({
+  initialSearch,
+}: {
+  /** Prefills the search, e.g. from a notification link. */
+  initialSearch?: string;
+}) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [editing, setEditing] = useState<GetLguCasesRow | null>(null);
 
@@ -101,11 +106,13 @@ export default function LguTable() {
         exportFileName="lgu-reimbursements"
         countLabel={(total) => `${total} cases`}
         searchPlaceholder="Search by deceased name or case ID..."
+        initialSearch={initialSearch}
         filters={FILTERS}
         defaultFilters={DEFAULT_FILTERS}
         columns={columns}
         bodyOffsetClassName="top-17.25"
         rowKey={(l) => l.lgucaseid}
+        deletable={(l) => ({ entitytype: 'case', id: l.caseid })}
         defaultSortBy="deceased_name"
         defaultSortOrder="desc"
         fetchData={({ filters, ...params }) =>

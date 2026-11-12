@@ -3,11 +3,11 @@ import {
   getLifeplans,
   getMyLifeplans,
 } from '@/controllers/lifeplan';
+import { getMyCasePreview } from '@/controllers/casepreview';
 import {
   createLifeplanCompany,
   getLifeplanCompany,
   getLifeplanCompanies,
-  deleteLifeplanCompany,
 } from '@/controllers/lifeplancompany';
 import requireAuth, { requireLifeplanAgent } from '@/middleware/require-auth';
 import validate from '@/middleware/validate';
@@ -28,6 +28,12 @@ router.post('/', requireAuth, validate(createLifeplanQuery), createLifeplan);
 router.get('/', requireAuth, getLifeplans);
 
 router.get('/mine', requireLifeplanAgent, getMyLifeplans);
+router.get(
+  '/mine/:id',
+  requireLifeplanAgent,
+  validateParams(idParamSchema),
+  getMyCasePreview,
+);
 
 router.post(
   '/companies',
@@ -48,11 +54,5 @@ router.get(
  * `http://localhost:4000/lifeplans/companies?search=Company&sortBy=companyname&sortOrder=desc&page=1&limit=20`
  */
 router.get('/companies', requireAuth, getLifeplanCompanies);
-router.delete(
-  '/companies/:id',
-  requireAuth,
-  validateParams(idParamSchema),
-  deleteLifeplanCompany,
-);
 
 export default router;

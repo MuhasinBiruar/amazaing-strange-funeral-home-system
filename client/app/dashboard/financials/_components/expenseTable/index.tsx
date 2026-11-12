@@ -10,8 +10,15 @@ import type {
   FilterDef,
 } from '@/components/dataTable/types';
 import { getExpenses } from '@/services/expensesService';
-import type { ExpenseLog, ExpenseLogSource } from 'shared';
+import type { DeletionEntityType, ExpenseLog, ExpenseLogSource } from 'shared';
 import RecordExpensePanel from './recordExpensePanel';
+
+/** Delivery expenses are deleted as the delivery itself (taking its stock back out). */
+const EXPENSE_SOURCE_ENTITY: Record<ExpenseLogSource, DeletionEntityType> = {
+  expense: 'expense',
+  casket: 'casketdelivery',
+  formalin: 'formalindelivery',
+};
 
 type ColumnKey = keyof ExpenseLog;
 
@@ -59,7 +66,12 @@ const FILTERS: FilterDef<Filters>[] = [
  * Everything paid out: general expenses recorded here, plus what was paid
  * for each casket and formalin delivery (recorded from the inventory page).
  */
-export default function ExpenseTable() {
+export default function ExpenseTable({
+  initialSearch,
+}: {
+  /** Prefills the search, e.g. from a notification link. */
+  initialSearch?: string;
+}) {
   const [isCreating, setIsCreating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -131,11 +143,16 @@ export default function ExpenseTable() {
         exportFileName="expenses"
         countLabel={(total) => `${total} records`}
         searchPlaceholder="Search expenses..."
+        initialSearch={initialSearch}
         filters={FILTERS}
         defaultFilters={DEFAULT_FILTERS}
         columns={columns}
         // `id` is only unique within its own source table.
         rowKey={(e) => `${e.source}-${e.id}`}
+        deletable={(e) => ({
+          entitytype: EXPENSE_SOURCE_ENTITY[e.source],
+          id: e.id,
+        })}
         defaultSortBy="expensedate"
         defaultSortOrder="desc"
         fetchData={({ filters, ...params }) =>

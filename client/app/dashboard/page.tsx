@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import {
+  ArchiveRestore,
   ChevronRight,
   ClipboardCheck,
   FileSignature,
@@ -75,6 +76,14 @@ const modules: {
     description: 'Manage accounts and view logs',
     icon: UserStar,
     routeTo: '/dashboard/admin',
+    adminOnly: true,
+  },
+  {
+    section: 'Admin',
+    name: 'Deleted Items',
+    description: 'Restore records deleted in the last 30 days',
+    icon: ArchiveRestore,
+    routeTo: '/dashboard/deleted-items',
     adminOnly: true,
   },
 ];

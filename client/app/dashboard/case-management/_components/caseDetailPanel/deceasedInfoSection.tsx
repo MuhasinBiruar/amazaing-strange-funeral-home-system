@@ -59,39 +59,23 @@ export default function DeceasedInfoSection({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={labelClass}>Service status</label>
-          <select
-            value={form.servicestatus}
-            onChange={(e) =>
-              update(
-                'servicestatus',
-                e.target.value as DeceasedForm['servicestatus'],
-              )
-            }
-            className={`${fieldClass} cursor-pointer`}
-          >
-            <option value="intake">Intake</option>
-            <option value="active">Active</option>
-            <option value="pending">Pending</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
-        <div>
-          <label className={labelClass}>Plan type</label>
-          <select
-            value={form.plantype}
-            onChange={(e) =>
-              update('plantype', e.target.value as DeceasedForm['plantype'])
-            }
-            className={`${fieldClass} cursor-pointer`}
-          >
-            <option value="Direct">Direct</option>
-            <option value="Life">Life</option>
-            <option value="LGU">LGU</option>
-          </select>
-        </div>
+      <div>
+        <label className={labelClass}>Service status</label>
+        <select
+          value={form.servicestatus}
+          onChange={(e) =>
+            update(
+              'servicestatus',
+              e.target.value as DeceasedForm['servicestatus'],
+            )
+          }
+          className={`${fieldClass} cursor-pointer`}
+        >
+          <option value="intake">Intake</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="completed">Completed</option>
+        </select>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -123,7 +107,7 @@ export default function DeceasedInfoSection({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 items-end">
+      <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelClass}>Date of death</label>
           <input
@@ -133,16 +117,19 @@ export default function DeceasedInfoSection({
             className={fieldClass}
           />
         </div>
-        <label className="flex items-center gap-2 text-sm text-gray-700 pb-1.5">
+        <div>
+          <label className={labelClass}>Location of death</label>
           <input
-            type="checkbox"
-            checked={form.hasmaturedlifeplan}
-            onChange={(e) => update('hasmaturedlifeplan', e.target.checked)}
-            className="cursor-pointer"
+            value={form.locationofdeath}
+            onChange={(e) => update('locationofdeath', e.target.value)}
+            maxLength={255}
+            className={fieldClass}
           />
-          Matured life plan
-        </label>
-        <label className="flex items-center gap-2 text-sm text-gray-700 pb-1.5">
+        </div>
+      </div>
+
+      <div>
+        <label className="flex items-center gap-2 text-sm text-gray-700">
           <input
             type="checkbox"
             checked={form.hasadvanceddecomposition}

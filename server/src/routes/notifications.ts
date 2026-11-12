@@ -4,9 +4,12 @@ import requireAuth from '@/middleware/require-auth';
 import validateParams from '@/middleware/validate-params';
 import { NotFoundError } from '@/errors';
 import { getAccess } from '@/model/access';
+import { toExclusiveEndBound } from '@/util/date';
 import {
   accessPageEnum,
   getNotificationsQuerySchema,
+  NOTIFICATION_CATEGORY_TYPES,
+  NOTIFICATION_TYPES_RESOLVED_ON_READ,
   type AccessPage,
 } from 'shared';
 import { idParamSchema } from 'shared/utils';
@@ -16,6 +19,24 @@ const router = Router();
 const NOTIFICATION_LIMIT = 6;
 // Admin read-all state uses one cursor that applies to every audience.
 const ALL_AUDIENCES = '*';
+
+/** Whether staff `$1` has read notification `n`, individually or via read-all. */
+const IS_READ_SQL = `(
+  EXISTS (
+    SELECT 1
+    FROM notificationread nr
+    WHERE nr.notificationid = n.notificationid AND nr.staffid = $1
+  )
+  OR EXISTS (
+    SELECT 1
+    FROM staffnotificationcursor c
+    WHERE c.staffid = $1
+      -- A cursor marks all older notifications for that audience read;
+      -- notificationread still handles individual/out-of-order reads.
+      AND (c.audience = '${ALL_AUDIENCES}' OR c.audience = ANY(n.audience))
+      AND c.notificationid >= n.notificationid
+  )
+)`;
 
 /**
  * Builds the visibility filter for the signed-in staff member: admins and
@@ -49,60 +70,87 @@ async function getVisibility(res: Response, audienceParam = 2) {
   };
 }
 
+/**
+ * Resolves the {@link NOTIFICATION_TYPES_RESOLVED_ON_READ} notifications staff `staffid` has now
+ * read, whether one at a time or with "Mark all as read".
+ */
+async function resolveReadNotifications(staffid: string) {
+  await pool.query(
+    `UPDATE notification n
+     SET resolvedat = now()
+     WHERE n.type = ANY($2::text[])
+       AND n.resolvedat IS NULL
+       AND ${IS_READ_SQL}`,
+    [staffid, NOTIFICATION_TYPES_RESOLVED_ON_READ],
+  );
+}
+
 async function countUnread(staffid: string, res: Response) {
   const { condition, params } = await getVisibility(res);
   const result = await pool.query<{ count: number }>(
     `SELECT COUNT(*)::int AS count
      FROM notification n
-     LEFT JOIN notificationread nr
-       ON nr.notificationid = n.notificationid AND nr.staffid = $1
      WHERE ${condition}
-       AND nr.notificationid IS NULL
-       AND NOT EXISTS (
-         SELECT 1
-         FROM staffnotificationcursor c
-         WHERE c.staffid = $1
-           -- A cursor marks all older notifications for that audience read;
-           -- notificationread still handles individual/out-of-order reads.
-           AND (c.audience = '${ALL_AUDIENCES}' OR c.audience = ANY(n.audience))
-           AND c.notificationid >= n.notificationid
-       )`,
+       AND NOT ${IS_READ_SQL}`,
     [staffid, ...params],
   );
   return result.rows[0].count;
 }
 
+/**
+ * Sample URLs
+ * `http://localhost:4000/notifications`
+ * `http://localhost:4000/notifications?category=stocks&readStatus=unread&page=2`
+ * `http://localhost:4000/notifications?startDate=2026-11-01&endDate=2026-11-08`
+ */
 router.get('/', requireAuth, async (req, res, next) => {
   try {
-    const { page } = getNotificationsQuerySchema.parse(req.query);
+    const { page, category, readStatus, startDate, endDate } =
+      getNotificationsQuerySchema.parse(req.query);
     const staffid: string = res.locals.session.user.id;
     const { condition, params } = await getVisibility(res);
-    const limitParam = 2 + params.length;
+
+    // Start building `whereClause`
+    const whereConditions = [condition];
+    const queryParams: unknown[] = [staffid, ...params];
+
+    if (category) {
+      queryParams.push(NOTIFICATION_CATEGORY_TYPES[category]);
+      whereConditions.push(`n.type = ANY($${queryParams.length}::text[])`);
+    }
+
+    if (startDate) {
+      queryParams.push(startDate);
+      whereConditions.push(`n.createdat >= $${queryParams.length}`);
+    }
+
+    if (endDate) {
+      queryParams.push(toExclusiveEndBound(endDate));
+      whereConditions.push(`n.createdat < $${queryParams.length}`);
+    }
+
+    if (readStatus) {
+      whereConditions.push(
+        readStatus === 'read' ? IS_READ_SQL : `NOT ${IS_READ_SQL}`,
+      );
+    }
+
+    const whereClause = `WHERE ${whereConditions.join(' AND ')}`;
+    // Finish building `whereClause`
+
+    const limitParam = queryParams.length + 1;
     const offsetParam = limitParam + 1;
 
     const result = await pool.query(
       `SELECT
          n.notificationid, n.type, n.title, n.message, n.caseid, n.link,
          n.createdat, n.resolvedat,
-         (
-           nr.notificationid IS NOT NULL
-           OR EXISTS (
-             SELECT 1
-             FROM staffnotificationcursor c
-             WHERE c.staffid = $1
-               -- Keep the API's per-notification isread value compatible with
-               -- the cursor-based unread count.
-               AND (c.audience = '${ALL_AUDIENCES}' OR c.audience = ANY(n.audience))
-               AND c.notificationid >= n.notificationid
-           )
-         ) AS isread
+         ${IS_READ_SQL} AS isread
        FROM notification n
-       LEFT JOIN notificationread nr
-         ON nr.notificationid = n.notificationid AND nr.staffid = $1
-       WHERE ${condition}
+       ${whereClause}
        ORDER BY n.createdat DESC, n.notificationid DESC
        LIMIT $${limitParam} OFFSET $${offsetParam}`,
-      [staffid, ...params, NOTIFICATION_LIMIT, (page - 1) * NOTIFICATION_LIMIT],
+      [...queryParams, NOTIFICATION_LIMIT, (page - 1) * NOTIFICATION_LIMIT],
     );
 
     res.json({
@@ -164,6 +212,8 @@ router.patch('/read-all', requireAuth, async (_req, res, next) => {
       );
     }
 
+    await resolveReadNotifications(staffid);
+
     res.status(204).end();
   } catch (error) {
     next(error);
@@ -189,6 +239,8 @@ router.patch(
          ON CONFLICT DO NOTHING`,
         [staffid, req.params.id, ...params],
       );
+
+      await resolveReadNotifications(staffid);
 
       res.status(204).end();
     } catch (error) {

@@ -14,10 +14,16 @@ import {
 import { getFinancialDetails } from '@/controllers/financial/details';
 import { getFinancialSummary } from '@/controllers/financial/summary';
 import validate from '@/middleware/validate';
-import { createTransactionQuerySchema } from 'shared';
+import {
+  createOfficialReceiptFromHistoryQuerySchema,
+  createTransactionQuerySchema,
+} from 'shared';
 import validateParams from '@/middleware/validate-params';
 import { idParamSchema } from 'shared/utils';
-import { getDirectOfficialReceipts } from '@/controllers/financial/officialreceipt';
+import {
+  createDirectOfficialReceiptFromHistory,
+  getDirectOfficialReceipts,
+} from '@/controllers/financial/officialreceipt';
 
 const router = Router();
 
@@ -156,6 +162,14 @@ router.get(
   requireAuth,
   validateParams(idParamSchema),
   getDirectOfficialReceipts,
+);
+
+router.post(
+  '/direct/:id/official-receipts',
+  requireAuth,
+  validateParams(idParamSchema),
+  validate(createOfficialReceiptFromHistoryQuerySchema),
+  createDirectOfficialReceiptFromHistory,
 );
 
 export default router;

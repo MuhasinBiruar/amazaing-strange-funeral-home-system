@@ -1,13 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import z from 'zod';
 import SummaryPanel from './_components/summaryPanel';
 import DirectTable from './_components/directTable';
 import LguTable from './_components/lguTable';
 import LifeplanTable from './_components/lifeplanTable';
 import ExpenseTable from './_components/expenseTable';
 
-type Tab = 'direct' | 'lgu' | 'lifeplan' | 'expenses';
+// Notifications link to these (`?tab=direct&search=Juan`), so the keys are
+// part of the page's URL contract.
+const tabEnum = z
+  .enum(['direct', 'lgu', 'lifeplan', 'expenses'])
+  .catch('direct');
+type Tab = z.infer<typeof tabEnum>;
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'direct', label: 'Direct' },
@@ -22,10 +29,22 @@ const TABS: { key: Tab; label: string }[] = [
  *
  * @remarks
  * Mirrors the case-management page shell (category pill, serif heading,
- * subtitle) and reuses the shared `DataTable` for each log.
+ * subtitle) and reuses the shared `DataTable` for each log. The active tab
+ * lives in the `tab` query parameter, and an optional `search` parameter
+ * prefills that tab's search.
  */
-export default function FinancialsPage() {
-  const [tab, setTab] = useState<Tab>('direct');
+function FinancialsPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const tab = tabEnum.parse(searchParams.get('tab'));
+  const search = searchParams.get('search') ?? '';
+  const changeTab = (tabName: Tab) => {
+    router.replace(`/dashboard/financials?tab=${tabName}`, { scroll: false });
+  };
+
+  // Keyed so following another link to the same tab applies its search.
+  const tableKey = `${tab}:${search}`;
 
   return (
     <div className="flex-1 bg-gray-50 flex flex-col">
@@ -50,7 +69,7 @@ export default function FinancialsPage() {
             {TABS.map(({ key, label }) => (
               <button
                 key={key}
-                onClick={() => setTab(key)}
+                onClick={() => changeTab(key)}
                 className={`px-4 py-3 text-sm font-medium border-b-2 transition cursor-pointer ${
                   tab === key
                     ? 'border-indigo-600 text-indigo-600'
@@ -63,11 +82,25 @@ export default function FinancialsPage() {
           </div>
         </div>
 
-        {tab === 'direct' && <DirectTable />}
-        {tab === 'lgu' && <LguTable />}
-        {tab === 'lifeplan' && <LifeplanTable />}
-        {tab === 'expenses' && <ExpenseTable />}
+        {tab === 'direct' && (
+          <DirectTable key={tableKey} initialSearch={search} />
+        )}
+        {tab === 'lgu' && <LguTable key={tableKey} initialSearch={search} />}
+        {tab === 'lifeplan' && (
+          <LifeplanTable key={tableKey} initialSearch={search} />
+        )}
+        {tab === 'expenses' && (
+          <ExpenseTable key={tableKey} initialSearch={search} />
+        )}
       </main>
     </div>
+  );
+}
+
+export default function FinancialsPage() {
+  return (
+    <Suspense fallback={null}>
+      <FinancialsPageContent />
+    </Suspense>
   );
 }

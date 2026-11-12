@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import NotificationItem from './notificationItem';
+import NotificationFilters from './notificationFilters';
 import type { Notification } from 'shared';
+import type { NotificationFilters as Filters } from '@/services/notificationService';
 
 export default function NotificationDropdown({
   notifications,
   unreadCount,
+  filters,
   loading,
   loadingMore,
   error,
@@ -13,9 +16,11 @@ export default function NotificationDropdown({
   onSelect,
   onMarkAllRead,
   onLoadMore,
+  onFiltersChange,
 }: {
   notifications: Notification[];
   unreadCount: number;
+  filters: Filters;
   loading: boolean;
   loadingMore: boolean;
   error: string | null;
@@ -23,7 +28,13 @@ export default function NotificationDropdown({
   onSelect: (notification: Notification) => void;
   onMarkAllRead: () => void;
   onLoadMore: () => void;
+  onFiltersChange: (filters: Filters) => void;
 }) {
+  const isFiltered =
+    filters.category !== undefined ||
+    filters.readStatus !== undefined ||
+    filters.startDate !== undefined;
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
   const onLoadMoreRef = useRef(onLoadMore);
@@ -83,6 +94,8 @@ export default function NotificationDropdown({
         </button>
       </header>
 
+      <NotificationFilters filters={filters} onChange={onFiltersChange} />
+
       {loading && notifications.length === 0 ? (
         <div className="flex items-center justify-center gap-2 py-8 text-sm text-gray-500">
           <Loader2 size={16} className="animate-spin text-indigo-600" />
@@ -92,13 +105,15 @@ export default function NotificationDropdown({
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
       ) : notifications.length === 0 ? (
         <p className="py-8 text-center text-sm text-gray-500">
-          You&apos;re all caught up.
+          {isFiltered
+            ? 'No notifications match these filters.'
+            : "You're all caught up."}
         </p>
       ) : (
+        // Fills whatever height the header and filters leave in the dropdown.
         <div
           ref={scrollContainerRef}
-          className="overflow-y-auto"
-          style={{ maxHeight: 'calc(70vh - 4rem)' }}
+          className="flex-1 min-h-0 overflow-y-auto"
         >
           {notifications.map((notif) => (
             <NotificationItem

@@ -62,6 +62,18 @@ export default function ContractPanel({
 
   const [confirmedPackage, setConfirmedPackage] =
     useState<ConfirmedPackage | null>(null);
+  const hasLifeplanAmount =
+    deceased.plantype === 'Life' && deceased.lifeplan_totalamount !== null;
+  const canSetLifeplanAmountManually =
+    deceased.lifeplan_use_benefits === false;
+  const [useLifeplanAmount, setUseLifeplanAmount] = useState<boolean | null>(
+    () =>
+      hasLifeplanAmount
+        ? canSetLifeplanAmountManually
+          ? null
+          : true
+        : false,
+  );
   const [form, setForm] = useState<ContractForm>(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -76,7 +88,7 @@ export default function ContractPanel({
     setForm((prev) => ({
       ...prev,
       totalamount: String(
-        deceased.plantype === 'Life' && deceased.lifeplan_totalamount !== null
+        useLifeplanAmount && deceased.lifeplan_totalamount !== null
           ? Math.max(0, pkg.price - deceased.lifeplan_totalamount)
           : pkg.price,
       ),
@@ -84,6 +96,8 @@ export default function ContractPanel({
       inclusions: pkg.inclusions ?? '',
     }));
   }
+
+  const canSetUpPackage = !hasLifeplanAmount || useLifeplanAmount !== null;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -126,6 +140,7 @@ export default function ContractPanel({
         totalamount: Number(form.totalamount),
         embalmingperiod: Number(form.embalmingperiod),
         inclusions: emptyToNull(form.inclusions),
+        useLifeplanAmount: useLifeplanAmount !== false,
       });
 
       // Assigning the package's casket may have just brought its stock down
@@ -172,8 +187,8 @@ export default function ContractPanel({
               />
               <DetailRow label="Plan type" value={deceased.plantype} />
               <DetailRow
-                label="Matured life plan"
-                value={deceased.hasmaturedlifeplan ? 'Yes' : 'No'}
+                label="Location of death"
+                value={deceased.locationofdeath}
               />
               <DetailRow label="Cause of death" value={deceased.causeofdeath} />
               <DetailRow label="Type of death" value={deceased.typeofdeath} />
@@ -204,25 +219,65 @@ export default function ContractPanel({
 
             <div>
               <label className={labelClass}>Package</label>
-              <PackageSection
-                confirmed={confirmedPackage}
-                onConfirm={handlePackageConfirmed}
-                onEdit={() => setConfirmedPackage(null)}
-                lifeplanAmount={
-                  deceased.plantype === 'Life'
-                    ? (deceased.lifeplan_totalamount ?? undefined)
-                    : undefined
-                }
-                useLifeplanBenefits={
-                  deceased.plantype === 'Life'
-                    ? (deceased.lifeplan_use_benefits ?? true)
-                    : undefined
-                }
-              />
+              {hasLifeplanAmount && useLifeplanAmount === null ? (
+                <div className="rounded-md border border-indigo-100 bg-indigo-50 p-3 space-y-3">
+                  <p className="text-sm text-indigo-950">
+                    This life plan has{' '}
+                    <strong>
+                      {formatCurrency(deceased.lifeplan_totalamount)}
+                    </strong>{' '}
+                    available.
+                  </p>
+                  <p className="text-xs text-indigo-800">
+                    Choose how to apply it to this contract.
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => setUseLifeplanAmount(true)}
+                      className="rounded-md border border-indigo-200 bg-white px-3 py-2 text-left text-sm text-indigo-900 hover:bg-indigo-100 cursor-pointer"
+                    >
+                      Use lifeplan amount
+                      <span className="block text-xs text-indigo-600 mt-0.5">
+                        Subtract {formatCurrency(deceased.lifeplan_totalamount)}{' '}
+                        from the package price.
+                      </span>
+                    </button>
+                    {canSetLifeplanAmountManually && (
+                      <button
+                        type="button"
+                        onClick={() => setUseLifeplanAmount(false)}
+                        className="rounded-md border border-indigo-200 bg-white px-3 py-2 text-left text-sm text-indigo-900 hover:bg-indigo-100 cursor-pointer"
+                      >
+                        Set amount manually
+                        <span className="block text-xs text-indigo-600 mt-0.5">
+                          Do not subtract the lifeplan amount.
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <PackageSection
+                  confirmed={confirmedPackage}
+                  onConfirm={handlePackageConfirmed}
+                  onEdit={() => setConfirmedPackage(null)}
+                  lifeplanAmount={
+                    deceased.plantype === 'Life'
+                      ? (deceased.lifeplan_totalamount ?? undefined)
+                      : undefined
+                  }
+                  useLifeplanBenefits={
+                    deceased.plantype === 'Life'
+                      ? (deceased.lifeplan_use_benefits ?? true)
+                      : undefined
+                  }
+                  useLifeplanAmount={useLifeplanAmount === true}
+                />
+              )}
               {confirmedPackage && (
                 <p className="text-[11px] text-gray-400 mt-1">
-                  {deceased.plantype === 'Life' &&
-                  deceased.lifeplan_totalamount !== null
+                  {useLifeplanAmount && deceased.lifeplan_totalamount !== null
                     ? `Life plan covers ${formatCurrency(deceased.lifeplan_totalamount)}. The amount below is the additional amount only.`
                     : 'Amount, embalming period and inclusions below were prefilled from it — feel free to adjust for this contract.'}
                 </p>
@@ -270,11 +325,11 @@ export default function ContractPanel({
 
               <div>
                 <label htmlFor="totalamount" className={labelClass}>
-                  {deceased.plantype === 'Life'
+                  {useLifeplanAmount
                     ? 'Additional amount (PHP)'
                     : 'Total amount (PHP)'}
                 </label>
-                {deceased.plantype === 'Life' &&
+                {useLifeplanAmount &&
                   deceased.lifeplan_totalamount !== null && (
                     <p className="text-[11px] text-gray-500 mb-1">
                       Plan-covered amount:{' '}
@@ -288,7 +343,7 @@ export default function ContractPanel({
                   step="0.01"
                   required
                   value={form.totalamount}
-                  readOnly={deceased.plantype === 'Life'}
+                  readOnly={useLifeplanAmount === true}
                   onChange={(e) =>
                     setForm((prev) => ({
                       ...prev,
@@ -357,7 +412,7 @@ export default function ContractPanel({
             <LoadingButton
               type="submit"
               isLoading={isSubmitting}
-              disabled={!confirmedPackage}
+              disabled={!confirmedPackage || !canSetUpPackage}
               label="Create contract"
               loadingLabel="Creating..."
               className="flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium px-4 py-2 hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"

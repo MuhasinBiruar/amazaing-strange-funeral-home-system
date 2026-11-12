@@ -14,6 +14,8 @@ import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import DocumentsSection from './documentsSection';
 import DeceasedInfoSection from './deceasedInfoSection';
+import PlanSection from './planSection';
+import ContractSection from './contractSection';
 import RepresentativeInfoSection from './representativeInfoSection';
 import {
   toDeceasedForm,
@@ -25,11 +27,14 @@ import {
 export default function CaseDetailPanel({
   caseid,
   representativeid,
+  contractid,
   onClose,
   setRefreshKey,
 }: {
   caseid: number;
   representativeid: number | null;
+  /** Null until the case is put under contract. */
+  contractid: number | null;
   onClose: () => void;
   setRefreshKey: Dispatch<SetStateAction<number>>;
 }) {
@@ -106,11 +111,10 @@ export default function CaseDetailPanel({
         typeofdeath: deceasedForm.typeofdeath || null,
         physicaldescription: deceasedForm.physicaldescription || null,
         servicestatus: deceasedForm.servicestatus,
-        plantype: deceasedForm.plantype,
         dateofdeath: deceasedForm.dateofdeath
           ? new Date(deceasedForm.dateofdeath)
           : null,
-        hasmaturedlifeplan: deceasedForm.hasmaturedlifeplan,
+        locationofdeath: deceasedForm.locationofdeath || null,
         hasadvanceddecomposition: deceasedForm.hasadvanceddecomposition,
       });
       setRefreshKey((v) => v + 1);
@@ -190,6 +194,25 @@ export default function CaseDetailPanel({
               saveError={deceasedSaveError}
               isSaved={isDeceasedSaved}
             />
+
+            <PlanSection
+              caseid={caseid}
+              deceasedName={[
+                deceasedForm.firstname,
+                deceasedForm.middlename,
+                deceasedForm.lastname,
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              onSaved={() => setRefreshKey((v) => v + 1)}
+            />
+
+            {contractid !== null && (
+              <ContractSection
+                contractid={contractid}
+                onSaved={() => setRefreshKey((v) => v + 1)}
+              />
+            )}
 
             <RepresentativeInfoSection
               form={representativeForm}

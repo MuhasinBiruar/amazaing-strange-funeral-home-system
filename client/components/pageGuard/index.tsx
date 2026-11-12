@@ -5,10 +5,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useInfoModal } from '@/components/infoModal/useInfoModal';
 import { useAuth } from '@/contexts/AuthProvider';
 import type { AccessPage } from 'shared';
-import { Loader2 } from 'lucide-react';
+import Loading from '@/app/loading';
 
 /** Routes that require the `admin` role, independent of any `access` flag. */
-const ADMIN_ONLY_PATHS = ['/dashboard/admin'];
+const ADMIN_ONLY_PATHS = ['/dashboard/admin', '/dashboard/deleted-items'];
 
 /** The only area life plan agents may use; staff may not use it. */
 const AGENT_HOME = '/view-lifeplan';
@@ -89,14 +89,10 @@ export default function PageGuard({ children }: { children: React.ReactNode }) {
     misplacedAgent
   )
     return (
-      <div className="grow flex items-center justify-center bg-white">
-        <span className="flex items-center gap-2 text-sm text-gray-500">
-          <Loader2 size={20} className="animate-spin text-indigo-600" />
-          Loading...
-        </span>
-
+      <>
+        <Loading />
         {infoModal}
-      </div>
+      </>
     );
 
   return <>{children}</>;

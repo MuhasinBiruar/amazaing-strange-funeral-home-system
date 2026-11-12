@@ -19,7 +19,10 @@ import {
 } from 'shared';
 import { idParamSchema, type IdParam } from 'shared/utils';
 import { withTransaction } from '@/util/with-transaction';
-import { triggerNotificationSweep } from '@/lib/notifications';
+import {
+  notifyExpenseRecorded,
+  triggerNotificationSweep,
+} from '@/lib/notifications';
 
 const router = Router();
 
@@ -42,6 +45,23 @@ const SELECT_FORMALIN_DELIVERY = `
     totalamountpaid / NULLIF(quantityreceived, 0) AS unitcost
   FROM public.formalindelivery
 ` as const;
+
+router.get(
+  '/history/:id',
+  requireAuth,
+  validateParams(idParamSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await pool.query(
+        `${SELECT_FORMALIN_DELIVERY} WHERE formalinid = $1 ORDER BY deliverydate DESC, deliveryid DESC`,
+        [req.params.id],
+      );
+      res.json({ data: result.rows });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 /**
  * Sample URLs
@@ -248,6 +268,13 @@ router.post(
       });
 
       triggerNotificationSweep();
+      void notifyExpenseRecorded({
+        source: 'formalin',
+        id: delivery.deliveryid,
+        description: `Formalin delivery: ${parsed.quantityreceived} L`,
+        amount: parsed.totalamountpaid,
+        recordedby_name: res.locals.session.user.name,
+      });
 
       res.locals.auditAction = `${res.locals.session.user.name} recorded a formalin delivery of ${parsed.quantityreceived} liters`;
 

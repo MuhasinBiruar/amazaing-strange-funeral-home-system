@@ -8,6 +8,7 @@ import {
   type GetFormalinUsageSummaryQuery,
 } from 'shared';
 import { API } from './api';
+import { notifyNotificationsChanged } from './notificationService';
 
 export async function getFormalinInventory(signal?: AbortSignal) {
   const result = await API.get('/formalininventory', {
@@ -41,6 +42,8 @@ export async function recordFormalinUsage(payload: CreateFormalinUsage) {
   const result = await API.post('/formalininventory/usage', payload, {
     withCredentials: true,
   });
+  // Usage can drop stock to its minimum, raising a low-formalin notification.
+  notifyNotificationsChanged();
   return createFormalinUsageResponseSchema.parse(result.data);
 }
 

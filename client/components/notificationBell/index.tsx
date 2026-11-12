@@ -19,11 +19,13 @@ export default function NotificationBell() {
   const {
     unreadCount,
     notifications,
+    filters,
     loading,
     loadingMore,
     error,
     hasMoreNotifications,
     loadNotifications,
+    changeFilters,
     cancelListRequest,
     loadMoreNotifications,
     markAsRead,
@@ -47,7 +49,10 @@ export default function NotificationBell() {
     if (!open) return;
 
     const onPointerDown = (e: PointerEvent) => {
-      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Element;
+      // The date filter's calendar is portaled outside the dropdown.
+      if (target.closest?.('[data-date-range-popover]')) return;
+      if (!containerRef.current?.contains(target)) setOpen(false);
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -102,6 +107,7 @@ export default function NotificationBell() {
         <NotificationDropdown
           notifications={notifications}
           unreadCount={unreadCount}
+          filters={filters}
           loading={loading}
           loadingMore={loadingMore}
           error={error}
@@ -109,6 +115,7 @@ export default function NotificationBell() {
           onSelect={handleSelect}
           onMarkAllRead={markAllRead}
           onLoadMore={loadMoreNotifications}
+          onFiltersChange={changeFilters}
         />
       )}
     </div>

@@ -291,11 +291,6 @@ export async function createDirectTransaction(
             .plus(delta)
             .toFixed(2)}).`,
         );
-      if (receipt && remaining.isGreaterThan(0))
-        throw new BadRequestError(
-          `An official receipt can only be issued once the case is fully paid (${remaining.toFixed(2)} would still be unpaid).`,
-        );
-
       const insertResult = await client.query<Transaction>(
         `INSERT INTO public.transaction (
            amount,
@@ -332,17 +327,18 @@ export async function createDirectTransaction(
           await client.query(
             `INSERT INTO public.officialreceipt (
          ornumber, amount, issuedate, transactionid,
-         payable.minus(discount).toFixed(),, withholding_tax, tin, discount_id, pwd_discount
-       ) VALUES ($1, $2, NOW(), $3, $4, $5, $6, $7, $8)`,
+         total_due, withholding_tax, tin, discount_id, pwd_discount, payer_name
+       ) VALUES ($1, $2, NOW(), $3, $4, $5, $6, $7, $8, $9)`,
             [
               receipt.ornumber,
               amount,
               created.transactionid,
-              new BigNumber(totalamount).minus(discount).toFixed(),
+              payable.minus(discount).toFixed(),
               receipt.withholding_tax,
               receipt.tin,
               receipt.discount_id,
               receipt.pwd_discount,
+              receipt.payer_name,
             ],
           );
 

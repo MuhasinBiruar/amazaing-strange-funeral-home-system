@@ -166,16 +166,39 @@ CREATE TABLE public.deceasedrecord (
     typeofdeath character varying(255),
     physicaldescription text,
     servicestatus public.service_status_enum NOT NULL,
+    -- Every life plan the home takes is matured, so this is kept equal to
+    -- plantype = 'Life' by the server rather than set by staff.
     hasmaturedlifeplan boolean DEFAULT false NOT NULL,
     plantype public.plan_type_enum NOT NULL,
     datecreated date DEFAULT CURRENT_DATE NOT NULL,
     managedby text NOT NULL REFERENCES public.staff(id),
     representedby integer REFERENCES public.representative(representativeid),
     dateofdeath date,
-    hasadvanceddecomposition boolean DEFAULT false NOT NULL
+    locationofdeath character varying(255),
+    hasadvanceddecomposition boolean DEFAULT false NOT NULL,
+    -- When servicestatus last became 'completed'; kept by the trigger below.
+    completedat timestamp with time zone
 );
 CREATE INDEX idx_deceasedrecord_managedby ON public.deceasedrecord USING btree (managedby);
 CREATE INDEX idx_deceasedrecord_representedby ON public.deceasedrecord USING btree (representedby);
+
+-- Stamps completedat whenever a case moves into 'completed' (from any code
+-- path), and clears it if the case moves back out.
+CREATE FUNCTION public.deceasedrecord_track_completion() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+begin
+  if new.servicestatus <> 'completed' then
+    new.completedat := null;
+  elsif tg_op = 'INSERT' or old.servicestatus <> 'completed' then
+    new.completedat := coalesce(new.completedat, now());
+  end if;
+  return new;
+end $$;
+
+CREATE TRIGGER deceasedrecord_track_completion_trg
+    BEFORE INSERT OR UPDATE OF servicestatus ON public.deceasedrecord
+    FOR EACH ROW EXECUTE FUNCTION public.deceasedrecord_track_completion();
 
 CREATE TABLE public.burialrecord (
     burialid serial PRIMARY KEY,
@@ -265,7 +288,8 @@ CREATE TABLE public.officialreceipt (
     withholding_tax numeric(12,2),
     tin text,
     discount_id text,
-    pwd_discount numeric(12,2)
+    pwd_discount numeric(12,2),
+    payer_name text
 );
 COMMENT ON COLUMN public.officialreceipt.pwd_discount IS 'Amount';
 
@@ -363,3 +387,25 @@ CREATE TABLE public.staffnotificationcursor (
     updatedat timestamp with time zone DEFAULT now() NOT NULL,
     PRIMARY KEY (staffid, audience)
 );
+
+-- Deleted items: each row is one deleted record (a case, an expense, ...)
+-- plus everything removed with it, kept as `snapshot` so it can be restored
+-- for 30 days. The rows are really deleted from their own tables, so no other
+-- query has to skip deleted data. A daily job (src/lib/deletion-purge.ts)
+-- removes entries, and their uploaded files, once `purgeafter` passes.
+CREATE TABLE public.deletion (
+    deletionid serial PRIMARY KEY,
+    entitytype text NOT NULL,
+    entityid integer NOT NULL,
+    label text NOT NULL,
+    summary text,
+    -- [{ "table", "key", "rows", "shared"?, "keep"? }] in insert order.
+    snapshot jsonb NOT NULL,
+    -- Storage keys of uploaded files, deleted on purge.
+    files text[] DEFAULT '{}'::text[] NOT NULL,
+    deletedby text NOT NULL REFERENCES public.staff(id),
+    deletedat timestamp with time zone DEFAULT now() NOT NULL,
+    purgeafter timestamp with time zone DEFAULT (now() + interval '30 days') NOT NULL
+);
+CREATE INDEX idx_deletion_purgeafter ON public.deletion USING btree (purgeafter);
+CREATE INDEX idx_deletion_deletedat ON public.deletion USING btree (deletedat DESC);

@@ -96,6 +96,7 @@ export default function CasketDeliveryTable({
       defaultFilters={DEFAULT_FILTERS}
       columns={COLUMNS}
       rowKey={(d) => d.deliveryid}
+      deletable={(d) => ({ entitytype: 'casketdelivery', id: d.deliveryid })}
       defaultSortBy="deliverydate"
       defaultSortOrder="desc"
       fetchData={({ filters, ...params }) =>

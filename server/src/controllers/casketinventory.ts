@@ -1,6 +1,5 @@
 import pool from '@/db';
 import { BadRequestError, NotFoundError } from '@/errors';
-import { withTransaction } from '@/util/with-transaction';
 import type { NextFunction, Request, Response } from 'express';
 import {
   getPaginatedCasketInventoryQuerySchema,
@@ -9,6 +8,7 @@ import {
 } from 'shared';
 import type { IdParam } from 'shared/utils';
 import * as CasketInventoryModel from '@/model/casketinventory';
+import { triggerNotificationSweep } from '@/lib/notifications';
 
 export const getCasketInventory = async (
   _req: Request,
@@ -76,6 +76,8 @@ export const createCasketInventory = async (
       ) VALUES ($1, $2, 0, $3) RETURNING *`,
       [parsed.caskettype, parsed.caskettier, parsed.minimumthreshold],
     );
+
+    triggerNotificationSweep();
 
     res.locals.auditAction = `${res.locals.session.user.name} added ${parsed.caskettype} (${parsed.caskettier}) to casket inventory`;
     res.status(201).json({ data: result.rows[0] });
@@ -192,39 +194,10 @@ export const updateCasketInventory = async (
 
     if (result.rows.length === 0) throw new NotFoundError('Casket not found.');
 
+    triggerNotificationSweep();
+
     res.locals.auditAction = `${res.locals.session.user.name} edited casket ${result.rows[0].caskettype}`;
     res.json({ data: result.rows[0] });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Deletes a casket that nothing references yet (e.g. one added by mistake).
- */
-export const deleteCasketInventory = async (
-  req: Request<IdParam>,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { id } = req.params;
-
-    const caskettype = await withTransaction(async (client) => {
-      const caskettype = await CasketInventoryModel.assertCasketCanBeDeleted(
-        client,
-        id,
-      );
-
-      await client.query('DELETE FROM casketinventory WHERE casketid = $1', [
-        id,
-      ]);
-
-      return caskettype;
-    });
-
-    res.locals.auditAction = `${res.locals.session.user.name} deleted casket ${caskettype}`;
-    res.status(204).end();
   } catch (error) {
     next(error);
   }

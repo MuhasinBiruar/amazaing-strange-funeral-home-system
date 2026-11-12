@@ -73,6 +73,7 @@ export default function FormalinDeliveryTable({
       defaultFilters={DEFAULT_FILTERS}
       columns={COLUMNS}
       rowKey={(d) => d.deliveryid}
+      deletable={(d) => ({ entitytype: 'formalindelivery', id: d.deliveryid })}
       defaultSortBy="deliverydate"
       defaultSortOrder="desc"
       fetchData={({ filters, ...params }) =>

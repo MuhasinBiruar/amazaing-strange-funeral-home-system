@@ -45,11 +45,15 @@ const DATE_FILTERS: FilterDef<DateFilters>[] = [
  */
 export default function FormalinUsageHistoryPanel({
   onClose,
+  onUsageDeleted,
 }: {
   onClose: () => void;
+  /** Deleting usage puts the formalin back into stock. */
+  onUsageDeleted: () => void;
 }) {
   const { isShown, requestClose } = useSidePanel(onClose);
   const [breakdownDate, setBreakdownDate] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const columns: DataTableColumn<FormalinUsageSummary, SummaryColumn>[] = [
     {
@@ -109,6 +113,7 @@ export default function FormalinUsageHistoryPanel({
             emptyMessage="No formalin usage recorded."
             loadErrorMessage="Could not load usage history. Try again."
             bodyOffsetClassName="top-17.25"
+            refreshKey={refreshKey}
           />
         </div>
       </SidePanel>
@@ -118,6 +123,10 @@ export default function FormalinUsageHistoryPanel({
           key={breakdownDate}
           date={breakdownDate}
           onClose={() => setBreakdownDate(null)}
+          onDeleted={() => {
+            setRefreshKey((k) => k + 1);
+            onUsageDeleted();
+          }}
         />
       )}
     </>
@@ -128,9 +137,11 @@ export default function FormalinUsageHistoryPanel({
 function FormalinUsageBreakdownPanel({
   date,
   onClose,
+  onDeleted,
 }: {
   date: string;
   onClose: () => void;
+  onDeleted: () => void;
 }) {
   const { isShown, requestClose } = useSidePanel(onClose);
   const columns: DataTableColumn<FormalinUsage, BreakdownColumn>[] = [
@@ -168,6 +179,11 @@ function FormalinUsageBreakdownPanel({
           countLabel={(total) => `${total} records`}
           columns={columns}
           rowKey={(row) => row.usageid}
+          deletable={(row) => ({
+            entitytype: 'formalinusage',
+            id: row.usageid,
+          })}
+          onDeleted={onDeleted}
           defaultSortBy="usagedate"
           defaultSortOrder="desc"
           fetchData={(params) =>

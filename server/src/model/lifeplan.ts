@@ -15,7 +15,7 @@ const SORT_COLUMNS: Record<keyof GetLifeplansQueryRow, string> = {
   companyname: 'lc.companyname',
   contractid: 'c.contractid',
   contractamount: 'GREATEST(c.totalamount - COALESCE(l.totalamount, 0), 0)',
-  originalprice: 'CASE WHEN l.use_benefits = false THEN c.totalamount END',
+  originalprice: 'CASE WHEN l.use_benefits = false THEN p.price END',
   totalamountpaid: 'COALESCE(t.totalpaid, 0)',
   totaldeductions: 'COALESCE(od.totaldeductions, 0)',
   remainingbalance:
@@ -41,7 +41,7 @@ export const getLifeplans = async ({
       l.planholdername,
       l.totalamount,
       l.use_benefits,
-            CASE WHEN l.use_benefits = false THEN c.totalamount END::float8 AS originalprice,
+      CASE WHEN l.use_benefits = false THEN p.price END::float8 AS originalprice,
       l.caseid,
       CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
       CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
@@ -49,18 +49,16 @@ export const getLifeplans = async ({
       lc.companyname,
       c.contractid,
       c.totalamount::float8 AS contractamount,
-      -- transaction.amount and the officialreceipt money columns are numeric
-      -- (returned as strings by pg); the API sends these totals as numbers.
       COALESCE(t.totalpaid, 0)::float8 AS totalamountpaid,
+      COALESCE(od.totaldeductions, 0)::float8 AS totaldeductions,
       CASE WHEN c.totalamount IS NULL THEN NULL
         ELSE GREATEST(
           GREATEST(c.totalamount - COALESCE(l.totalamount, 0), 0)
             - COALESCE(t.totalpaid, 0),
           0
         )
-      END AS remainingbalance,
+      END::float8 AS remainingbalance,
       dr.datecreated,
-      COALESCE(od.totaldeductions, 0)::float8 AS totaldeductions,
       dr.servicestatus
   `;
 
@@ -70,6 +68,7 @@ export const getLifeplans = async ({
     LEFT JOIN public.representative r ON dr.representedby = r.representativeid
     LEFT JOIN public.lifeplancompany lc ON l.companyid = lc.companyid
     LEFT JOIN public.contract c ON l.caseid = c.caseid
+    LEFT JOIN public.package p ON c.packageid = p.packageid
     LEFT JOIN (
       SELECT caseid,
         COALESCE(SUM(amount) FILTER (

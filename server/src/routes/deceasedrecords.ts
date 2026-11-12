@@ -3,8 +3,11 @@ import validate from '@/middleware/validate';
 import requireAuth from '@/middleware/require-auth';
 import {
   createDeceasedRecordQuerySchema,
+  updateCasePlanQuerySchema,
   updateDeceasedRecordQuerySchema,
 } from 'shared';
+import { getCasePlan, updateCasePlan } from '@/controllers/caseplan';
+import { getCasePreview } from '@/controllers/casepreview';
 import validateParams from '@/middleware/validate-params';
 import { idParamSchema } from 'shared/utils';
 import { getUncontractedDeceased } from '@/controllers/uncontracteddeceased';
@@ -45,6 +48,28 @@ router.patch(
   validateParams(idParamSchema),
   validate(updateDeceasedRecordQuerySchema),
   updateDeceasedRecord,
+);
+
+router.get(
+  '/:id/plan',
+  requireAuth,
+  validateParams(idParamSchema),
+  getCasePlan,
+);
+
+router.get(
+  '/:id/preview',
+  requireAuth,
+  validateParams(idParamSchema),
+  getCasePreview,
+);
+
+router.patch(
+  '/:id/plan',
+  requireAuth,
+  validateParams(idParamSchema),
+  validate(updateCasePlanQuerySchema),
+  updateCasePlan,
 );
 
 router.delete(

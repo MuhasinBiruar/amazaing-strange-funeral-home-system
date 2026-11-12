@@ -6,6 +6,7 @@ import {
   type GetLifeplanCompaniesQuery,
   getLifeplanCompaniesResponseSchema,
   type CreateLifeplanCompanyQuery,
+  getCasePreviewResponseSchema,
 } from 'shared';
 import { API } from './api';
 import { extractErrorMessage } from './utils/extractErrorMessage';
@@ -68,6 +69,15 @@ export async function getMyLifeplans({
     signal,
   });
   return getLifeplansResponseSchema.parse(result.data);
+}
+
+/** A read-only view of one of the agent's own company's cases. */
+export async function getMyCasePreview(caseid: number, signal?: AbortSignal) {
+  const result = await API.get(`/lifeplans/mine/${caseid}`, {
+    withCredentials: true,
+    signal,
+  });
+  return getCasePreviewResponseSchema.parse(result.data).data;
 }
 
 export async function createLifeplan(payload: CreateLifeplanQuery) {

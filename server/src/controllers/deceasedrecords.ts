@@ -54,8 +54,9 @@ export const createDeceasedRecord = async (
         dateofdeath,
         managedby,
         representedby,
-        hasadvanceddecomposition
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        hasadvanceddecomposition,
+        locationofdeath
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       RETURNING *;`,
       [
         parsed.firstname,
@@ -65,13 +66,15 @@ export const createDeceasedRecord = async (
         parsed.typeofdeath,
         parsed.physicaldescription,
         parsed.servicestatus,
-        parsed.hasmaturedlifeplan,
+        // Every life plan the home takes is matured.
+        parsed.plantype === 'Life',
         parsed.plantype,
         parsed.datecreated,
         parsed.dateofdeath,
         managedby,
         parsed.representedby,
         parsed.hasadvanceddecomposition ?? false,
+        parsed.locationofdeath,
       ],
     );
 
@@ -136,13 +139,12 @@ export const updateDeceasedRecord = async (
         typeofdeath = COALESCE($5, typeofdeath),
         physicaldescription = COALESCE($6, physicaldescription),
         servicestatus = COALESCE($7, servicestatus),
-        hasmaturedlifeplan = COALESCE($8, hasmaturedlifeplan),
-        plantype = COALESCE($9, plantype),
-        datecreated = COALESCE($10, datecreated),
-        dateofdeath = COALESCE($11, dateofdeath),
-        representedby = COALESCE($12, representedby),
-        hasadvanceddecomposition = COALESCE($13, hasadvanceddecomposition)
-      WHERE caseid = $14
+        locationofdeath = COALESCE($8, locationofdeath),
+        datecreated = COALESCE($9, datecreated),
+        dateofdeath = COALESCE($10, dateofdeath),
+        representedby = COALESCE($11, representedby),
+        hasadvanceddecomposition = COALESCE($12, hasadvanceddecomposition)
+      WHERE caseid = $13
       RETURNING *`,
       [
         parsed.firstname ?? null,
@@ -152,8 +154,7 @@ export const updateDeceasedRecord = async (
         parsed.typeofdeath ?? null,
         parsed.physicaldescription ?? null,
         parsed.servicestatus ?? null,
-        parsed.hasmaturedlifeplan ?? null,
-        parsed.plantype ?? null,
+        parsed.locationofdeath ?? null,
         parsed.datecreated ?? null,
         parsed.dateofdeath ?? null,
         parsed.representedby ?? null,

@@ -45,7 +45,12 @@ const FILTERS: FilterDef<Filters>[] = [
   },
 ];
 
-export default function LifeplanTable() {
+export default function LifeplanTable({
+  initialSearch,
+}: {
+  /** Prefills the search, e.g. from a notification link. */
+  initialSearch?: string;
+}) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [historyFor, setHistoryFor] = useState<GetLifeplansQueryRow | null>(
     null,
@@ -95,7 +100,7 @@ export default function LifeplanTable() {
     },
     {
       key: 'originalprice',
-      label: 'Original price',
+      label: 'Original Package Price',
       widthClassName: 'w-32.5',
       render: (l) =>
         l.originalprice != null ? formatCurrency(l.originalprice) : '—',
@@ -161,10 +166,12 @@ export default function LifeplanTable() {
         exportFileName="life-plans"
         countLabel={(total) => `${total} plans`}
         searchPlaceholder="Search by plan holder, number, or company..."
+        initialSearch={initialSearch}
         filters={FILTERS}
         defaultFilters={DEFAULT_FILTERS}
         columns={columns}
         rowKey={(l) => l.planid}
+        deletable={(l) => ({ entitytype: 'case', id: l.caseid })}
         defaultSortBy="deceased_name"
         defaultSortOrder="desc"
         fetchData={({ filters, ...params }) =>

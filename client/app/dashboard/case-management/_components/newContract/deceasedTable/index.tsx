@@ -88,6 +88,7 @@ export default function DeceasedTable({
       defaultFilters={DEFAULT_FILTERS}
       columns={COLUMNS}
       rowKey={(r) => r.caseid}
+      deletable={(r) => ({ entitytype: 'case', id: r.caseid })}
       defaultSortBy="deceased_name"
       defaultSortOrder="desc"
       fetchData={({ filters, ...params }) =>
