@@ -182,6 +182,7 @@ export default function LifeplanTable({
           key={historyFor.caseid}
           caseid={historyFor.caseid}
           deceasedName={historyFor.deceased_name}
+          representativeName={historyFor.representative_name}
           totalAmount={historyFor.contractamount}
           totalPaid={historyFor.totalamountpaid}
           onClose={() => setHistoryFor(null)}
@@ -192,6 +193,7 @@ export default function LifeplanTable({
           key={`payment-${paymentFor.caseid}`}
           caseId={paymentFor.caseid}
           deceasedName={paymentFor.deceased_name}
+          representativeName={paymentFor.representative_name}
           totalAmount={paymentFor.contractamount}
           totalPaid={paymentFor.totalamountpaid}
           onClose={() => setPaymentFor(null)}

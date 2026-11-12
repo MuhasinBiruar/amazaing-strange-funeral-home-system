@@ -53,8 +53,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await pool.query(
-        `${SELECT_FORMALIN_DELIVERY} WHERE formalinid = $1 ORDER BY deliverydate DESC, deliveryid DESC`,
-        [req.params.id],
+        `${SELECT_FORMALIN_DELIVERY} WHERE formalinid IS NOT NULL ORDER BY deliverydate DESC, deliveryid DESC`,
       );
       res.json({ data: result.rows });
     } catch (error) {

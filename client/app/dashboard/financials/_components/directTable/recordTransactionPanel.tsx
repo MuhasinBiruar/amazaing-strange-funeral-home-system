@@ -14,7 +14,10 @@ import {
   paymentMethodEnum,
 } from 'shared';
 import { toDateInputValue } from '@/utils/toDateInputValue';
-import { downloadOfficialReceiptPdf } from './officialReceiptPdf';
+import {
+  downloadOfficialReceiptPdf,
+  type ReceiptPaymentBreakdown,
+} from './officialReceiptPdf';
 
 export default function RecordTransactionPanel({
   caseId,
@@ -185,6 +188,15 @@ export default function RecordTransactionPanel({
             },
             deceasedName,
             representativeName,
+            Math.max(paidAfter, 0),
+            Math.max(amountLeft, 0),
+            [
+              {
+                date: new Date(paymentdatetime),
+                amount: paymentNow,
+                isRefund: false,
+              } satisfies ReceiptPaymentBreakdown,
+            ],
           ),
       });
     }
