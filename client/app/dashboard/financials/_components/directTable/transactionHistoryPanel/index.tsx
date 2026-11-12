@@ -11,7 +11,10 @@ import {
 import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import type { Transaction, OfficialReceipt } from 'shared';
-import { downloadOfficialReceiptPdf } from '../officialReceiptPdf';
+import {
+  downloadOfficialReceiptPdf,
+  type ReceiptPaymentBreakdown,
+} from '../officialReceiptPdf';
 
 /**
  * Slide-in panel listing every transaction on a Direct case, newest first.
@@ -117,10 +120,49 @@ export default function TransactionHistoryPanel({
 
   async function downloadReceipt(receipt: OfficialReceipt) {
     try {
+      const receiptTransaction = transactions.find(
+        (transaction) => transaction.transactionid === receipt.transactionid,
+      );
+      const paymentsThroughReceipt = transactions
+        .filter(
+          (transaction) =>
+            transaction.transactionstatus === 'completed' &&
+            (!receiptTransaction ||
+              new Date(transaction.paymentdatetime).getTime() <
+                new Date(receiptTransaction.paymentdatetime).getTime() ||
+              (new Date(transaction.paymentdatetime).getTime() ===
+                new Date(receiptTransaction.paymentdatetime).getTime() &&
+                transaction.transactionid <= receiptTransaction.transactionid)),
+        )
+        .sort(
+          (left, right) =>
+            new Date(left.paymentdatetime).getTime() -
+              new Date(right.paymentdatetime).getTime() ||
+            left.transactionid - right.transactionid,
+        );
+      const paidThroughReceipt = paymentsThroughReceipt.reduce(
+        (sum, transaction) =>
+          sum +
+          (transaction.paymentcategory === 'Refund'
+            ? -Number(transaction.amount)
+            : Number(transaction.amount)),
+        0,
+      );
+      const paidAmount = receiptTransaction ? paidThroughReceipt : totalPaid;
+
       await downloadOfficialReceiptPdf(
         receipt,
         deceasedName,
         representativeName,
+        Math.max(paidAmount, 0),
+        Math.max(paymentDue - paidAmount, 0),
+        paymentsThroughReceipt.map(
+          (transaction): ReceiptPaymentBreakdown => ({
+            date: new Date(transaction.paymentdatetime),
+            amount: Number(transaction.amount),
+            isRefund: transaction.paymentcategory === 'Refund',
+          }),
+        ),
       );
     } catch (error) {
       console.error('Failed to create official receipt PDF:', error);
@@ -206,7 +248,7 @@ export default function TransactionHistoryPanel({
                       }}
                       className="mt-2 rounded border border-indigo-200 px-3 py-1.5 text-xs font-medium text-indigo-600 hover:bg-indigo-50"
                     >
-                      Generate OR from payment history
+                      Generate OR for all payments
                     </button>
                   )}
                 </>

@@ -144,12 +144,20 @@ router.patch(
         if (resolving) {
           const targetColumn = existing.casketid !== null ? 'casketid' : 'formalinid';
           const deliveryTable = existing.casketid !== null ? 'casketdelivery' : 'formalindelivery';
-          const targetResult = await updated.query(
-            `SELECT ${targetColumn} FROM ${deliveryTable}
-             WHERE deliveryid = $1 AND ${targetColumn} = $2
-             FOR UPDATE`,
-            [req.body.deliveryid, existing[`${targetColumn}`]],
-          );
+          const targetResult =
+            existing.casketid !== null
+              ? await updated.query(
+                  `SELECT ${targetColumn} FROM ${deliveryTable}
+                   WHERE deliveryid = $1 AND ${targetColumn} = $2
+                   FOR UPDATE`,
+                  [req.body.deliveryid, existing[`${targetColumn}`]],
+                )
+              : await updated.query(
+                  `SELECT deliveryid FROM ${deliveryTable}
+                   WHERE deliveryid = $1
+                   FOR UPDATE`,
+                  [req.body.deliveryid],
+                );
           if (targetResult.rows.length === 0)
             throw new ConflictError('The selected delivery does not belong to this inventory item.');
 

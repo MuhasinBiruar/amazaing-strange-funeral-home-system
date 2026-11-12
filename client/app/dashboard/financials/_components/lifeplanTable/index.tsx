@@ -92,6 +92,13 @@ export default function LifeplanTable({
       render: (l) => (l.use_benefits ? 'Used' : 'Upgraded'),
     },
     {
+      key: 'originalprice',
+      label: 'Original Package Price',
+      widthClassName: 'w-32.5',
+      render: (l) =>
+        l.originalprice != null ? formatCurrency(l.originalprice) : '—',
+    },
+    {
       key: 'contractamount',
       label: 'Extra balance',
       render: (l) =>
@@ -104,7 +111,7 @@ export default function LifeplanTable({
     },
     {
       key: 'remainingbalance',
-      label: 'Outstanding balance',
+      label: 'Outstanding Balance',
       render: (l) => {
         const left = extraLeft(l);
         return left != null ? formatCurrency(left) : '—';
@@ -175,6 +182,7 @@ export default function LifeplanTable({
           key={historyFor.caseid}
           caseid={historyFor.caseid}
           deceasedName={historyFor.deceased_name}
+          representativeName={historyFor.representative_name}
           totalAmount={historyFor.contractamount}
           totalPaid={historyFor.totalamountpaid}
           onClose={() => setHistoryFor(null)}
@@ -185,6 +193,7 @@ export default function LifeplanTable({
           key={`payment-${paymentFor.caseid}`}
           caseId={paymentFor.caseid}
           deceasedName={paymentFor.deceased_name}
+          representativeName={paymentFor.representative_name}
           totalAmount={paymentFor.contractamount}
           totalPaid={paymentFor.totalamountpaid}
           onClose={() => setPaymentFor(null)}

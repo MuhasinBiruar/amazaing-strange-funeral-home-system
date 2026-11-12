@@ -15,9 +15,11 @@ const SORT_COLUMNS: Record<keyof GetLifeplansQueryRow, string> = {
   companyname: 'lc.companyname',
   contractid: 'c.contractid',
   contractamount: 'c.totalamount',
+  originalprice: 'CASE WHEN l.use_benefits = false THEN p.price END',
   totalamountpaid: 'COALESCE(t.totalpaid, 0)',
   totaldeductions: 'COALESCE(od.totaldeductions, 0)',
-  remainingbalance: 'c.totalamount - COALESCE(t.totalpaid, 0)',
+  remainingbalance:
+    'c.totalamount - COALESCE(t.totalpaid, 0)',
   datecreated: 'dr.datecreated',
   servicestatus: 'dr.servicestatus',
 };
@@ -39,6 +41,7 @@ export const getLifeplans = async ({
       l.planholdername,
       l.totalamount,
       l.use_benefits,
+      CASE WHEN l.use_benefits = false THEN p.price END::float8 AS originalprice,
       l.caseid,
       CONCAT_WS(' ', NULLIF(dr.firstname, ''), NULLIF(dr.middlename, ''), NULLIF(dr.lastname, '')) AS deceased_name,
       CONCAT_WS(' ', NULLIF(r.firstname, ''), NULLIF(r.middlename, ''), NULLIF(r.lastname, '')) AS representative_name,
@@ -61,6 +64,7 @@ export const getLifeplans = async ({
     LEFT JOIN public.representative r ON dr.representedby = r.representativeid
     LEFT JOIN public.lifeplancompany lc ON l.companyid = lc.companyid
     LEFT JOIN public.contract c ON l.caseid = c.caseid
+    LEFT JOIN public.package p ON c.packageid = p.packageid
     LEFT JOIN (
       SELECT caseid,
         COALESCE(SUM(amount) FILTER (

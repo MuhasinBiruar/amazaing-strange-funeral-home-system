@@ -17,6 +17,7 @@ export const getLifeplansQueryRowSchema = lifeplanSchema.extend({
   companyname: z.string(),
   contractid: z.int32().nullable(),
   contractamount: z.float64().nullable(),
+  originalprice: z.number().nullable(),
   totalamountpaid: z.float64(),
   totaldeductions: z.float64(),
   remainingbalance: z.float64().nullable(),

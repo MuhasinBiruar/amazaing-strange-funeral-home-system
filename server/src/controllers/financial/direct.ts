@@ -247,12 +247,14 @@ export async function createDirectTransaction(
           'This case has no contract yet, so there is nothing to pay against.',
         );
 
+      const payable = new BigNumber(totalamount);
+
       const discount = new BigNumber(receipt?.pwd_discount ?? 0);
       const withholding = new BigNumber(receipt?.withholding_tax ?? 0);
 
       const currentDeductions = discount.plus(withholding);
 
-      if (currentDeductions.isGreaterThan(totalamount))
+      if (currentDeductions.isGreaterThan(payable))
         throw new BadRequestError(
           'Discount and withholding tax are larger than the total amount.',
         );
@@ -267,9 +269,7 @@ export async function createDirectTransaction(
       );
 
       const newPaid = new BigNumber(paidResult.rows[0].paid).plus(delta);
-      const remaining = new BigNumber(totalamount)
-        .minus(currentDeductions)
-        .minus(newPaid);
+      const remaining = payable.minus(currentDeductions).minus(newPaid);
 
       if (newPaid.isLessThan(0))
         throw new BadRequestError('Refund is larger than the amount paid.');
@@ -321,7 +321,7 @@ export async function createDirectTransaction(
               receipt.ornumber,
               amount,
               created.transactionid,
-              new BigNumber(totalamount).minus(discount).toFixed(),
+              payable.minus(discount).toFixed(),
               receipt.withholding_tax,
               receipt.tin,
               receipt.discount_id,

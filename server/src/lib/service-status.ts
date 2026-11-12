@@ -32,7 +32,7 @@ export const UPDATE_SERVICE_STATUSES_SQL = `
               END
             WHEN c.burialdatedeadline <= timezone($1::text, now())::date
               THEN 'pending'
-            WHEN lc.reimbursementstatus IN ('pending', 'approved')
+            WHEN lc.reimbursementstatus = 'pending'
               THEN 'active'
             ELSE 'pending'
           END
@@ -90,7 +90,10 @@ export async function refreshServiceStatuses(
 }
 
 export async function runServiceStatusSweep() {
-  await pool.query(UPDATE_SERVICE_STATUSES_SQL, [SERVICE_STATUS_TIMEZONE, null]);
+  await pool.query(UPDATE_SERVICE_STATUSES_SQL, [
+    SERVICE_STATUS_TIMEZONE,
+    null,
+  ]);
 }
 
 export function startServiceStatusScheduler() {

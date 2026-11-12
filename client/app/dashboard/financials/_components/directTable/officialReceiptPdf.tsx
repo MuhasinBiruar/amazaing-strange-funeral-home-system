@@ -1,9 +1,18 @@
 import type { OfficialReceipt } from 'shared';
 
+export type ReceiptPaymentBreakdown = {
+  date: Date;
+  amount: number;
+  isRefund: boolean;
+};
+
 export async function downloadOfficialReceiptPdf(
   receipt: OfficialReceipt,
   deceasedName: string,
   representativeName?: string | null,
+  totalPaidSoFar?: string | number | null,
+  outstandingBalance?: string | number | null,
+  paymentBreakdown?: ReceiptPaymentBreakdown[],
 ) {
   const { pdf, Document, Page, Text, View, StyleSheet } =
     await import('@react-pdf/renderer');
@@ -21,6 +30,8 @@ export async function downloadOfficialReceiptPdf(
       marginBottom: 28,
     },
     section: { gap: 10, fontSize: 11 },
+    note: { fontSize: 8, color: '#4b5563', marginTop: 2 },
+    breakdown: { fontSize: 9, color: '#4b5563', marginTop: 2 },
     row: { flexDirection: 'row', justifyContent: 'space-between', gap: 24 },
     total: {
       borderTopWidth: 1,
@@ -32,7 +43,7 @@ export async function downloadOfficialReceiptPdf(
     footer: { marginTop: 42, fontSize: 9, textAlign: 'center' },
   });
 
-  const amount = (value: string | null | undefined) =>
+  const amount = (value: string | number | null | undefined) =>
     `PHP ${Number(value ?? 0).toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -64,8 +75,32 @@ export async function downloadOfficialReceiptPdf(
             <Text>{amount(receipt.amount)}</Text>
           </View>
           <View style={styles.row}>
+            <Text>Cumulative amount paid</Text>
+            <Text>{amount(totalPaidSoFar)}</Text>
+          </View>
+          <Text style={styles.note}>
+            Cumulative amount paid includes completed payments through this
+            receipt date, less any refunds.
+          </Text>
+          {paymentBreakdown && paymentBreakdown.length > 0 && (
+            <View style={styles.breakdown}>
+              <Text>Payment breakdown</Text>
+              {paymentBreakdown.map((payment, index) => (
+                <Text key={`${payment.date.toISOString()}-${index}`}>
+                  {payment.isRefund ? 'Refund' : `Payment ${index + 1}`} (
+                  {payment.date.toLocaleDateString()}):{' '}
+                  {amount(payment.isRefund ? -Math.abs(payment.amount) : payment.amount)}
+                </Text>
+              ))}
+            </View>
+          )}
+          <View style={styles.row}>
             <Text>Total due</Text>
             <Text>{amount(receipt.total_due)}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text>Outstanding balance</Text>
+            <Text>{amount(outstandingBalance)}</Text>
           </View>
           {Number(receipt.pwd_discount ?? 0) > 0 && (
             <View style={styles.row}>
