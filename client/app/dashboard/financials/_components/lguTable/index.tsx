@@ -13,6 +13,7 @@ import type { GetLguCasesRow } from 'shared';
 import EditLguCasePanel from './editLguCasePanel';
 import ReimbursementStatusPill from '@/components/reimbursementStatusPill';
 import ServiceStatusPill from '@/components/serviceStatusPill';
+import ServiceStatusLegend from '@/components/serviceStatusLegend';
 
 type ColumnKey = keyof GetLguCasesRow;
 
@@ -124,6 +125,7 @@ export default function LguTable({
           })
         }
         emptyMessage="No LGU cases match your search."
+        legend={<ServiceStatusLegend plans={['LGU']} />}
         loadErrorMessage="Could not load LGU cases. Try again."
         refreshKey={refreshKey}
       />

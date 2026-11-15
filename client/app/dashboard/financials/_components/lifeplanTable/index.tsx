@@ -13,6 +13,7 @@ import { getLifeplans } from '@/services/lifeplansService';
 import TransactionHistoryPanel from '../directTable/transactionHistoryPanel';
 import RecordTransactionPanel from '../directTable/recordTransactionPanel';
 import ServiceStatusPill from '@/components/serviceStatusPill';
+import ServiceStatusLegend from '@/components/serviceStatusLegend';
 
 /** What is still unpaid on the extra amount once receipt deductions apply. */
 function extraLeft(l: GetLifeplansQueryRow) {
@@ -174,6 +175,7 @@ export default function LifeplanTable({
         }
         bodyOffsetClassName="top-17.25"
         emptyMessage="No life plans match your search."
+        legend={<ServiceStatusLegend plans={['Life']} />}
         loadErrorMessage="Could not load life plans. Try again."
         refreshKey={refreshKey}
       />

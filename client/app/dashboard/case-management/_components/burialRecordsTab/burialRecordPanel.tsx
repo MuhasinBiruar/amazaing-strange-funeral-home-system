@@ -24,6 +24,7 @@ import {
 import { toDateInputValue } from '@/utils/toDateInputValue';
 import { formatDate } from '@/utils/format';
 import ServiceStatusPill from '@/components/serviceStatusPill';
+import ServiceStatusLegend from '@/components/serviceStatusLegend';
 import PlanTypePill from '@/components/planTypePill';
 
 type CaseColumn =
@@ -216,6 +217,7 @@ export default function BurialRecordPanel({
                 })
               }
               emptyMessage="No cases found."
+              legend={<ServiceStatusLegend />}
               loadErrorMessage="Could not load cases. Try again."
               bodyOffsetClassName="top-12"
             />

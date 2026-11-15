@@ -13,6 +13,7 @@ import RecordTransactionPanel from './recordTransactionPanel';
 import type { DirectPlan } from 'shared';
 import { getDirectPlans } from '@/services/financialService';
 import ServiceStatusPill from '@/components/serviceStatusPill';
+import ServiceStatusLegend from '@/components/serviceStatusLegend';
 
 type ColumnKey = keyof DirectPlan;
 
@@ -129,6 +130,7 @@ export default function DirectTable({
           })
         }
         emptyMessage="No direct payment plans match your search."
+        legend={<ServiceStatusLegend plans={['Direct']} />}
         loadErrorMessage="Could not load direct payment plans. Try again."
         refreshKey={refreshKey}
       />

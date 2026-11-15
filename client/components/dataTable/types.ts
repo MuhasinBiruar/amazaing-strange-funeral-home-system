@@ -91,6 +91,31 @@ export interface DateRangeValue {
   to: string | null;
 }
 
+/** An inclusive `[min, max]` range of numbers, either end optional. */
+export interface NumberRangeValue {
+  min: number | null;
+  max: number | null;
+}
+
+/**
+ * A numeric range filter (e.g. price), typed as two inputs. Applied on Enter
+ * or when an input loses focus, not on every keystroke.
+ */
+export interface NumberRangeFilterDef<
+  F extends Record<string, unknown>,
+  K extends keyof F,
+> {
+  type: 'numberRange';
+  key: K;
+  /** Accessible name and leading label, e.g. "Price". */
+  label: string;
+  /** Shown before the inputs, e.g. "₱". */
+  prefix?: string;
+}
+
 export type FilterDef<F extends Record<string, unknown>> = {
-  [K in keyof F]: SelectFilterDef<F, K> | DateRangeFilterDef<F, K>;
+  [K in keyof F]:
+    | SelectFilterDef<F, K>
+    | DateRangeFilterDef<F, K>
+    | NumberRangeFilterDef<F, K>;
 }[keyof F];

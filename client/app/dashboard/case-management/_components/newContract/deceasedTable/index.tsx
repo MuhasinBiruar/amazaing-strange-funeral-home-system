@@ -5,6 +5,7 @@ import type { UncontractedDeceased } from 'shared';
 import { getUncontractedDeceased } from '@/services/deceasedRecordService';
 import PlanTypePill from '@/components/planTypePill';
 import ServiceStatusPill from '@/components/serviceStatusPill';
+import ServiceStatusLegend from '@/components/serviceStatusLegend';
 
 type ColumnKey = keyof UncontractedDeceased;
 
@@ -100,6 +101,7 @@ export default function DeceasedTable({
       onRowClick={onSelect}
       isRowSelected={(r) => r.caseid === selectedCaseId}
       emptyMessage="No deceased records are waiting for a contract."
+      legend={<ServiceStatusLegend />}
       loadErrorMessage="Could not load deceased records. Try again."
       bodyOffsetClassName="top-12"
       refreshKey={refreshKey}

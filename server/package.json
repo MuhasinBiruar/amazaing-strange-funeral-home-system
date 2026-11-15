@@ -9,7 +9,8 @@
     "start": "node dist/index.mjs",
     "lint": "eslint . --fix",
     "create-superadmin": "tsx src/scripts/create-superadmin.ts",
-    "seed": "tsx src/scripts/seed-database.ts"
+    "seed": "tsx src/scripts/seed-database.ts",
+    "seed:demo": "tsx src/scripts/seed-demo-data.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

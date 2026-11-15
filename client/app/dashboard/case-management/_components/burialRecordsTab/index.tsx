@@ -13,6 +13,7 @@ import { getBurialRecords } from '@/services/burialRecordService';
 import { formatDate } from '@/utils/format';
 import BurialRecordPanel from './burialRecordPanel';
 import ServiceStatusPill from '@/components/serviceStatusPill';
+import ServiceStatusLegend from '@/components/serviceStatusLegend';
 import PlanTypePill, { PLAN_TYPE_LABELS } from '@/components/planTypePill';
 
 type ColumnKey =
@@ -158,6 +159,7 @@ export default function BurialRecordsTab() {
         }
         refreshKey={refreshKey}
         emptyMessage="No burial records found."
+        legend={<ServiceStatusLegend />}
         loadErrorMessage="Could not load burial records. Try again."
       />
       {editing !== undefined && (

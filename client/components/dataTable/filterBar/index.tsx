@@ -1,7 +1,8 @@
 import type { Dispatch, SetStateAction } from 'react';
-import type { DateRangeValue, FilterDef } from '../types';
+import type { DateRangeValue, FilterDef, NumberRangeValue } from '../types';
 import DateRangePicker from '@/components/dateRangePicker';
 import SelectFilter from './selectFilter';
+import NumberRangeFilter from './numberRangeFilter';
 
 export default function FilterBar<F extends Record<string, unknown>>({
   filters,
@@ -54,6 +55,24 @@ export default function FilterBar<F extends Record<string, unknown>>({
                   from: null,
                   to: null,
                 } as F[typeof filter.key])
+              }
+            />
+          );
+        }
+
+        if (filter.type === 'numberRange') {
+          const current = (values[filter.key] as NumberRangeValue) ?? {
+            min: null,
+            max: null,
+          };
+          return (
+            <NumberRangeFilter
+              key={String(filter.key)}
+              label={filter.label}
+              prefix={filter.prefix}
+              value={current}
+              onChange={(range) =>
+                updateFilter(filter.key, range as F[typeof filter.key])
               }
             />
           );

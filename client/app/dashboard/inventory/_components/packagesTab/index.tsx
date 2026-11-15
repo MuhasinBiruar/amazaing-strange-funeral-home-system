@@ -1,21 +1,90 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
-import type { PackageWithCasket } from 'shared';
+import { packageSchema, type PackageWithCasket } from 'shared';
 import DataTable from '@/components/dataTable';
-import type { DataTableColumn } from '@/components/dataTable/types';
+import type {
+  DataTableColumn,
+  FilterDef,
+  NumberRangeValue,
+} from '@/components/dataTable/types';
 import { getPackages } from '@/services/packageService';
+import { getCasketInventory } from '@/services/casketInventoryService';
 import { formatCurrency } from '@/utils/format';
 import PackagePanel from './packagePanel';
 
 type ColumnKey = 'packagename' | 'packagetype' | 'price' | 'caskettype' | 'manage';
+
+type Filters = {
+  packagetype: PackageWithCasket['packagetype'] | null;
+  /** A casket id, `'none'` for packages without a casket, or `null` for all. */
+  casket: number | 'none' | null;
+  price: NumberRangeValue;
+};
+
+const DEFAULT_FILTERS: Filters = {
+  packagetype: null,
+  casket: null,
+  price: { min: null, max: null },
+};
+
+function matchesFilters(p: PackageWithCasket, f: Filters) {
+  if (f.packagetype && p.packagetype !== f.packagetype) return false;
+  if (f.casket === 'none' && p.casketid != null) return false;
+  if (typeof f.casket === 'number' && p.casketid !== f.casket) return false;
+  if (f.price.min !== null && p.price < f.price.min) return false;
+  if (f.price.max !== null && p.price > f.price.max) return false;
+  return true;
+}
 
 export default function PackagesTab() {
   const [editing, setEditing] = useState<PackageWithCasket | null | undefined>(
     undefined,
   );
   const [refreshKey, setRefreshKey] = useState(0);
+  const [caskets, setCaskets] = useState<
+    { casketid: number; caskettype: string }[]
+  >([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    getCasketInventory(controller.signal)
+      .then((rows) =>
+        setCaskets(
+          [...rows].sort((a, b) => a.caskettype.localeCompare(b.caskettype)),
+        ),
+      )
+      .catch((error) => {
+        if (!controller.signal.aborted)
+          console.error('Failed to load caskets for the filter:', error);
+      });
+    return () => controller.abort();
+  }, [refreshKey]);
+
+  const filters: FilterDef<Filters>[] = [
+    {
+      type: 'select',
+      key: 'packagetype',
+      options: [
+        { label: 'All types', value: null },
+        ...packageSchema.shape.packagetype.options.map((type) => ({
+          label: type,
+          value: type,
+        })),
+      ],
+    },
+    {
+      type: 'select',
+      key: 'casket',
+      options: [
+        { label: 'All caskets', value: null },
+        ...caskets.map((c) => ({ label: c.caskettype, value: c.casketid })),
+        { label: 'No casket', value: 'none' },
+      ],
+    },
+    { type: 'numberRange', key: 'price', label: 'Price', prefix: '₱' },
+  ];
 
   const columns: DataTableColumn<PackageWithCasket, ColumnKey>[] = [
     { key: 'packagename', label: 'Package', render: (p) => p.packagename },
@@ -55,25 +124,36 @@ export default function PackagesTab() {
           <Plus size={16} /> Create package
         </button>
       </div>
-      <DataTable<PackageWithCasket, ColumnKey>
+      <DataTable<PackageWithCasket, ColumnKey, Filters>
         title="Packages"
         exportFileName="packages"
         countLabel={(total) => `${total} packages`}
         searchPlaceholder="Search packages..."
+        filters={filters}
+        defaultFilters={DEFAULT_FILTERS}
         columns={columns}
         rowKey={(p) => p.packageid}
         deletable={(p) => ({ entitytype: 'package', id: p.packageid })}
         defaultSortBy="packagename"
         defaultSortOrder="asc"
-        fetchData={async ({ page, limit, search, sortBy, sortOrder }) => {
-          const all = await getPackages();
-          const filtered = search
-            ? all.filter((p) =>
+        fetchData={async ({
+          page,
+          limit,
+          search,
+          sortBy,
+          sortOrder,
+          filters: active,
+          signal,
+        }) => {
+          const all = await getPackages(signal);
+          const filtered = all.filter(
+            (p) =>
+              matchesFilters(p, active) &&
+              (!search ||
                 `${p.packagename} ${p.packagetype} ${p.caskettype ?? ''}`
                   .toLowerCase()
-                  .includes(search.toLowerCase()),
-              )
-            : all;
+                  .includes(search.toLowerCase())),
+          );
           const sorted = [...filtered].sort((a, b) => {
             const key = sortBy === 'manage' ? 'packagename' : sortBy;
             const left = a[key];

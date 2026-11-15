@@ -11,6 +11,8 @@ import { useSidePanel } from '@/components/sidePanel/useSidePanel';
 import { getCases } from '@/services/caseService';
 import { recordFormalinUsage } from '@/services/formalinInventoryService';
 import { formatDate } from '@/utils/format';
+import ServiceStatusPill from '@/components/serviceStatusPill';
+import ServiceStatusLegend from '@/components/serviceStatusLegend';
 
 type CaseColumn =
   | 'deceased_name'
@@ -78,7 +80,7 @@ export default function FormalinRecordPanel({
     {
       key: 'servicestatus',
       label: 'Status',
-      render: (row) => row.servicestatus,
+      render: (row) => <ServiceStatusPill status={row.servicestatus} />,
     },
   ];
 
@@ -193,6 +195,7 @@ export default function FormalinRecordPanel({
               getCases({ ...params, sortBy: params.sortBy as never })
             }
             emptyMessage="No cases found."
+            legend={<ServiceStatusLegend />}
             loadErrorMessage="Could not load cases. Try again."
             bodyOffsetClassName="top-12"
           />

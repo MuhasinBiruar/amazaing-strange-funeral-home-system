@@ -62,6 +62,7 @@ export default function DataTable<
   deletable,
   onDeleted,
   selectionActions,
+  legend,
 }: {
   title: string;
   /**
@@ -120,6 +121,11 @@ export default function DataTable<
    * header, for whatever rows are ticked.
    */
   selectionActions?: (context: SelectionActionsContext<T>) => ReactNode;
+  /**
+   * Shown below the pagination, e.g. `<ServiceStatusLegend />` to explain a
+   * status column. Its height is reserved when sizing the page.
+   */
+  legend?: ReactNode;
 }) {
   const { isAdmin, isSuperadmin } = useAuth();
   const canDelete = deletable !== undefined && isAdmin;
@@ -414,6 +420,9 @@ export default function DataTable<
           total={total}
           limit={limit}
         />
+        {legend && (
+          <div className="px-5 py-3 border-t border-gray-100">{legend}</div>
+        )}
       </div>
     </div>
   );

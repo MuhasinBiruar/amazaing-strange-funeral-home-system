@@ -11,6 +11,7 @@ import type { Case } from 'shared';
 import { getCases } from '@/services/caseService';
 import CaseDetailPanel from '../caseDetailPanel';
 import ServiceStatusPill from '@/components/serviceStatusPill';
+import ServiceStatusLegend from '@/components/serviceStatusLegend';
 import PlanTypePill, { PLAN_TYPE_LABELS } from '@/components/planTypePill';
 
 export type ColumnKey = keyof Case;
@@ -209,6 +210,7 @@ export default function CaseTable() {
         }
         refreshKey={refreshKey}
         emptyMessage="No cases match your search."
+        legend={<ServiceStatusLegend />}
         loadErrorMessage="Could not load cases. Try again."
         bodyOffsetClassName="top-17.25"
       />
