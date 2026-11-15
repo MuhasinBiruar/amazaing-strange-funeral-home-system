@@ -9,6 +9,8 @@ export function useDraft<T extends Record<string, unknown>>(
   const [formData, setFormData] = useState<T>(initialState);
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
   const isClearingRef = useRef(false);
+  // Callers pass a fresh object every render; only the first one is used.
+  const defaultsRef = useRef(initialState);
 
   useEffect(() => {
     try {
@@ -21,8 +23,9 @@ export function useDraft<T extends Record<string, unknown>>(
           parsed !== null &&
           !Array.isArray(parsed)
         ) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setFormData(parsed as T);
+          // Merge over the defaults: a draft saved by an older version of the
+          // form lacks fields added since, which would otherwise be undefined.
+          setFormData({ ...defaultsRef.current, ...(parsed as Partial<T>) });
         } else {
           localStorage.removeItem(storageKey);
         }

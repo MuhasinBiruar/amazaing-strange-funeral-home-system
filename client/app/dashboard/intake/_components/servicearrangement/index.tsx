@@ -52,9 +52,9 @@ export default function ServiceArrangement({
             <div id="lifeplancompanyid">
               <CompanySearchSelect
                 companyid={
-                  data.lifeplancompanyid!.length === 0
-                    ? null
-                    : Number.parseInt(data.lifeplancompanyid!)
+                  data.lifeplancompanyid
+                    ? Number.parseInt(data.lifeplancompanyid)
+                    : null
                 }
                 companyname={companyName}
                 onChange={(c) => {
