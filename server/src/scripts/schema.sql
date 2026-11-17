@@ -37,7 +37,7 @@ CREATE TABLE public.formalininventory (
 CREATE TABLE public.representative (
     representativeid serial PRIMARY KEY,
     firstname character varying(255) NOT NULL,
-    middlename character varying(255) NOT NULL,
+    middlename character varying(255),
     lastname character varying(255) NOT NULL,
     relationship character varying(100),
     contactnumber character varying(50) NOT NULL,

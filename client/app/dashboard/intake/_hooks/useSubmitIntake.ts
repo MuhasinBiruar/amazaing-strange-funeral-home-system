@@ -38,25 +38,33 @@ export function useSubmitIntake(
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
 
-    const generatedRepId: number | null = null;
-    const generatedCaseId: number | null = null;
+    // Only rows this submit creates are rolled back on failure; a picked
+    // existing representative is never deleted.
+    let generatedRepId: number | null = null;
+    let generatedCaseId: number | null = null;
 
     try {
-      // STEP 1: REPRESENTATIVE
-      setStatus('Saving representative…');
-      const { representativeid: generatedRepId } = await createRepresentative({
-        firstname: formData.rep_firstname as string,
-        middlename: formData.rep_middlename as string,
-        lastname: formData.rep_lastname as string,
-        relationship: formData.rep_relationship as string,
-        contactnumber: formData.rep_contactnumber as string,
-        address: formData.rep_address as string,
-        datecreated: new Date(),
-      });
+      // STEP 1: REPRESENTATIVE (new, or an existing one picked from the list)
+      let representativeId: number;
+      if (formData.rep_mode === 'existing') {
+        representativeId = Number(formData.rep_existingid);
+      } else {
+        setStatus('Saving representative…');
+        ({ representativeid: generatedRepId } = await createRepresentative({
+          firstname: formData.rep_firstname as string,
+          middlename: (formData.rep_middlename as string) || null,
+          lastname: formData.rep_lastname as string,
+          relationship: formData.rep_relationship as string,
+          contactnumber: formData.rep_contactnumber as string,
+          address: formData.rep_address as string,
+          datecreated: new Date(),
+        }));
+        representativeId = generatedRepId;
+      }
 
       // STEP 2: DECEASED RECORD
       setStatus('Saving deceased record…');
-      const { caseid: generatedCaseId } = await createDeceasedRecord({
+      ({ caseid: generatedCaseId } = await createDeceasedRecord({
         firstname: formData.firstname as string,
         middlename: formData.middlename as string | null,
         lastname: formData.lastname as string,
@@ -74,9 +82,10 @@ export function useSubmitIntake(
           : null,
         locationofdeath: (formData.locationOfDeath as string | null) || null,
         managedby: null,
-        representedby: generatedRepId,
+        representedby: representativeId,
         hasadvanceddecomposition: formData.hasadvanceddecomposition === true,
-      });
+      }));
+      const caseid = generatedCaseId;
 
       if (formData.plantype === 'Life') {
         setStatus('Saving life plan…');
@@ -89,7 +98,7 @@ export function useSubmitIntake(
               .join(' '),
           totalamount: Number(formData.lifeplan_totalamount),
           use_benefits: formData.lifeplan_use_benefits !== 'false',
-          caseid: generatedCaseId,
+          caseid,
           companyid: Number(formData.lifeplancompanyid),
         });
       } else if (formData.plantype === 'LGU') {
@@ -100,7 +109,7 @@ export function useSubmitIntake(
             (formData.lgu_reimbursementstatus as CreateLguCaseQuery['reimbursementstatus']) ||
             'pending',
           reimbursementamount: Number(formData.lgu_reimbursementamount),
-          caseid: generatedCaseId,
+          caseid,
           lguid: Number(formData.lguid),
         });
       }
@@ -109,7 +118,7 @@ export function useSubmitIntake(
       if (stagedDocuments.length > 0)
         setStatus('Saving document requirements…');
       for (const doc of stagedDocuments) {
-        await createDocumentRequirement(generatedCaseId!, doc.documenttype);
+        await createDocumentRequirement(caseid, doc.documenttype);
       }
 
       if (stagedDocuments.some((d) => d.file))
@@ -118,7 +127,7 @@ export function useSubmitIntake(
       for (const doc of stagedDocuments) {
         if (!doc.file) continue;
         try {
-          await uploadDocument(generatedCaseId!, doc.documenttype, doc.file);
+          await uploadDocument(caseid, doc.documenttype, doc.file);
         } catch (uploadError) {
           failedUploads.push(doc.documenttype);
           console.error(`Failed to upload ${doc.documenttype}:`, uploadError);
@@ -127,7 +136,7 @@ export function useSubmitIntake(
 
       setStatus('');
       clearDraft();
-      onRecordCreated(generatedCaseId!);
+      onRecordCreated(caseid);
 
       if (failedUploads.length > 0) {
         setInfoModal({

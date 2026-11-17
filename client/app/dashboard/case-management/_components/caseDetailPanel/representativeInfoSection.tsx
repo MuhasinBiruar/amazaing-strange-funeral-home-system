@@ -47,7 +47,10 @@ export default function RepresentativeInfoSection({
               />
             </div>
             <div>
-              <label className={labelClass}>Middle name</label>
+              <label className={labelClass}>
+                Middle name{' '}
+                <span className="font-normal text-gray-400">(optional)</span>
+              </label>
               <input
                 value={form.middlename}
                 onChange={(e) => update('middlename', e.target.value)}

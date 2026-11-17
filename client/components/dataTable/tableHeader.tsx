@@ -42,13 +42,17 @@ export default function TableHeader({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') commitDboSearch();
+              if (e.key !== 'Enter') return;
+              // Don't submit a form the table sits in (e.g. intake).
+              e.preventDefault();
+              commitDboSearch();
             }}
             placeholder={searchPlaceholder}
             className="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-md w-44 sm:w-56 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 placeholder:text-gray-400!"
           />
         </div>
         <button
+          type="button"
           onClick={commitDboSearch}
           className="flex items-center gap-1.5 text-sm bg-indigo-600 text-white rounded-md px-3 py-1.5 hover:bg-indigo-700 cursor-pointer"
         >

@@ -33,16 +33,6 @@ const intakeFormSchema = z
     lguid: z.string().trim().optional(),
     lgu_reimbursementamount: z.string().trim().optional(),
     lgu_reimbursementstatus: z.string().trim().optional(),
-
-    // Representative Information
-    rep_firstname: nameSchema('First name'),
-    rep_middlename: nameSchema('Middle name'),
-    rep_lastname: nameSchema('Last name'),
-    rep_relationship: optionalText(),
-    rep_contactnumber: requiredText('Contact number is required.').pipe(
-      contactNumberSchema,
-    ),
-    rep_address: requiredText('Address is required.'),
   })
   .refine(
     (data) =>
@@ -179,6 +169,23 @@ const intakeFormSchema = z
     },
   );
 
+/** Representative Information, when adding a new representative. */
+const newRepresentativeSchema = z.object({
+  rep_firstname: nameSchema('First name'),
+  rep_middlename: nameSchema('Middle name', false),
+  rep_lastname: nameSchema('Last name'),
+  rep_relationship: optionalText(),
+  rep_contactnumber: requiredText('Contact number is required.').pipe(
+    contactNumberSchema,
+  ),
+  rep_address: requiredText('Address is required.'),
+});
+
+/** Representative Information, when reusing an existing representative. */
+const existingRepresentativeSchema = z.object({
+  rep_existingid: requiredText('Select a representative from the list.'),
+});
+
 function normalizeIntakeInput(data: Record<string, string | undefined>) {
   return {
     firstname: data.firstname ?? '',
@@ -201,6 +208,8 @@ function normalizeIntakeInput(data: Record<string, string | undefined>) {
     lguid: data.lguid ?? '',
     lgu_reimbursementamount: data.lgu_reimbursementamount ?? '',
     lgu_reimbursementstatus: data.lgu_reimbursementstatus ?? '',
+    rep_mode: data.rep_mode === 'existing' ? 'existing' : 'new',
+    rep_existingid: data.rep_existingid ?? '',
     rep_firstname: data.rep_firstname ?? '',
     rep_middlename: data.rep_middlename ?? '',
     rep_lastname: data.rep_lastname ?? '',
@@ -213,11 +222,18 @@ function normalizeIntakeInput(data: Record<string, string | undefined>) {
 export function validateIntakeForm(
   data: Record<string, string | undefined>,
 ): IntakeValidationErrors {
-  const result = intakeFormSchema.safeParse(normalizeIntakeInput(data));
-  if (result.success) return {};
+  const input = normalizeIntakeInput(data);
+  const representativeSchema =
+    input.rep_mode === 'existing'
+      ? existingRepresentativeSchema
+      : newRepresentativeSchema;
+  const issues = [
+    ...(intakeFormSchema.safeParse(input).error?.issues ?? []),
+    ...(representativeSchema.safeParse(input).error?.issues ?? []),
+  ];
 
   const errors: IntakeValidationErrors = {};
-  for (const issue of result.error.issues) {
+  for (const issue of issues) {
     const field = String(issue.path[0]);
 
     // Keep only the first failing rule per field
@@ -244,6 +260,7 @@ const INTAKE_FIELD_ORDER: (keyof ReturnType<typeof normalizeIntakeInput>)[] = [
   'lguid',
   'lgu_reimbursementamount',
   'lgu_reimbursementstatus',
+  'rep_existingid',
   'rep_firstname',
   'rep_middlename',
   'rep_lastname',

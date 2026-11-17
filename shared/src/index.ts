@@ -23,6 +23,7 @@ export * from './schemas/cte/lgucasedetail';
 export * from './schemas/cte/lgusummary';
 export * from './schemas/cte/lifeplancompanysummary';
 export * from './schemas/cte/lifeplandetail';
+export * from './schemas/cte/representative';
 export * from './schemas/cte/staffdetail';
 export * from './schemas/cte/uncontracteddeceased';
 export * from './schemas/db/access';

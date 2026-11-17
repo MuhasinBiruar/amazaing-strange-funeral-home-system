@@ -8,6 +8,7 @@ export async function getCases({
   sortOrder,
   search,
   caseid,
+  representativeid,
   status,
   plantype,
   startDate,
@@ -24,6 +25,8 @@ export async function getCases({
   params.append('sortOrder', sortOrder);
   if (search) params.append('search', search);
   if (caseid !== undefined) params.append('caseid', String(caseid));
+  if (representativeid !== undefined)
+    params.append('representativeid', String(representativeid));
   if (status) params.append('status', status);
   if (plantype) params.append('plantype', plantype);
   if (startDate) params.append('startDate', startDate);

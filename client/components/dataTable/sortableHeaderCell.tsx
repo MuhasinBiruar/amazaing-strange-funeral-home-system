@@ -25,6 +25,7 @@ export default function SortableHeaderCell<K extends string>({
   return (
     <th className="px-5 py-2.5 font-medium text-center h-12">
       <button
+        type="button"
         onClick={() => onSort(column.key)}
         className={`w-full h-full flex items-center justify-center gap-1 cursor-pointer select-none hover:text-indigo-700 ${
           isActive ? 'text-indigo-700' : 'text-gray-400'
