@@ -15,6 +15,7 @@ import { getDeceasedName } from '@/util/audit-log';
 import { withTransaction } from '@/util/with-transaction';
 import { toExclusiveEndBound } from '@/util/date';
 import { refreshServiceStatuses } from '@/lib/service-status';
+import { triggerNotificationSweep } from '@/lib/notifications';
 
 const SORT_COLUMNS: Record<string, string> = {
   caseid: 'dr.caseid',
@@ -176,7 +177,7 @@ export async function getDirectTransactions(
         caseid
       FROM public.transaction
       WHERE caseid = $1
-      ORDER BY paymentdatetime DESC
+      ORDER BY paymentdatetime DESC, transactionid DESC
       `,
       [id],
     );
@@ -345,6 +346,9 @@ export async function createDirectTransaction(
       await refreshServiceStatuses(client, caseid);
       return created;
     });
+
+    // Raises "Full payment received" / payment reminders right away.
+    triggerNotificationSweep();
 
     const deceasedName = await getDeceasedName(caseid);
     res.locals.auditAction = `${res.locals.session.user.name} recorded a ${paymentcategory} of ${amount} for ${deceasedName}${receipt ? ` (OR ${receipt.ornumber})` : ''}`;

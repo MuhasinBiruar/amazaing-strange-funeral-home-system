@@ -160,20 +160,14 @@ export const rules: Rule[] = [
   {
     type: 'full_payment',
     audience: ['financial_page'],
-    // The payment event remains active until the case's service is completed.
+    // Raised even when the final payment completes the service at once (a
+    // Direct case paid off after its burial deadline). It stays open while
+    // the final payment is within the lookback window and is resolved once it
+    // falls outside it or a refund reopens the balance. Resolving it any
+    // sooner would make the next sweep raise it again, since only unresolved
+    // notifications block a repeat of the same dedupe key.
     resolvable: true,
     refresh: true,
-    resolve: async () => {
-      await pool.query(
-        `UPDATE notification n
-         SET resolvedat = now()
-         FROM deceasedrecord dr
-         WHERE n.caseid = dr.caseid
-           AND n.type = 'full_payment'
-           AND n.resolvedat IS NULL
-           AND dr.servicestatus = 'completed'`,
-      );
-    },
     collect: async () => {
       const result = await pool.query<{
         caseid: number;
@@ -186,11 +180,12 @@ export const rules: Rule[] = [
            SELECT DISTINCT ON (caseid) caseid, amount, remainingbalance, paymentdatetime
            FROM public.transaction
            WHERE transactionstatus = 'completed' AND paymentdatetime <= now()
-           ORDER BY caseid, paymentdatetime DESC
+           -- Payment dates have no time of day, so same-day payments tie;
+           -- the one recorded last is the latest.
+           ORDER BY caseid, paymentdatetime DESC, transactionid DESC
          ) t
          JOIN deceasedrecord dr ON dr.caseid = t.caseid
          WHERE t.remainingbalance <= 0
-           AND dr.servicestatus <> 'completed'
            AND t.paymentdatetime >= now() - make_interval(days => $1::int)`,
         [FULL_PAYMENT_LOOKBACK_DAYS],
       );
@@ -220,14 +215,15 @@ export const rules: Rule[] = [
         tab: string;
       }>(
         `WITH completed AS (
-           SELECT caseid, remainingbalance, paymentdatetime
+           SELECT transactionid, caseid, remainingbalance, paymentdatetime
            FROM public.transaction
            WHERE transactionstatus = 'completed' AND paymentdatetime <= now()
          ),
          latest AS (
+           -- Same-day payments tie on date; the one recorded last wins.
            SELECT DISTINCT ON (caseid) caseid, remainingbalance
            FROM completed
-           ORDER BY caseid, paymentdatetime DESC
+           ORDER BY caseid, paymentdatetime DESC, transactionid DESC
          ),
          first AS (
            SELECT caseid, MIN(paymentdatetime) AS firstpayment
