@@ -16,6 +16,7 @@ import { withTransaction } from '@/util/with-transaction';
 import { toExclusiveEndBound } from '@/util/date';
 import { refreshServiceStatuses } from '@/lib/service-status';
 import { triggerNotificationSweep } from '@/lib/notifications';
+import { paymentStatusCondition } from '@/util/payment-status';
 
 const SORT_COLUMNS: Record<string, string> = {
   caseid: 'dr.caseid',
@@ -35,8 +36,17 @@ export async function getDirect(
   next: NextFunction,
 ) {
   try {
-    const { page, limit, search, startDate, endDate, sortBy, sortOrder } =
-      getDirectPlansQuerySchema.parse(req.query);
+    const {
+      page,
+      limit,
+      search,
+      status,
+      paymentstatus,
+      startDate,
+      endDate,
+      sortBy,
+      sortOrder,
+    } = getDirectPlansQuerySchema.parse(req.query);
 
     const selectClause = `
       SELECT
@@ -95,6 +105,22 @@ export async function getDirect(
       )`);
       queryParams.push(`%${search}%`);
       paramIndex++;
+    }
+
+    if (status) {
+      whereConditions.push(`dr.servicestatus = $${paramIndex}`);
+      queryParams.push(status);
+      paramIndex++;
+    }
+
+    if (paymentstatus) {
+      whereConditions.push(
+        paymentStatusCondition(
+          paymentstatus,
+          'c.totalamount',
+          'COALESCE(t.totalpaid, 0)',
+        ),
+      );
     }
 
     if (startDate) {

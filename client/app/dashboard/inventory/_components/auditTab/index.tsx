@@ -4,7 +4,11 @@ import { useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
 import type { InventoryAudit } from 'shared';
 import DataTable from '@/components/dataTable';
-import type { DataTableColumn } from '@/components/dataTable/types';
+import type {
+  DataTableColumn,
+  DateRangeValue,
+  FilterDef,
+} from '@/components/dataTable/types';
 import { formatDate } from '@/utils/format';
 import { getInventoryAudits } from '@/services/inventoryAuditService';
 import AuditPanel from './auditPanel';
@@ -17,6 +21,35 @@ type ColumnKey =
   | 'hasdiscrepancy'
   | 'manage';
 type AuditType = 'formalin' | 'casket';
+
+type Filters = {
+  hasdiscrepancy: boolean | null;
+  dateRange: DateRangeValue;
+};
+
+const DEFAULT_FILTERS: Filters = {
+  hasdiscrepancy: null,
+  dateRange: { from: null, to: null },
+};
+
+function getFilters(auditType: AuditType): FilterDef<Filters>[] {
+  return [
+    {
+      type: 'select',
+      key: 'hasdiscrepancy',
+      options: [
+        { label: 'All statuses', value: null },
+        { label: 'Discrepancy reported', value: true },
+        { label: 'Resolved', value: false },
+      ],
+    },
+    {
+      type: 'dateRange',
+      key: 'dateRange',
+      label: auditType === 'formalin' ? 'Filter by stock date' : 'Filter by audit date',
+    },
+  ];
+}
 
 export default function AuditTab() {
   const [auditType, setAuditType] = useState<AuditType>('formalin');
@@ -96,12 +129,14 @@ export default function AuditTab() {
           </button>
         ))}
       </div>
-      <DataTable<InventoryAudit, ColumnKey>
+      <DataTable<InventoryAudit, ColumnKey, Filters>
         key={auditType}
         title={`${auditType === 'formalin' ? 'Formalin stock history' : 'Casket audits'}`}
         exportFileName={`${auditType}-audits`}
         countLabel={(total) => `${total} audits`}
         searchPlaceholder="Search inventory audits..."
+        filters={getFilters(auditType)}
+        defaultFilters={DEFAULT_FILTERS}
         columns={columns}
         rowKey={(row) => row.auditid}
         deletable={(row) => ({
@@ -110,10 +145,13 @@ export default function AuditTab() {
         })}
         defaultSortBy="auditdate"
         defaultSortOrder="desc"
-        fetchData={({ sortBy, ...params }) =>
+        fetchData={({ sortBy, filters, ...params }) =>
           getInventoryAudits({
             ...params,
             targetType: auditType,
+            hasdiscrepancy: filters.hasdiscrepancy ?? undefined,
+            startDate: filters.dateRange.from ?? undefined,
+            endDate: filters.dateRange.to ?? undefined,
             sortBy: sortBy === 'manage' ? 'auditdate' : sortBy,
           })
         }

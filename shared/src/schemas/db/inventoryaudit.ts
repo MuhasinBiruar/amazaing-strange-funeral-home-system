@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { paginationQuerySchema, paginationResponseSchema } from '@/utils/pagination-schema';
+import { dateFilteredPaginationQuerySchema, paginationResponseSchema } from '@/utils/pagination-schema';
 
 export const createInventoryAuditQuerySchema = z
   .object({
@@ -41,12 +41,20 @@ export const inventoryAuditSchema = z.object({
 
 export type InventoryAudit = z.infer<typeof inventoryAuditSchema>;
 
-export const getInventoryAuditsQuerySchema = paginationQuerySchema.extend({
-  search: z.string().optional(),
-  targetType: z.enum(['formalin', 'casket']).default('formalin'),
-  sortBy: z.enum(['auditdate', 'targetname', 'currentstock', 'hasdiscrepancy']).default('auditdate'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
-});
+/**
+ * @remarks
+ * `startDate`/`endDate` filter on `auditdate`.
+ */
+export const getInventoryAuditsQuerySchema = z.intersection(
+  dateFilteredPaginationQuerySchema,
+  z.object({
+    search: z.string().optional(),
+    targetType: z.enum(['formalin', 'casket']).default('formalin'),
+    hasdiscrepancy: z.enum(['true', 'false']).transform((v) => v === 'true').optional(),
+    sortBy: z.enum(['auditdate', 'targetname', 'currentstock', 'hasdiscrepancy']).default('auditdate'),
+    sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  }),
+);
 
 export type GetInventoryAuditsQuery = z.infer<
   typeof getInventoryAuditsQuerySchema

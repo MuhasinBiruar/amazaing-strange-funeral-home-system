@@ -12,6 +12,7 @@ import {
 import { NotFoundError, ConflictError } from '@/errors';
 import { triggerNotificationSweep } from '@/lib/notifications';
 import { formatPhilippineDateTime } from '@/util/format';
+import { toExclusiveEndBound } from '@/util/date';
 
 const router = Router();
 const TARGET_SQL = `CASE WHEN ia.formalinid IS NOT NULL
@@ -27,8 +28,17 @@ const AUDIT_SELECT = `SELECT ia.auditid, ia.auditdate, ia.hasdiscrepancy,
 
 router.get('/', requireAuth, async (req, res, next) => {
   try {
-    const { page, limit, search, targetType, sortBy, sortOrder } =
-      getInventoryAuditsQuerySchema.parse(req.query);
+    const {
+      page,
+      limit,
+      search,
+      targetType,
+      hasdiscrepancy,
+      startDate,
+      endDate,
+      sortBy,
+      sortOrder,
+    } = getInventoryAuditsQuerySchema.parse(req.query);
     const sortColumns = {
       auditdate: 'ia.auditdate',
       targetname: 'targetname',
@@ -44,6 +54,18 @@ router.get('/', requireAuth, async (req, res, next) => {
     if (search) {
       params.push(`%${search}%`);
       conditions.push(`${TARGET_SQL} ILIKE $${params.length}`);
+    }
+    if (hasdiscrepancy !== undefined) {
+      params.push(hasdiscrepancy);
+      conditions.push(`ia.hasdiscrepancy = $${params.length}`);
+    }
+    if (startDate) {
+      params.push(startDate);
+      conditions.push(`ia.auditdate >= $${params.length}`);
+    }
+    if (endDate) {
+      params.push(toExclusiveEndBound(endDate));
+      conditions.push(`ia.auditdate < $${params.length}`);
     }
     const where = `WHERE ${conditions.join(' AND ')}`;
     const from = `FROM inventoryaudit ia

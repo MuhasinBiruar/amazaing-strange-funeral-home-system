@@ -11,6 +11,7 @@ import type {
 import TransactionHistoryPanel from './transactionHistoryPanel';
 import RecordTransactionPanel from './recordTransactionPanel';
 import type { DirectPlan } from 'shared';
+import type { PaymentStatus } from 'shared/utils';
 import { getDirectPlans } from '@/services/financialService';
 import ServiceStatusPill from '@/components/serviceStatusPill';
 import ServiceStatusLegend from '@/components/serviceStatusLegend';
@@ -18,14 +19,39 @@ import ServiceStatusLegend from '@/components/serviceStatusLegend';
 type ColumnKey = keyof DirectPlan;
 
 type Filters = {
+  status: DirectPlan['servicestatus'] | null;
+  paymentstatus: PaymentStatus | null;
   dateRange: DateRangeValue;
 };
 
 const DEFAULT_FILTERS: Filters = {
+  status: null,
+  paymentstatus: null,
   dateRange: { from: null, to: null },
 };
 
 const FILTERS: FilterDef<Filters>[] = [
+  {
+    type: 'select',
+    key: 'status',
+    options: [
+      { label: 'All statuses', value: null },
+      { label: 'Intake', value: 'intake' },
+      { label: 'Active', value: 'active' },
+      { label: 'Pending', value: 'pending' },
+      { label: 'Completed', value: 'completed' },
+    ],
+  },
+  {
+    type: 'select',
+    key: 'paymentstatus',
+    options: [
+      { label: 'All payments', value: null },
+      { label: 'Fully paid', value: 'paid' },
+      { label: 'With balance', value: 'outstanding' },
+      { label: 'No contract yet', value: 'nocontract' },
+    ],
+  },
   {
     type: 'dateRange',
     key: 'dateRange',
@@ -125,6 +151,8 @@ export default function DirectTable({
         fetchData={({ filters, ...params }) =>
           getDirectPlans({
             ...params,
+            status: filters.status ?? undefined,
+            paymentstatus: filters.paymentstatus ?? undefined,
             startDate: filters.dateRange.from ?? undefined,
             endDate: filters.dateRange.to ?? undefined,
           })

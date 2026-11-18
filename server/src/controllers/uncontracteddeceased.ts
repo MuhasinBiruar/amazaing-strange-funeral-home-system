@@ -1,4 +1,5 @@
 import { withRepeatableRead } from '@/util/with-repeatable-read';
+import { toExclusiveEndBound } from '@/util/date';
 import type { NextFunction, Request, Response } from 'express';
 import {
   getUncontractedDeceasedQuerySchema,
@@ -31,8 +32,18 @@ export const getUncontractedDeceased = async (
   next: NextFunction,
 ) => {
   try {
-    const { page, limit, search, status, caseid, sortBy, sortOrder } =
-      getUncontractedDeceasedQuerySchema.parse(req.query);
+    const {
+      page,
+      limit,
+      search,
+      status,
+      plantype,
+      caseid,
+      startDate,
+      endDate,
+      sortBy,
+      sortOrder,
+    } = getUncontractedDeceasedQuerySchema.parse(req.query);
 
     const selectClause = `
       SELECT
@@ -75,6 +86,24 @@ export const getUncontractedDeceased = async (
     if (status) {
       whereConditions.push(`dr.servicestatus = $${paramIndex}`);
       queryParams.push(status);
+      paramIndex++;
+    }
+
+    if (plantype) {
+      whereConditions.push(`dr.plantype = $${paramIndex}`);
+      queryParams.push(plantype);
+      paramIndex++;
+    }
+
+    if (startDate) {
+      whereConditions.push(`dr.datecreated >= $${paramIndex}`);
+      queryParams.push(startDate);
+      paramIndex++;
+    }
+
+    if (endDate) {
+      whereConditions.push(`dr.datecreated < $${paramIndex}`);
+      queryParams.push(toExclusiveEndBound(endDate));
       paramIndex++;
     }
 

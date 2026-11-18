@@ -3,6 +3,7 @@ import {
   dateFilteredPaginationQuerySchema,
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
+import { paymentStatusEnum } from '@/utils/payment-status-enum';
 import { transactionSchema } from '../db/transaction';
 import { deceasedRecordSchema } from '../db/deceasedrecord';
 
@@ -34,6 +35,8 @@ export const getDirectPlansQuerySchema = z.intersection(
   dateFilteredPaginationQuerySchema,
   z.object({
     search: z.string().optional(),
+    status: deceasedRecordSchema.shape.servicestatus.optional(),
+    paymentstatus: paymentStatusEnum.optional(),
     sortBy: z.keyof(directPlanSchema).default('caseid'),
     sortOrder: z.enum(['asc', 'desc']).default('asc'),
   }),
