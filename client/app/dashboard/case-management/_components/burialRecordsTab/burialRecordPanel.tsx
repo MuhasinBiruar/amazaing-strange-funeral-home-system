@@ -210,6 +210,7 @@ export default function BurialRecordPanel({
                 getCases({
                   ...params,
                   sortBy: params.sortBy as never,
+                  noBurialRecord: true,
                   status: filters.status ?? undefined,
                   plantype: filters.plantype ?? undefined,
                   startDate: filters.dateRange.from ?? undefined,

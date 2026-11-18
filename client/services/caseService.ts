@@ -9,6 +9,7 @@ export async function getCases({
   search,
   caseid,
   representativeid,
+  noBurialRecord,
   status,
   plantype,
   startDate,
@@ -27,6 +28,7 @@ export async function getCases({
   if (caseid !== undefined) params.append('caseid', String(caseid));
   if (representativeid !== undefined)
     params.append('representativeid', String(representativeid));
+  if (noBurialRecord) params.append('noBurialRecord', 'true');
   if (status) params.append('status', status);
   if (plantype) params.append('plantype', plantype);
   if (startDate) params.append('startDate', startDate);

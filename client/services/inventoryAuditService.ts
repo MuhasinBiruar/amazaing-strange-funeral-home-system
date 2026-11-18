@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {
   getInventoryAuditsResponseSchema,
   inventoryAuditSchema,
@@ -6,6 +7,7 @@ import {
   type UpdateInventoryAuditQuery,
 } from 'shared';
 import { API } from './api';
+import { extractErrorMessage } from './utils/extractErrorMessage';
 import { notifyNotificationsChanged } from './notificationService';
 
 export type AuditDelivery = {
@@ -39,21 +41,36 @@ export async function getInventoryAudits(
   return getInventoryAuditsResponseSchema.parse(result.data);
 }
 
+/** Rethrows API errors with the server's message instead of Axios's generic one. */
+function withServerMessage(error: unknown): never {
+  if (axios.isAxiosError(error) && error.response?.data?.error?.message)
+    throw new Error(extractErrorMessage(error.response.data));
+  throw error;
+}
+
 export async function createInventoryAudit(payload: CreateInventoryAuditQuery) {
-  const result = await API.post('/inventoryaudits', payload, {
-    withCredentials: true,
-  });
-  notifyNotificationsChanged();
-  return inventoryAuditSchema.parse(result.data.data);
+  try {
+    const result = await API.post('/inventoryaudits', payload, {
+      withCredentials: true,
+    });
+    notifyNotificationsChanged();
+    return inventoryAuditSchema.parse(result.data.data);
+  } catch (error) {
+    withServerMessage(error);
+  }
 }
 
 export async function updateInventoryAudit(
   auditid: number,
   payload: UpdateInventoryAuditQuery,
 ) {
-  const result = await API.patch(`/inventoryaudits/${auditid}`, payload, {
-    withCredentials: true,
-  });
-  notifyNotificationsChanged();
-  return inventoryAuditSchema.parse(result.data.data);
+  try {
+    const result = await API.patch(`/inventoryaudits/${auditid}`, payload, {
+      withCredentials: true,
+    });
+    notifyNotificationsChanged();
+    return inventoryAuditSchema.parse(result.data.data);
+  } catch (error) {
+    withServerMessage(error);
+  }
 }

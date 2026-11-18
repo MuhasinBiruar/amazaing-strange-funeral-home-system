@@ -51,6 +51,7 @@ router.get(
         search,
         caseid,
         representativeid,
+        noBurialRecord,
         status,
         plantype,
         startDate,
@@ -122,6 +123,11 @@ router.get(
       // representative's cases includes those still at intake.
       if (caseid === undefined && representativeid === undefined)
         whereConditions.push('c.contractid IS NOT NULL');
+
+      if (noBurialRecord)
+        whereConditions.push(
+          'NOT EXISTS (SELECT 1 FROM public.burialrecord br WHERE br.caseid = dr.caseid)',
+        );
 
       if (status) {
         whereConditions.push(`dr.servicestatus = $${paramIndex}`);
