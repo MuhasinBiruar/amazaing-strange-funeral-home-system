@@ -21,6 +21,8 @@ export async function getDirectPlans({
   sortBy,
   sortOrder,
   search,
+  status,
+  paymentstatus,
   startDate,
   endDate,
   signal,
@@ -34,6 +36,8 @@ export async function getDirectPlans({
   params.append('sortBy', sortBy);
   params.append('sortOrder', sortOrder);
   if (search) params.append('search', search);
+  if (status) params.append('status', status);
+  if (paymentstatus) params.append('paymentstatus', paymentstatus);
   if (startDate) params.append('startDate', startDate);
   if (endDate) params.append('endDate', endDate);
 

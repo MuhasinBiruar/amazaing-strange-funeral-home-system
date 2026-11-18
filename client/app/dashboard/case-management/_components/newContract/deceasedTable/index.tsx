@@ -1,31 +1,45 @@
 import DataTable from '@/components/dataTable';
 import { formatDate } from '@/utils/format';
-import type { DataTableColumn, FilterDef } from '@/components/dataTable/types';
+import type {
+  DataTableColumn,
+  DateRangeValue,
+  FilterDef,
+} from '@/components/dataTable/types';
 import type { UncontractedDeceased } from 'shared';
 import { getUncontractedDeceased } from '@/services/deceasedRecordService';
-import PlanTypePill from '@/components/planTypePill';
+import PlanTypePill, { PLAN_TYPE_LABELS } from '@/components/planTypePill';
 import ServiceStatusPill from '@/components/serviceStatusPill';
 import ServiceStatusLegend from '@/components/serviceStatusLegend';
 
 type ColumnKey = keyof UncontractedDeceased;
 
+// No service status filter: a case only leaves Intake once it has a
+// contract, so every record here is (almost always) in Intake.
 type Filters = {
-  status: UncontractedDeceased['servicestatus'] | null;
+  plantype: UncontractedDeceased['plantype'] | null;
+  dateRange: DateRangeValue;
 };
 
-const DEFAULT_FILTERS: Filters = { status: null };
+const DEFAULT_FILTERS: Filters = {
+  plantype: null,
+  dateRange: { from: null, to: null },
+};
 
 const FILTERS: FilterDef<Filters>[] = [
   {
     type: 'select',
-    key: 'status',
+    key: 'plantype',
     options: [
-      { label: 'All statuses', value: null },
-      { label: 'Intake', value: 'intake' },
-      { label: 'Active', value: 'active' },
-      { label: 'Pending', value: 'pending' },
-      { label: 'Completed', value: 'completed' },
+      { label: 'All plan types', value: null },
+      { label: PLAN_TYPE_LABELS.Direct, value: 'Direct' },
+      { label: PLAN_TYPE_LABELS.Life, value: 'Life' },
+      { label: PLAN_TYPE_LABELS.LGU, value: 'LGU' },
     ],
+  },
+  {
+    type: 'dateRange',
+    key: 'dateRange',
+    label: 'Filter by date created',
   },
 ];
 
@@ -95,7 +109,9 @@ export default function DeceasedTable({
       fetchData={({ filters, ...params }) =>
         getUncontractedDeceased({
           ...params,
-          status: filters.status ?? undefined,
+          plantype: filters.plantype ?? undefined,
+          startDate: filters.dateRange.from ?? undefined,
+          endDate: filters.dateRange.to ?? undefined,
         })
       }
       onRowClick={onSelect}

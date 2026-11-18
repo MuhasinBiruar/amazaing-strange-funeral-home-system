@@ -28,7 +28,12 @@ export async function getAuditDeliveries(
 }
 
 export async function getInventoryAudits(
-  query: GetInventoryAuditsQuery & { signal?: AbortSignal },
+  query: Omit<GetInventoryAuditsQuery, 'startDate' | 'hasdiscrepancy'> & {
+    startDate?: string;
+    /** Sent as `'true'`/`'false'`; omitted for all statuses. */
+    hasdiscrepancy?: boolean;
+    signal?: AbortSignal;
+  },
 ) {
   const { signal, ...params } = query;
   const result = await API.get('/inventoryaudits', {

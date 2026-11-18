@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DataTable from '@/components/dataTable';
 import { formatCurrency, titleCase } from '@/utils/format';
 import type {
@@ -9,7 +9,11 @@ import type {
   FilterDef,
 } from '@/components/dataTable/types';
 import type { GetLifeplansQueryRow } from 'shared';
-import { getLifeplans } from '@/services/lifeplansService';
+import type { PaymentStatus } from 'shared/utils';
+import {
+  getLifeplanCompanies,
+  getLifeplans,
+} from '@/services/lifeplansService';
 import TransactionHistoryPanel from '../directTable/transactionHistoryPanel';
 import RecordTransactionPanel from '../directTable/recordTransactionPanel';
 import ServiceStatusPill from '@/components/serviceStatusPill';
@@ -24,20 +28,70 @@ function extraLeft(l: GetLifeplansQueryRow) {
 type ColumnKey = keyof GetLifeplansQueryRow;
 
 type Filters = {
+  companyid: number | null;
+  use_benefits: boolean | null;
+  status: GetLifeplansQueryRow['servicestatus'] | null;
+  paymentstatus: PaymentStatus | null;
   dateRange: DateRangeValue;
 };
 
 const DEFAULT_FILTERS: Filters = {
+  companyid: null,
+  use_benefits: null,
+  status: null,
+  paymentstatus: null,
   dateRange: { from: null, to: null },
 };
 
-const FILTERS: FilterDef<Filters>[] = [
-  {
-    type: 'dateRange',
-    key: 'dateRange',
-    label: 'Filter by date created',
-  },
-];
+function getFilters(
+  companies: { companyid: number; companyname: string }[],
+): FilterDef<Filters>[] {
+  return [
+    {
+      type: 'select',
+      key: 'companyid',
+      options: [
+        { label: 'All companies', value: null },
+        ...companies.map((c) => ({ label: c.companyname, value: c.companyid })),
+      ],
+    },
+    {
+      type: 'select',
+      key: 'use_benefits',
+      options: [
+        { label: 'All plans', value: null },
+        { label: 'Uses benefits', value: true },
+        { label: 'Upgraded package', value: false },
+      ],
+    },
+    {
+      type: 'select',
+      key: 'status',
+      options: [
+        { label: 'All statuses', value: null },
+        { label: 'Intake', value: 'intake' },
+        { label: 'Active', value: 'active' },
+        { label: 'Pending', value: 'pending' },
+        { label: 'Completed', value: 'completed' },
+      ],
+    },
+    {
+      type: 'select',
+      key: 'paymentstatus',
+      options: [
+        { label: 'All payments', value: null },
+        { label: 'Fully paid', value: 'paid' },
+        { label: 'With balance', value: 'outstanding' },
+        { label: 'No contract yet', value: 'nocontract' },
+      ],
+    },
+    {
+      type: 'dateRange',
+      key: 'dateRange',
+      label: 'Filter by date created',
+    },
+  ];
+}
 
 export default function LifeplanTable({
   initialSearch,
@@ -52,6 +106,28 @@ export default function LifeplanTable({
   const [paymentFor, setPaymentFor] = useState<GetLifeplansQueryRow | null>(
     null,
   );
+  const [companies, setCompanies] = useState<
+    { companyid: number; companyname: string }[]
+  >([]);
+
+  // Options for the company filter. 100 is the API's page limit, far above
+  // the number of life plan companies a funeral home deals with.
+  useEffect(() => {
+    const controller = new AbortController();
+    getLifeplanCompanies({
+      page: 1,
+      limit: 100,
+      sortBy: 'companyname',
+      sortOrder: 'asc',
+      signal: controller.signal,
+    })
+      .then((res) => setCompanies(res.data))
+      .catch((error) => {
+        if (!controller.signal.aborted)
+          console.error('Failed to load companies for the filter:', error);
+      });
+    return () => controller.abort();
+  }, []);
 
   const columns: DataTableColumn<GetLifeplansQueryRow, ColumnKey>[] = [
     {
@@ -159,7 +235,7 @@ export default function LifeplanTable({
         countLabel={(total) => `${total} plans`}
         searchPlaceholder="Search by plan holder, number, or company..."
         initialSearch={initialSearch}
-        filters={FILTERS}
+        filters={getFilters(companies)}
         defaultFilters={DEFAULT_FILTERS}
         columns={columns}
         rowKey={(l) => l.planid}
@@ -169,6 +245,10 @@ export default function LifeplanTable({
         fetchData={({ filters, ...params }) =>
           getLifeplans({
             ...params,
+            companyid: filters.companyid ?? undefined,
+            use_benefits: filters.use_benefits ?? undefined,
+            status: filters.status ?? undefined,
+            paymentstatus: filters.paymentstatus ?? undefined,
             startDate: filters.dateRange.from ?? undefined,
             endDate: filters.dateRange.to ?? undefined,
           })

@@ -18,6 +18,9 @@ export async function getLifeplans({
   sortOrder,
   search,
   companyid,
+  status,
+  paymentstatus,
+  use_benefits,
   startDate,
   endDate,
   signal,
@@ -32,6 +35,10 @@ export async function getLifeplans({
   params.append('sortOrder', sortOrder);
   if (search) params.append('search', search);
   if (companyid !== undefined) params.append('companyid', String(companyid));
+  if (status) params.append('status', status);
+  if (paymentstatus) params.append('paymentstatus', paymentstatus);
+  if (use_benefits !== undefined)
+    params.append('use_benefits', String(use_benefits));
   if (startDate) params.append('startDate', startDate);
   if (endDate) params.append('endDate', endDate);
 

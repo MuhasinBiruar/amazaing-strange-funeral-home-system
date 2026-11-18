@@ -20,9 +20,15 @@ export async function getUncontractedDeceased({
   sortOrder,
   search,
   status,
+  plantype,
   caseid,
+  startDate,
+  endDate,
   signal,
-}: GetUncontractedDeceasedQuery & { signal?: AbortSignal }) {
+}: Omit<GetUncontractedDeceasedQuery, 'startDate'> & {
+  startDate?: string | undefined;
+  signal?: AbortSignal;
+}) {
   const params = new URLSearchParams();
   params.append('page', String(page));
   params.append('limit', String(limit));
@@ -30,7 +36,10 @@ export async function getUncontractedDeceased({
   params.append('sortOrder', sortOrder);
   if (search) params.append('search', search);
   if (status) params.append('status', status);
+  if (plantype) params.append('plantype', plantype);
   if (caseid !== undefined) params.append('caseid', String(caseid));
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
 
   const result = await API.get(`/deceasedrecords/without-contract?${params}`, {
     withCredentials: true,

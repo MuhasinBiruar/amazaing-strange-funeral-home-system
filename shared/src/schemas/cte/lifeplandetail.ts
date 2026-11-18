@@ -3,6 +3,7 @@ import {
   dateFilteredPaginationQuerySchema,
   paginationResponseSchema,
 } from '@/utils/pagination-schema';
+import { paymentStatusEnum } from '@/utils/payment-status-enum';
 import { lifeplanSchema } from '../db/lifeplan';
 import { deceasedRecordSchema } from '../db/deceasedrecord';
 
@@ -32,6 +33,13 @@ export const getLifeplansQuerySchema = z.intersection(
   z.object({
     search: z.string().optional(),
     companyid: z.coerce.number().int().positive().optional(),
+    status: deceasedRecordSchema.shape.servicestatus.optional(),
+    paymentstatus: paymentStatusEnum.optional(),
+    /** `true`: uses the plan's casket/benefits; `false`: upgraded package. */
+    use_benefits: z
+      .enum(['true', 'false'])
+      .transform((v) => v === 'true')
+      .optional(),
     sortBy: z.keyof(getLifeplansQueryRowSchema).default('planid'),
     sortOrder: z.enum(['asc', 'desc']).default('asc'),
   }),

@@ -27,7 +27,8 @@ const FILTERS: FilterDef<Filters>[] = [
   {
     type: 'dateRange',
     key: 'dateRange',
-    label: 'Filter by date created',
+    // Limits which cases the totals count, not which LGUs are listed.
+    label: 'Count cases created between',
   },
 ];
 

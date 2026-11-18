@@ -1,6 +1,7 @@
 import { withRepeatableRead } from '@/util/with-repeatable-read';
 import type { GetLifeplansQuery, GetLifeplansQueryRow } from 'shared';
 import { toExclusiveEndBound } from '@/util/date';
+import { paymentStatusCondition } from '@/util/payment-status';
 
 const SORT_COLUMNS: Record<keyof GetLifeplansQueryRow, string> = {
   planid: 'l.planid',
@@ -29,6 +30,9 @@ export const getLifeplans = async ({
   limit,
   search,
   companyid,
+  status,
+  paymentstatus,
+  use_benefits,
   startDate,
   endDate,
   sortBy,
@@ -110,6 +114,29 @@ export const getLifeplans = async ({
     )`);
     queryParams.push(`%${search}%`);
     paramIndex++;
+  }
+
+  if (status) {
+    whereConditions.push(`dr.servicestatus = $${paramIndex}`);
+    queryParams.push(status);
+    paramIndex++;
+  }
+
+  if (use_benefits !== undefined) {
+    // A NULL `use_benefits` is treated as using the benefits, as elsewhere.
+    whereConditions.push(`COALESCE(l.use_benefits, true) = $${paramIndex}`);
+    queryParams.push(use_benefits);
+    paramIndex++;
+  }
+
+  if (paymentstatus) {
+    whereConditions.push(
+      paymentStatusCondition(
+        paymentstatus,
+        'c.totalamount',
+        'COALESCE(t.totalpaid, 0)',
+      ),
+    );
   }
 
   if (startDate) {
