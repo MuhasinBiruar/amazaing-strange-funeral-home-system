@@ -1,12 +1,17 @@
 .git
+.idea
 .vscode
 node_modules
 client/node_modules
 server/node_modules
+shared/node_modules
 client/.next
 server/dist
+shared/dist
+**/tsconfig.tsbuildinfo
 **/.env
 **/.env.*
+!**/.env.example
 **/*.log
 .DS_Store
 README.md
