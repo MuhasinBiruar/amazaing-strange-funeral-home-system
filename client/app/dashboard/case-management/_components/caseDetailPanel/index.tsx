@@ -140,7 +140,7 @@ export default function CaseDetailPanel({
     try {
       await updateRepresentative(representativeid, {
         firstname: representativeForm.firstname,
-        middlename: representativeForm.middlename,
+        middlename: representativeForm.middlename || null,
         lastname: representativeForm.lastname,
         relationship: representativeForm.relationship || null,
         contactnumber: representativeForm.contactnumber,

@@ -121,13 +121,46 @@ export default function AuditPanel({
       });
   }, [audit, targetType]);
 
+  /** Checks the "Resolve this discrepancy" fields; returns what's missing. */
+  function resolveProblem(): string | null {
+    const unit = targetType === 'formalin' ? 'liters' : 'caskets';
+    if (currentStock.trim() === '')
+      return `Enter the actual current stock (${unit} counted during this audit).`;
+    if (!Number.isFinite(Number(currentStock)) || Number(currentStock) < 0)
+      return 'Actual current stock cannot be negative.';
+    if (targetType === 'casket' && !Number.isInteger(Number(currentStock)))
+      return 'Actual current stock must be a whole number of caskets.';
+    if (deliveries.length === 0)
+      return 'This item has no delivery history to correct, so the discrepancy cannot be resolved here.';
+    if (!selectedDeliveryId)
+      return 'Select the delivery record to correct from the delivery history table.';
+    if (correctedQuantity.trim() === '' || !(Number(correctedQuantity) > 0))
+      return 'Corrected quantity received must be greater than 0.';
+    if (targetType === 'casket' && !Number.isInteger(Number(correctedQuantity)))
+      return 'Corrected quantity received must be a whole number of caskets.';
+    if (
+      correctedTotalAmountPaid.trim() === '' ||
+      !(Number(correctedTotalAmountPaid) >= 0)
+    )
+      return 'Enter the corrected total paid (0 or more).';
+    return null;
+  }
+
   async function save() {
     setError(null);
     if (audit) {
+      const resolving = audit.hasdiscrepancy && !hasDiscrepancy;
+      if (resolving) {
+        const problem = resolveProblem();
+        if (problem) {
+          setError(problem);
+          return;
+        }
+      }
       const parsed = updateInventoryAuditQuerySchema.safeParse({
         auditdate: new Date(auditdate),
         hasdiscrepancy: hasDiscrepancy,
-        ...(audit.hasdiscrepancy && !hasDiscrepancy
+        ...(resolving
           ? {
               currentstock: Number(currentStock),
               deliveryid: Number(selectedDeliveryId),
@@ -332,6 +365,7 @@ export default function AuditPanel({
                   setSelectedDeliveryId(String(delivery.deliveryid));
                   setCorrectedQuantity(String(delivery.quantityreceived));
                   setCorrectedTotalAmountPaid(String(delivery.totalamountpaid));
+                  setError(null);
                 }}
                 isRowSelected={(delivery) =>
                   delivery.deliveryid === Number(selectedDeliveryId)

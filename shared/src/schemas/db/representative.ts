@@ -6,7 +6,7 @@ import { contactNumberSchema } from '@/utils/contact-number-schema';
 export const representativeSchema = z.object({
   representativeid: z.int32(),
   firstname: nameSchema('First name'),
-  middlename: nameSchema('Middle name'),
+  middlename: nameSchema('Middle name', false),
   lastname: nameSchema('Last name'),
   relationship: withNullDefault(z.string().min(1)),
   contactnumber: contactNumberSchema,

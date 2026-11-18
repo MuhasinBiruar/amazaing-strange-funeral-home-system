@@ -35,6 +35,7 @@ const SORT_COLUMNS: Record<keyof Case, string> = {
  * `http://localhost:4000/cases`
  * `http://localhost:4000/cases?search=Juan`
  * `http://localhost:4000/cases?caseid=123`
+ * `http://localhost:4000/cases?representativeid=7`
  * `http://localhost:4000/cases?status=active`
  * `http://localhost:4000/cases?plantype=LGU`
  * `http://localhost:4000/cases?search=Dela%20Cruz&status=pending&sortBy=burialdatedeadline&sortOrder=asc&page=1&limit=20`
@@ -49,6 +50,8 @@ router.get(
         limit,
         search,
         caseid,
+        representativeid,
+        noBurialRecord,
         status,
         plantype,
         startDate,
@@ -108,9 +111,23 @@ router.get(
         whereConditions.push(`dr.caseid = $${paramIndex}`);
         queryParams.push(caseid);
         paramIndex++;
-      } else {
-        whereConditions.push('c.contractid IS NOT NULL');
       }
+
+      if (representativeid !== undefined) {
+        whereConditions.push(`dr.representedby = $${paramIndex}`);
+        queryParams.push(representativeid);
+        paramIndex++;
+      }
+
+      // The case log only lists contracted cases; looking up one case or one
+      // representative's cases includes those still at intake.
+      if (caseid === undefined && representativeid === undefined)
+        whereConditions.push('c.contractid IS NOT NULL');
+
+      if (noBurialRecord)
+        whereConditions.push(
+          'NOT EXISTS (SELECT 1 FROM public.burialrecord br WHERE br.caseid = dr.caseid)',
+        );
 
       if (status) {
         whereConditions.push(`dr.servicestatus = $${paramIndex}`);

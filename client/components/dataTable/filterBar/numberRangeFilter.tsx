@@ -69,7 +69,11 @@ export default function NumberRangeFilter({
         placeholder="Min"
         value={min}
         onChange={(e) => setMin(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && commit()}
+        onKeyDown={(e) => {
+          if (e.key !== 'Enter') return;
+          e.preventDefault();
+          commit();
+        }}
         className={inputClass}
       />
       <span className="text-gray-300">–</span>
@@ -81,7 +85,11 @@ export default function NumberRangeFilter({
         placeholder="Max"
         value={max}
         onChange={(e) => setMax(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && commit()}
+        onKeyDown={(e) => {
+          if (e.key !== 'Enter') return;
+          e.preventDefault();
+          commit();
+        }}
         className={inputClass}
       />
       {isSet && (

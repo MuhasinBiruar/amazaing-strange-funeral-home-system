@@ -48,6 +48,7 @@ export default function TableFooter({
 
       <div className="flex items-center gap-1.5">
         <button
+          type="button"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page <= 1}
           className="flex items-center gap-1 text-sm border border-gray-200 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
@@ -71,6 +72,7 @@ export default function TableFooter({
           const isCurrent = page === p;
           return (
             <button
+              type="button"
               key={`page-${p}`}
               onClick={() => setPage(p as number)}
               className={`text-sm rounded-md px-3 py-1.5 min-w-8 transition-colors ${
@@ -85,6 +87,7 @@ export default function TableFooter({
         })}
 
         <button
+          type="button"
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           disabled={page >= totalPages}
           className="flex items-center gap-1 text-sm border border-gray-200 rounded-md px-2 py-1.5 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"

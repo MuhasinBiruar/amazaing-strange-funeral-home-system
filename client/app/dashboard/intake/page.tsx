@@ -32,6 +32,11 @@ export default function IntakePage() {
       lguid: '',
       locationOfDeath: '',
       documentRequirements: '[]',
+      // Representative: 'new' fills in the fields below; 'existing' reuses
+      // one picked from the list (label restores the "Selected" line).
+      rep_mode: 'new',
+      rep_existingid: '',
+      rep_existinglabel: '',
     },
   );
   // Keep uploaded files separate from the rest of the form data.

@@ -20,6 +20,7 @@ const AGENT_HOME = '/view-lifeplan';
 const PATH_ACCESS_MAP: Record<string, AccessPage> = {
   '/dashboard/intake': 'intake_page',
   '/dashboard/case-management': 'case_page',
+  '/dashboard/special-cases': 'special_case_page',
   '/dashboard/inventory': 'inventory_page',
   '/dashboard/financials': 'financial_page',
 };

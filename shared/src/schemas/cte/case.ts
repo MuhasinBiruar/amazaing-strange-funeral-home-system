@@ -31,6 +31,10 @@ export const getCasesQuerySchema = z.intersection(
   z.object({
     search: z.string().optional(),
     caseid: z.coerce.number().int().positive().optional(),
+    /** Only cases this representative represents, including uncontracted ones. */
+    representativeid: z.coerce.number().int().positive().optional(),
+    /** Only cases that don't have a burial record yet. */
+    noBurialRecord: z.stringbool().optional(),
     status: caseSchema.shape.servicestatus.optional(),
     plantype: caseSchema.shape.plantype.optional(),
     sortBy: z.keyof(caseSchema).default('caseid'),

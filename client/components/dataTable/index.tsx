@@ -63,6 +63,7 @@ export default function DataTable<
   onDeleted,
   selectionActions,
   legend,
+  pageSize,
 }: {
   title: string;
   /**
@@ -126,6 +127,11 @@ export default function DataTable<
    * status column. Its height is reserved when sizing the page.
    */
   legend?: ReactNode;
+  /**
+   * Fixed rows per page. Omit to fit the page to the viewport, which suits a
+   * table that fills the page but not one far down a long form.
+   */
+  pageSize?: number;
 }) {
   const { isAdmin, isSuperadmin } = useAuth();
   const canDelete = deletable !== undefined && isAdmin;
@@ -160,13 +166,14 @@ export default function DataTable<
 
   const chromeHeight = headerHeight + theadHeight + footerHeight;
 
-  const [containerRef, limit] = useDynamicLimit<HTMLDivElement>({
+  const [containerRef, dynamicLimit] = useDynamicLimit<HTMLDivElement>({
     rowHeight: ROW_HEIGHT_PX,
     chromeHeight,
     outsideChromeSelector: 'footer',
     minLimit: 2,
     maxLimit: 50,
   });
+  const limit = pageSize ?? dynamicLimit;
 
   const [prevDboSearch, setPrevDboSearch] = useState(dboSearch);
   if (dboSearch !== prevDboSearch) {

@@ -40,7 +40,12 @@ export async function downloadOfficialReceiptPdf(
       marginTop: 10,
       fontFamily: 'Helvetica-Bold',
     },
-    footer: { marginTop: 42, fontSize: 9, textAlign: 'center' },
+    footer: {
+      marginTop: 42,
+      fontSize: 10,
+      fontFamily: 'Helvetica-Bold',
+      textAlign: 'center',
+    },
   });
 
   const amount = (value: string | number | null | undefined) =>
@@ -116,7 +121,7 @@ export async function downloadOfficialReceiptPdf(
           )}
         </View>
         <Text style={styles.footer}>
-          This document serves as an official receipt.
+          This does not serve as an official receipt.
         </Text>
       </Page>
     </Document>

@@ -1,12 +1,47 @@
 import axios from 'axios';
 import {
   getRepresentativeResponseSchema,
+  getRepresentativesResponseSchema,
   representativeSchema,
   type CreateRepresentativeQuery,
+  type GetRepresentativesQuery,
   type UpdateRepresentativeQuery,
 } from 'shared';
 import { API } from './api';
 import { extractErrorMessage } from './utils/extractErrorMessage';
+
+/**
+ * Lists representatives (with how many cases each represents), for picking
+ * an existing representative at intake.
+ */
+export async function getRepresentatives({
+  page,
+  limit,
+  sortBy,
+  sortOrder,
+  search,
+  startDate,
+  endDate,
+  signal,
+}: Omit<GetRepresentativesQuery, 'startDate'> & {
+  startDate?: string | undefined;
+  signal?: AbortSignal;
+}) {
+  const params = new URLSearchParams();
+  params.append('page', String(page));
+  params.append('limit', String(limit));
+  params.append('sortBy', sortBy);
+  params.append('sortOrder', sortOrder);
+  if (search) params.append('search', search);
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+
+  const result = await API.get(`/representatives?${params}`, {
+    withCredentials: true,
+    signal,
+  });
+  return getRepresentativesResponseSchema.parse(result.data);
+}
 
 export async function createRepresentative(payload: CreateRepresentativeQuery) {
   try {
