@@ -4,7 +4,10 @@ import { useState } from 'react';
 import type { Case, FormalinInventory } from 'shared';
 import { Save } from 'lucide-react';
 import DataTable from '@/components/dataTable';
-import type { DataTableColumn } from '@/components/dataTable/types';
+import type {
+  DataTableColumn,
+  FilterDef,
+} from '@/components/dataTable/types';
 import LoadingButton from '@/components/loadingButton';
 import SidePanel from '@/components/sidePanel';
 import { useSidePanel } from '@/components/sidePanel/useSidePanel';
@@ -21,6 +24,24 @@ type CaseColumn =
   | 'total_formalin_used'
   | 'last_formalin_use_date'
   | 'servicestatus';
+
+type CaseFilters = {
+  formalinUsed: boolean | null;
+};
+
+const DEFAULT_CASE_FILTERS: CaseFilters = { formalinUsed: null };
+
+const CASE_FILTERS: FilterDef<CaseFilters>[] = [
+  {
+    type: 'select',
+    key: 'formalinUsed',
+    options: [
+      { label: 'All cases', value: null },
+      { label: 'Formalin not used yet', value: false },
+      { label: 'Formalin already used', value: true },
+    ],
+  },
+];
 
 /**
  * Records formalin used on a case, which reduces the current inventory.
@@ -181,18 +202,24 @@ export default function FormalinRecordPanel({
                 : 'Choose the case receiving the formalin.'}
             </p>
           </div>
-          <DataTable<Case, CaseColumn>
+          <DataTable<Case, CaseColumn, CaseFilters>
             title="Cases"
             countLabel={(total) => `${total} cases`}
             searchPlaceholder="Search cases..."
+            filters={CASE_FILTERS}
+            defaultFilters={DEFAULT_CASE_FILTERS}
             columns={caseColumns}
             rowKey={(row) => row.caseid}
             defaultSortBy="deceased_name"
             defaultSortOrder="asc"
             onRowClick={setSelectedCase}
             isRowSelected={(row) => row.caseid === selectedCase?.caseid}
-            fetchData={({ filters: _filters, ...params }) =>
-              getCases({ ...params, sortBy: params.sortBy as never })
+            fetchData={({ filters, ...params }) =>
+              getCases({
+                ...params,
+                sortBy: params.sortBy as never,
+                formalinUsed: filters.formalinUsed ?? undefined,
+              })
             }
             emptyMessage="No cases found."
             legend={<ServiceStatusLegend />}
