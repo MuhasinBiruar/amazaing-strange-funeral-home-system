@@ -6,7 +6,6 @@ import {
   financialsLink,
   formatPeso,
 } from './helpers';
-import { formatPhilippineDateTime } from '@/util/format';
 
 /** How often a payment reminder repeats while a balance is outstanding. */
 const PAYMENT_REMINDER_INTERVAL_DAYS = 7;
@@ -29,7 +28,9 @@ export const rules: Rule[] = [
         targetname: string;
         auditdate: string;
       }>(
-        `SELECT ia.auditid, ia.auditdate,
+        // `auditdate` is a plain date; formatting it in SQL keeps a time
+        // (midnight shifted to the server's time zone) out of the message.
+        `SELECT ia.auditid, to_char(ia.auditdate, 'Mon FMDD, YYYY') AS auditdate,
            CASE WHEN ia.formalinid IS NOT NULL
              THEN 'Formalin stock'
              ELSE CONCAT('Casket: ', ci.caskettype)
@@ -42,7 +43,7 @@ export const rules: Rule[] = [
         dedupekey: `inventory_discrepancy:${row.auditid}`,
         title: 'Inventory discrepancy reported',
         message:
-          `${row.targetname} has a discrepancy from the audit dated ${formatPhilippineDateTime(row.auditdate)}. ` +
+          `${row.targetname} has a discrepancy from the audit dated ${row.auditdate}. ` +
           'To resolve it: edit the audit, count the actual stock, select the affected delivery, correct its quantity and total paid, uncheck "Discrepancy found", and then save.',
         caseid: null,
         link: '/dashboard/inventory?tab=audit',
