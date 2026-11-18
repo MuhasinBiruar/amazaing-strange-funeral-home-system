@@ -52,6 +52,7 @@ router.get(
         caseid,
         representativeid,
         noBurialRecord,
+        formalinUsed,
         status,
         plantype,
         startDate,
@@ -127,6 +128,12 @@ router.get(
       if (noBurialRecord)
         whereConditions.push(
           'NOT EXISTS (SELECT 1 FROM public.burialrecord br WHERE br.caseid = dr.caseid)',
+        );
+
+      // `fu` only has rows for cases with formalin usage.
+      if (formalinUsed !== undefined)
+        whereConditions.push(
+          formalinUsed ? 'fu.caseid IS NOT NULL' : 'fu.caseid IS NULL',
         );
 
       if (status) {
