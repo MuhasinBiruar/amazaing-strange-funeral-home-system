@@ -78,6 +78,12 @@ export default function SummaryPanel() {
     ...buckets.flatMap((b) => [Number(b.totalIn), Number(b.totalOut)]),
   );
 
+  const isBucketPartial = (b: FinancialBucket) =>
+    current.level === 'week' && current.startDate
+      ? isPartialWeek(b.startDate, b.endDate, current.startDate)
+      : false;
+  const hasPartialBucket = buckets.some(isBucketPartial);
+
   function handleBarClick(b: FinancialBucket) {
     if (current.level === 'day') {
       // DayDetailsPanel takes a string
@@ -184,77 +190,122 @@ export default function SummaryPanel() {
       ) : buckets.length === 0 ? (
         <p className="text-sm text-gray-400">No data for this period.</p>
       ) : (
-        <div className="flex items-end gap-3 h-40 overflow-x-auto pb-2">
-          {buckets.map((b) => {
-            const inHeight =
-              Number(b.totalIn) > 0
-                ? Math.max(4, (Number(b.totalIn) / maxValue) * 100)
-                : 0;
-            const outHeight =
-              Number(b.totalOut) > 0
-                ? Math.max(4, (Number(b.totalOut) / maxValue) * 100)
-                : 0;
-            const partial =
-              current.level === 'week' && current.startDate
-                ? isPartialWeek(b.startDate, b.endDate, current.startDate)
-                : false;
-
-            // Tooltip end: clamp to the visible range, then step back from exclusive.
-            const tooltipEnd = new Date(
-              current.endDate && b.endDate > current.endDate
-                ? current.endDate
-                : b.endDate,
-            );
-            tooltipEnd.setUTCDate(tooltipEnd.getUTCDate() - 1);
-            const formattedTooltipEnd = tooltipEnd.toLocaleDateString(
-              undefined,
-              {
-                month: 'short',
-                day: 'numeric',
-                timeZone: 'UTC',
-              },
-            );
-
-            return (
-              <div
-                key={b.startDate.toISOString()}
-                className="flex flex-col items-center gap-1 min-w-14"
-              >
-                <button
-                  type="button"
-                  onClick={() => handleBarClick(b)}
-                  className="flex items-end gap-1 h-32 cursor-pointer group"
-                  title="Click to see more"
+        <>
+          <ul
+            aria-label="Chart legend"
+            className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-600"
+          >
+            <li className="flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className="inline-block w-3 h-3 rounded-sm border-2 border-emerald-600"
+              />
+              <span>
+                <span className="font-medium text-gray-900">Money in</span> —
+                payments received
+              </span>
+            </li>
+            <li className="flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className="inline-block w-3 h-3 rounded-sm border-2 border-red-500"
+              />
+              <span>
+                <span className="font-medium text-gray-900">Money out</span> —
+                expenses, casket/formalin deliveries and refunds
+              </span>
+            </li>
+            {hasPartialBucket && (
+              <li className="flex items-center gap-1.5">
+                <span
+                  aria-hidden
+                  className="text-amber-500 text-sm leading-none"
                 >
-                  <div
-                    className="w-4 border-2 border-emerald-600 bg-transparent group-hover:bg-emerald-500 rounded-t transition-all"
-                    style={{ height: `${inHeight}%` }}
-                  />
-                  <div
-                    className="w-4 border-2 border-red-500 bg-transparent group-hover:bg-red-500 rounded-t transition-all"
-                    style={{ height: `${outHeight}%` }}
-                  />
-                </button>
-
-                <span className="text-[10px] text-gray-600 whitespace-nowrap text-center flex items-center justify-center gap-1">
-                  {formatBucketLabel(
-                    current.level,
-                    b.startDate,
-                    current.startDate,
-                  )}
-                  {partial && (
-                    <span
-                      title={`${formatBucketLabel(current.level, b.startDate, current.startDate)} - ${formattedTooltipEnd}`}
-                      className="text-amber-500 text-sm leading-none cursor-help"
-                    >
-                      ◐
-                    </span>
-                  )}
+                  ◐
                 </span>
-              </div>
-            );
-          })}
-        </div>
+                <span>
+                  <span className="font-medium text-gray-900">
+                    Partial week
+                  </span>{' '}
+                  — only part of the week is in range
+                </span>
+              </li>
+            )}
+            <li className="text-gray-400">
+              {current.level === 'day'
+                ? 'Click a bar to see that day’s records.'
+                : 'Click a bar to zoom in.'}
+            </li>
+          </ul>
+          <div className="flex items-end gap-3 h-40 overflow-x-auto pb-2">
+            {buckets.map((b) => {
+              const inHeight =
+                Number(b.totalIn) > 0
+                  ? Math.max(4, (Number(b.totalIn) / maxValue) * 100)
+                  : 0;
+              const outHeight =
+                Number(b.totalOut) > 0
+                  ? Math.max(4, (Number(b.totalOut) / maxValue) * 100)
+                  : 0;
+              const partial = isBucketPartial(b);
+
+              // Tooltip end: clamp to the visible range, then step back from exclusive.
+              const tooltipEnd = new Date(
+                current.endDate && b.endDate > current.endDate
+                  ? current.endDate
+                  : b.endDate,
+              );
+              tooltipEnd.setUTCDate(tooltipEnd.getUTCDate() - 1);
+              const formattedTooltipEnd = tooltipEnd.toLocaleDateString(
+                undefined,
+                {
+                  month: 'short',
+                  day: 'numeric',
+                  timeZone: 'UTC',
+                },
+              );
+
+              return (
+                <div
+                  key={b.startDate.toISOString()}
+                  className="flex flex-col items-center gap-1 min-w-14"
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleBarClick(b)}
+                    className="flex items-end gap-1 h-32 cursor-pointer group"
+                    title="Click to see more"
+                  >
+                    <div
+                      className="w-4 border-2 border-emerald-600 bg-transparent group-hover:bg-emerald-500 rounded-t transition-all"
+                      style={{ height: `${inHeight}%` }}
+                    />
+                    <div
+                      className="w-4 border-2 border-red-500 bg-transparent group-hover:bg-red-500 rounded-t transition-all"
+                      style={{ height: `${outHeight}%` }}
+                    />
+                  </button>
+
+                  <span className="text-[10px] text-gray-600 whitespace-nowrap text-center flex items-center justify-center gap-1">
+                    {formatBucketLabel(
+                      current.level,
+                      b.startDate,
+                      current.startDate,
+                    )}
+                    {partial && (
+                      <span
+                        title={`${formatBucketLabel(current.level, b.startDate, current.startDate)} - ${formattedTooltipEnd}`}
+                        className="text-amber-500 text-sm leading-none cursor-help"
+                      >
+                        ◐
+                      </span>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {selectedDay && (
