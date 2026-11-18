@@ -32,8 +32,5 @@
     "shared": "*",
     "tailwindcss": "^4",
     "typescript": "^5"
-  },
-  "optionalDependencies": {
-    "@tailwindcss/oxide-linux-x64-gnu": "^4.3.3"
   }
 }
