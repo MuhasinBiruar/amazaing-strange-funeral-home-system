@@ -10,6 +10,9 @@ Create `client/.env` and `server/.env` (copy the `.env.example` files).
 Docker Compose is stricter than Next.js about `.env` files: every line must be
 `KEY=value`, a comment starting with `#`, or blank.
 
+Containers run in the `Asia/Manila` time zone (`TZ` in the `Dockerfile`), not
+Docker's default of UTC, so dates match the browser on any host.
+
 ## Development
 
 ```bash

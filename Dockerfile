@@ -3,6 +3,9 @@ ARG NODE_VERSION=22.21.1
 
 FROM node:${NODE_VERSION}-slim AS base
 WORKDIR /usr/src/app
+# Containers default to UTC; run in the business's time zone so "today" and
+# server-rendered dates match the browser. Override with `-e TZ=...`.
+ENV TZ=Asia/Manila
 RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 # Installs every workspace's dependencies from the lockfile.
